@@ -1,0 +1,114 @@
+{
+  "header": {
+    "home": "Accueil",
+    "services": "Services",
+    "about": "À Propos",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "profile": "Mon profil",
+    "dashboard": "Tableau de bord",
+    "orders": "Mes commandes",
+    "hello": "Bonjour",
+    "language": "العربية"
+  },
+  "hero": {
+    "title_1": "Des expériences",
+    "title_2": "inoubliables",
+    "title_3": "des destinations de",
+    "title_4": "rêve",
+    "description": "Découvrez le monde avec Bouazize Travel. Nous organisons vos voyages sur mesure avec passion, sécurité et confort. L'excellence est notre standard.",
+    "cta": "Explorer"
+  },
+  "services": {
+    "title": "Destinations Visa",
+    "description": "Choisissez votre prochaine destination et laissez-nous nous occuper de vos démarches en toute sérénité.",
+    "see_all": "Toutes nos destinations",
+    "visa": "Visa & Démarches",
+    "omra": "Nos Offres Omra",
+    "voyage": "Voyages Organisés",
+    "hotels": "Hôtellerie",
+    "coming_soon": "Bientôt"
+  },
+  "voyage": {
+    "title": "Voyage Organisé",
+    "description": "Découvrez nos voyages organisés soigneusement conçus pour vous offrir des expériences inoubliables aux quatre coins du monde.",
+    "see_all": "Toutes nos destinations"
+  },
+  "omra": {
+    "title": "Nos Offres Omra",
+    "description": "Nous vous accompagnons dans votre pèlerinage avec des offres adaptées, incluant hébergement et transport de qualité.",
+    "see_all": "Toutes nos offres Omra",
+    "guarantee": "Garantie",
+    "no_guarantee": "Sans garantie",
+    "half_guarantee": "Demi garantie"
+  },
+  "about": {
+    "title": "Qui sommes nous ?",
+    "description": "Bouazize Travel est une agence de voyage spécialisée dans l'organisation de séjours sur mesure et l'obtention simplifiée de visas en ligne. Forts de notre expertise et de notre engagement envers un service de qualité, nous vous accompagnons à chaque étape de votre voyage, en vous offrant des solutions rapides, sécurisées et adaptées à vos besoins.",
+    "why_title": "Pourquoi choisir Bouazize Travel ?",
+    "why_1": "Expérience et expertise dans le secteur du voyage",
+    "why_2": "Support client réactif et assistance dédiée",
+    "why_3": "Tarifs compétitifs et transparence totale",
+    "why_4": "Sécurité et fiabilité pour toutes vos démarches",
+    "service_title": "Un service complet pour des voyages sans souci",
+    "service_intro": "Vous pouvez désormais faire votre demande de visa en quelques clics, sans tracas ni déplacements inutiles. Notre site vous permet de :",
+    "service_1": "Réservation de billets d'avion aux meilleurs tarifs",
+    "service_2": "Séjours personnalisés et circuits organisés",
+    "service_3": "Assistance pour l'obtention de visas en ligne",
+    "service_4": "Assurance voyage et conseils pratiques"
+  },
+  "footer": {
+    "brand_description": "Bouazize Travel est une société spécialisée dans l'organisation de voyages à travers le monde. Nous faisons de vos rêves de voyage une réalité.",
+    "services_title": "Services",
+    "agency_title": "L'Agence",
+    "about_link": "À Propos de Nous",
+    "client_space": "Espace Client",
+    "contact_title": "Contact",
+    "copyright": "Tous droits réservés.",
+    "designed_by": "Conçu avec passion par"
+  },
+  "auth": {
+    "login_title": "Connexion",
+    "register_title": "Créer un compte",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "confirm_password": "Confirmer le mot de passe",
+    "name": "Nom complet",
+    "phone": "Numéro de téléphone",
+    "login_btn": "Se connecter",
+    "register_btn": "S'inscrire",
+    "forgot_password": "Mot de passe oublié ?",
+    "no_account": "Vous n'avez pas de compte ?",
+    "have_account": "Vous avez déjà un compte ?",
+    "reset_title": "Réinitialiser le mot de passe",
+    "reset_btn": "Envoyer"
+  },
+  "profile": {
+    "general": "Général",
+    "address": "Adresse",
+    "margins": "Marges",
+    "banks": "Banques",
+    "security": "Sécurité",
+    "balance": "Solde",
+    "debts": "Dettes",
+    "individual": "Individuel",
+    "business": "Entreprise"
+  },
+  "common": {
+    "search": "Rechercher...",
+    "loading": "Chargement en cours...",
+    "no_data": "Données non trouvées",
+    "save": "Sauvegarder",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "edit": "Modifier",
+    "confirm": "Confirmer",
+    "reset": "Réinitialiser",
+    "download": "Télécharger",
+    "filter": "Filtrer",
+    "all": "Tous",
+    "currency": "DZD",
+    "our_services": "Nos Services"
+  }
+}

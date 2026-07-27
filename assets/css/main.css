@@ -1,0 +1,228 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme{
+    --color-primary: #d2a749;
+    --color-primary-hover: #b8923f;
+    --color-secondary: #0A0B25;
+    --color-secondary-light: #151740;
+    --font-display: "Inter";
+}
+
+:root {
+    --ui-primary: #d2a749;
+    --ui-primary-hover: #b8923f;
+    --ui-secondary: #0A0B25;
+    --ui-secondary-light: #151740;
+    --ui-violet: #0A0B25;
+    --font-weight-header: 600;
+    --ui-radius: 0rem;
+}
+
+/* Dark mode theme configuration */
+.dark {
+    color-scheme: dark;
+}
+
+.dark body {
+    background-color: #050617;
+    color: #ffffff;
+}
+
+/* Universal Heading & Text Color Overrides in Dark Mode */
+.dark h1, 
+.dark h2, 
+.dark h3, 
+.dark h4, 
+.dark h5, 
+.dark h6 {
+    color: #ffffff !important;
+}
+
+.dark .text-secondary,
+.dark .text-secondary-light,
+.dark [class*="text-secondary"],
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-neutral-900,
+.dark .text-neutral-800 {
+    color: #ffffff !important;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-600,
+.dark .text-slate-700,
+.dark .text-slate-600,
+.dark .text-neutral-700,
+.dark .text-neutral-600 {
+    color: #cbd5e1 !important;
+}
+
+.dark .text-gray-500,
+.dark .text-slate-500,
+.dark .text-neutral-500 {
+    color: #94a3b8 !important;
+}
+
+/* Header Navigation Links in Dark Mode */
+.dark .nav-link {
+    color: #ffffff !important;
+}
+
+.dark .nav-link:hover,
+.dark .nav-link.router-link-active {
+    color: var(--color-primary) !important;
+}
+
+/* Hardcoded Light Utility Overrides in Dark Mode (Excluding Invoices) */
+.dark .bg-neutral-100:not(.pdf-content *),
+.dark .bg-neutral-200:not(.pdf-content *),
+.dark .bg-gray-100:not(.pdf-content *),
+.dark .bg-gray-200:not(.pdf-content *),
+.dark .bg-slate-100:not(.pdf-content *),
+.dark .bg-slate-200:not(.pdf-content *) {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    border-color: #334155 !important;
+}
+
+.dark .bg-white:not(.pdf-content):not(.pdf-content *) {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+}
+
+.dark .bg-gray-50:not(.pdf-content *),
+.dark .bg-slate-50:not(.pdf-content *) {
+    background-color: #050617 !important;
+}
+
+.dark .border-gray-100:not(.pdf-content *),
+.dark .border-gray-200:not(.pdf-content *),
+.dark .border-slate-100:not(.pdf-content *),
+.dark .border-slate-200:not(.pdf-content *),
+.dark .border-neutral-200:not(.pdf-content *),
+.dark .border-neutral-300:not(.pdf-content *) {
+    border-color: #1e293b !important;
+}
+
+/* Form fields, inputs, textareas & modals in dark mode */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="date"],
+.dark input[type="file"],
+.dark textarea,
+.dark select {
+    background-color: #020617 !important;
+    border-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: #64748b !important;
+}
+
+.dark label,
+.dark .u-form-field-label {
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+/* Slideover & Modal Overlays in dark mode */
+.dark [role="dialog"],
+.dark .u-slideover-content,
+.dark .u-modal-content {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #1e293b !important;
+}
+
+/* Table Dark Mode Adjustments (Excluding Invoice Tables) */
+.dark table:not(.pdf-content table) th {
+    background-color: #020617 !important;
+    color: #ffffff !important;
+    border-color: #1e293b !important;
+}
+
+.dark table:not(.pdf-content table) td,
+.dark table:not(.pdf-content table) tr {
+    border-color: #1e293b !important;
+    color: #cbd5e1 !important;
+}
+
+/* STRICT INVOICE LOCKDOWN: Lock Invoices to 100% Original Light Mode Styling */
+html.dark .pdf-content,
+.pdf-content {
+    background-color: #ffffff !important;
+    color: #333333 !important;
+}
+
+html.dark .pdf-content *,
+.pdf-content * {
+    color: #333333 !important;
+}
+
+html.dark .pdf-content .invoice-date-label,
+html.dark .pdf-content .invoice-table-header,
+html.dark .pdf-content .invoice-total-label,
+.pdf-content .invoice-date-label,
+.pdf-content .invoice-table-header,
+.pdf-content .invoice-total-label {
+    color: #ffffff !important;
+    background-color: #333333 !important;
+}
+
+html.dark .pdf-content .invoice-table-body,
+html.dark .pdf-content table tbody tr,
+.pdf-content .invoice-table-body,
+.pdf-content table tbody tr {
+    background-color: #ffffff !important;
+    border-color: rgb(155, 153, 153) !important;
+}
+
+html.dark .pdf-content table td,
+html.dark .pdf-content table th,
+.pdf-content table td,
+.pdf-content table th {
+    border-color: rgb(155, 153, 153) !important;
+}
+
+/* Global smooth transition for theme switches */
+body, header, aside, main, div, button, input, textarea, select {
+    transition-property: background-color, border-color, color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+}
+
+/* Glassmorphism Utilities */
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.glass-dark {
+    background: rgba(10, 11, 37, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.header div, p {
+    font-weight: var(--font-weight-header);
+}
+
+.header .logo-text {
+    font-size: 18px;
+}
+
+.header .login {
+    padding: 5px 15px;
+    background-color: var(--color-primary-60);
+    border-radius: 10px;
+}
