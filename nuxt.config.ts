@@ -33,7 +33,7 @@ export default defineNuxtConfig({
       },
     ],
   },
-  ssr:true,
+  ssr:false,
   ui: {
     // prefix: 'Nuxt',
     colorMode: true,
