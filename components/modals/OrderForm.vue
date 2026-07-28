@@ -147,21 +147,7 @@ const guaranteeColor = (value)=>{
     return color
 }
 
-const disableCredit = computed(() => {
-    if (role !== 'business') return false;
-    const balanceInfo = authStore.User?.balance;
-    if (!balanceInfo) return true;
-    
-    const totalPrice = (offer.value?.price || 0) * (clientOrder.value.members || 1);
-    const available = (balanceInfo.balance || 0) - (balanceInfo.debts || 0);
-    return available < totalPrice;
-});
-
-watch(disableCredit, (newVal) => {
-    if (newVal && clientOrder.value.payment_method === 'credit') {
-        clientOrder.value.payment_method = 'ccp';
-    }
-});
+const disableCredit = false;
 
 const maxFiles = computed(() => {
     const docsCount = offer.value?.documents?.length || 0

@@ -270,6 +270,7 @@ const getDocExt = (url) => {
 const downloadSingleFile = async (url) => {
     try {
         const response = await fetch(url)
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`)
         const blob = await response.blob()
         const filename = getDocName(url)
         saveAs(blob, filename)

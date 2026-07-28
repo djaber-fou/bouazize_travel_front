@@ -275,6 +275,7 @@ const downloadProofFile = async () => {
   const url = selectedPayment.value.proof_file
   try {
     const response = await fetch(url)
+    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`)
     const blob = await response.blob()
     
     let filename = getDocName(url)
