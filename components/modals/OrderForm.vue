@@ -83,7 +83,7 @@
                     </div>
                     
                     <!-- B2B Payment Method Selector -->
-                    <div v-if="role === 'business'" class="bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
+                    <div v-if="['business', 'Business', 'Entreprise', 'entreprise'].includes(role)" class="bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
                         <PaymentMethodSelector v-model="clientOrder.payment_method" :disableCredit="disableCredit" />
                     </div>
 
@@ -229,13 +229,14 @@ const submitOrder = async ()=>{
         loading.value = true
         const formData = new FormData()
         formData.append('members', clientOrder.value.members)
-        if (role.value === 'business') {
+        const isBusiness = ['business', 'Business', 'Entreprise', 'entreprise'].includes(role.value)
+        if (isBusiness) {
             formData.append('payment_method', clientOrder.value.payment_method)
         }
         clientOrder.value.file.forEach(file=>{
             formData.append('file[]',file)
         })
-        const url = role.value === "business"? 'business/order': 'individual/order'
+        const url = isBusiness ? 'business/order': 'individual/order'
         sendApi(`/client/${props.service}/offers/${props.id}/${url}`, formData, 'POST').then((response)=>{
             if (response) {
                 console.log(response)
@@ -246,7 +247,7 @@ const submitOrder = async ()=>{
                 emit('close')
                 
                 // Redirect to CCP payment confirmation if it's B2C or B2B with CCP
-                if (role.value === 'individual' || (role.value === 'business' && clientOrder.value.payment_method === 'ccp')) {
+                if (!isBusiness || (isBusiness && clientOrder.value.payment_method === 'ccp')) {
                     router.push(`/payment/confirm?order_id=${orderId}&type=${props.service}&amount=${amount}`)
                 } else {
                     toast.add({ title: "Commande créée avec succès (Crédit/Facture)", color: 'green' })
