@@ -140,16 +140,20 @@
             <div class="flex-1 bg-gray-100 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden flex items-center justify-center min-h-[400px] relative group">
               <template v-if="selectedPayment.proof_file">
                 <iframe 
-                  v-if="selectedPayment.proof_file.endsWith('.pdf')" 
+                  v-if="getDocExt(selectedPayment.proof_file) === 'pdf'" 
                   :src="selectedPayment.proof_file" 
-                  class="w-full h-full min-h-[500px] border-0"
+                  class="w-full h-[600px] rounded-lg border-0 bg-white"
                 ></iframe>
                 <img 
-                  v-else 
+                  v-else-if="['jpg','jpeg','png','webp','gif'].includes(getDocExt(selectedPayment.proof_file))" 
                   :src="selectedPayment.proof_file" 
                   class="w-full h-full object-contain p-4 max-h-[600px]" 
                   alt="Reçu de paiement"
                 />
+                <div v-else class="flex flex-col items-center justify-center p-12 text-gray-500 bg-gray-50 dark:bg-slate-800 rounded-lg">
+                  <UIcon name="i-heroicons-document" class="w-24 h-24 mb-4 text-gray-400" />
+                  <p class="font-medium">Document attaché ({{ getDocExt(selectedPayment.proof_file).toUpperCase() }})</p>
+                </div>
                 <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <UButton color="white" icon="i-heroicons-arrow-down-tray" @click="downloadProofFile" size="sm">
                     Télécharger
@@ -272,19 +276,29 @@ const downloadProofFile = async () => {
     const response = await fetch(url)
     const blob = await response.blob()
     
-    // Extract filename from URL or generate one
-    let filename = 'recu_paiement.jpg'
-    try {
-      const parts = url.split('/')
-      filename = parts[parts.length - 1].split('?')[0]
-      filename = decodeURIComponent(filename)
-    } catch (e) {}
+    let filename = getDocName(url)
+    if (filename === 'Document') filename = `recu_paiement_${selectedPayment.value.id}.${getDocExt(url) || 'jpg'}`
     
     saveAs(blob, filename)
   } catch (e) {
     console.error(e)
     window.open(url, '_blank')
   }
+}
+
+const getDocName = (url) => {
+    if (!url) return 'Document'
+    try {
+        const parts = url.split('/')
+        let filename = parts[parts.length - 1].split('?')[0]
+        filename = decodeURIComponent(filename)
+        return filename
+    } catch { return 'Document' }
+}
+
+const getDocExt = (url) => {
+    if (!url) return ''
+    return url.split('.').pop().split('?')[0].toLowerCase()
 }
 
 onMounted(() => {
