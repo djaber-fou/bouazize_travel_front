@@ -11,7 +11,7 @@
                 <div class="flex flex-col gap-5">
                     <div class="flex flex-col gap-1 items-start">
                         <div class="w-full flex justify-between items-center">
-                            <img src="/images/logo/bouazize-logo.png" width="120"/>
+                            <img src="/images/logo/logo-new.png" width="120"/>
                             <div class="text-slate-900">relever de compte</div>
                         </div>
                         <p class="text-slate-900">Bouazize Travel</p>

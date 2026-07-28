@@ -4,7 +4,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                 <!-- Brand Info -->
                 <div class="space-y-6">
-                    <img src="/images/logo/bouazize-logo.png" alt="Bouazize Travel" class="w-20 object-contain grayscale brightness-200 opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-500"/>
+                    <img src="/images/logo/logo-new.png" alt="Bouazize Travel" class="w-20 object-contain grayscale brightness-200 opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-500"/>
                     <p class="text-sm leading-relaxed text-gray-500 font-light">
                         Bouazize Travel est une société spécialisée dans l’organisation de voyages à travers le monde. Nous faisons de vos rêves de voyage une réalité.
                     </p>

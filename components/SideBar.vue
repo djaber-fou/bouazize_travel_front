@@ -7,7 +7,7 @@
         <div class="h-16 px-4 border-b border-slate-100 dark:border-slate-800 flex items-center shrink-0" :class="isCollapsed ? 'justify-center' : 'justify-start'">
             <nuxt-link to="/x8dj29msk" class="flex items-center gap-3 overflow-hidden">
                 <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20 shadow-xs">
-                    <img src="/images/logo/bouazize-logo.png" class="w-7 h-7 object-contain" alt="Bouazize Logo"/>
+                    <img src="/images/logo/logo-new.png" class="w-7 h-7 object-contain" alt="Bouazize Logo"/>
                 </div>
                 <div v-if="!isCollapsed" class="flex flex-col min-w-0 transition-opacity duration-200">
                     <span class="font-bold text-base text-slate-900 dark:text-slate-100 leading-snug truncate">
