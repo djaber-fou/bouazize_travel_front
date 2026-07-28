@@ -64,12 +64,17 @@ const countries = ref([])
 
 const getFullImageUrl = (url) => {
   if (!url) return null;
-  if (url.startsWith('http')) return url;
+  let path = url;
+  try {
+    if (url.startsWith('http')) {
+      path = new URL(url).pathname;
+    }
+  } catch(e) {}
   
   const baseUrl = import.meta.env.VITE_BASE_URL || 'http://127.0.0.1:8000/api';
   const rootUrl = baseUrl.replace('/api', '');
   
-  return `${rootUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  return `${rootUrl}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
 onMounted(() => {
