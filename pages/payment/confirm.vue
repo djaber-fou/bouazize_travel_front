@@ -102,7 +102,7 @@
                     <div class="flex text-sm text-gray-600 dark:text-slate-400 justify-center">
                       <label class="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary-600 focus-within:outline-none">
                         <span>{{ fileSelected ? fileSelected.name : 'Télécharger un fichier' }}</span>
-                        <input ref="fileInput" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png" @change="handleFileUpload">
+                        <input ref="fileInput" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" @change="handleFileUpload">
                       </label>
                     </div>
                     <p v-if="!fileSelected" class="text-xs text-gray-500 dark:text-slate-500">PNG, JPG, PDF jusqu'à 5MB</p>

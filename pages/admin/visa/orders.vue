@@ -193,6 +193,7 @@
             <template #header>
                 <div class="flex justify-between items-center">
                     <h2 class="text-xl font-bold text-gray-900 dark:text-white">Documents de la commande #{{ selectedDocsOrderId }}</h2>
+                    <UButton :loading="loadingDocsZip" loading-icon="i-lucide-loader-circle" icon="i-heroicons-arrow-down-tray" @click="downloadAllDocs" color="primary" variant="solid" label="Télécharger Tout" />
                 </div>
             </template>
             <template #body>
@@ -201,7 +202,7 @@
                         <div v-for="(doc, index) in selectedOrderDocs" :key="index" class="flex flex-col gap-2 bg-white dark:bg-slate-900 p-4 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
                             <div class="flex justify-between items-center mb-2">
                                 <span class="font-bold text-secondary">Document {{ index + 1 }}</span>
-                                <UButton icon="i-heroicons-arrow-down-tray" :to="doc" target="_blank" size="sm" color="primary" variant="soft" label="Télécharger" />
+                                <UButton icon="i-heroicons-arrow-down-tray" :to="doc.replace('/upload/', '/upload/fl_attachment/')" target="_blank" size="sm" color="primary" variant="soft" label="Télécharger" />
                             </div>
                             <div class="bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center h-64">
                                 <iframe v-if="doc.endsWith('.pdf')" :src="doc" class="w-full h-full border-0"></iframe>
@@ -227,6 +228,8 @@ import Invoice from '~/components/invoices/Invoice.vue'
 import html2canvas from 'html2canvas'
 import axios from 'axios'
 import { useAuthStore } from '#imports'
+import JSZip from 'jszip'
+import { saveAs } from 'file-saver'
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
 const overlay = useOverlay()
@@ -242,6 +245,37 @@ const openDocsViewer = (orderId, docs) => {
     selectedDocsOrderId.value = orderId
     selectedOrderDocs.value = docs
     openDocsModal.value = true
+}
+
+const loadingDocsZip = ref(false)
+
+const downloadAllDocs = async () => {
+    if (!selectedOrderDocs.value?.length) return
+    loadingDocsZip.value = true
+    
+    try {
+        const zip = new JSZip()
+        const folderName = `commande_${selectedDocsOrderId.value}_documents`
+        const folder = zip.folder(folderName)
+        
+        const promises = selectedOrderDocs.value.map(async (docUrl, index) => {
+            // Using fetch directly might fail due to CORS on some old assets if not setup, but Cloudinary usually sets proper CORS headers for raw URLs
+            const response = await fetch(docUrl)
+            const blob = await response.blob()
+            const ext = docUrl.split('.').pop().split('?')[0] || 'jpg'
+            folder.file(`document_${index + 1}.${ext}`, blob)
+        })
+        
+        await Promise.all(promises)
+        
+        const content = await zip.generateAsync({ type: 'blob' })
+        saveAs(content, `${folderName}.zip`)
+    } catch (e) {
+        console.error(e)
+        useToast().add({title:"Erreur", description:"Erreur lors de la préparation du fichier zip", color:"red"})
+    } finally {
+        loadingDocsZip.value = false
+    }
 }
 
 const openConfirmation = async(id, action)=> {
