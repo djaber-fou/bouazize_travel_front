@@ -14,14 +14,14 @@
                     <swiper-slide v-for="(country, index) in countries" :key="index" class="py-4">
                         <nuxt-link :to="`services/visa/${country.id}`" class="block group relative overflow-hidden bg-gray-50 aspect-[3/4] border border-gray-100 hover:shadow-lg transition-all duration-300">
                             <!-- Image -->
-                            <img :src="country.landmark ?? '/images/illustrations/landmark.png'" class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" alt="Landmark" />
+                            <img :src="country.landmark ? getFullImageUrl(country.landmark) : '/images/illustrations/landmark.png'" class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" alt="Landmark" />
                             
                             <!-- Gradient Overlay -->
                             <div class="absolute inset-0 bg-gradient-to-t from-secondary/80 to-transparent"></div>
                             
                             <!-- Content -->
                             <div class="absolute inset-x-0 bottom-0 p-6 flex flex-col items-center text-center">
-                                <UAvatar :src="country.flag" size="md" :ui="{image:'object-cover border-2 border-white'}" class="mb-3 shadow-md"/>
+                                <UAvatar :src="getFullImageUrl(country.flag)" size="md" :ui="{image:'object-cover border-2 border-white'}" class="mb-3 shadow-md"/>
                                 <h3 class="text-xl font-bold text-white uppercase tracking-wider">{{ country.country }}</h3>
                                 <div class="w-0 h-0.5 bg-primary mt-3 group-hover:w-12 transition-all duration-300"></div>
                             </div>
@@ -61,6 +61,16 @@ const swiper = useSwiper(containerRef, {
 })
 
 const countries = ref([])
+
+const getFullImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  
+  const baseUrl = import.meta.env.VITE_BASE_URL || 'http://127.0.0.1:8000/api';
+  const rootUrl = baseUrl.replace('/api', '');
+  
+  return `${rootUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+}
 
 onMounted(() => {
     getCountries()
