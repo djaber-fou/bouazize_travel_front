@@ -201,12 +201,16 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div v-for="(doc, index) in selectedOrderDocs" :key="index" class="flex flex-col gap-2 bg-white dark:bg-slate-900 p-4 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="font-bold text-secondary">Document {{ index + 1 }}</span>
-                                <UButton icon="i-heroicons-arrow-down-tray" :to="doc.replace('/upload/', '/upload/fl_attachment/')" target="_blank" size="sm" color="primary" variant="soft" label="Télécharger" />
+                                <span class="font-bold text-secondary truncate" :title="getDocName(doc)">{{ getDocName(doc) }}</span>
+                                <UButton icon="i-heroicons-arrow-down-tray" @click="downloadSingleFile(doc)" size="sm" color="primary" variant="soft" label="Télécharger" />
                             </div>
                             <div class="bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center h-64">
-                                <iframe v-if="doc.endsWith('.pdf')" :src="doc" class="w-full h-full border-0"></iframe>
-                                <img v-else :src="doc" class="w-full h-full object-contain" />
+                                <iframe v-if="getDocExt(doc) === 'pdf'" :src="doc" class="w-full h-full border-0"></iframe>
+                                <img v-else-if="['jpg','jpeg','png','webp','gif'].includes(getDocExt(doc))" :src="doc" class="w-full h-full object-contain" />
+                                <div v-else class="flex flex-col items-center gap-2 text-gray-500">
+                                    <UIcon name="i-heroicons-document" class="w-16 h-16" />
+                                    <span class="text-sm">{{ getDocName(doc) }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -247,6 +251,35 @@ const openDocsViewer = (orderId, docs) => {
     openDocsModal.value = true
 }
 
+const getDocName = (url) => {
+    if (!url) return 'Document'
+    try {
+        const parts = url.split('/')
+        let filename = parts[parts.length - 1].split('?')[0]
+        // Remove Cloudinary timestamp suffix like _1785276823
+        filename = decodeURIComponent(filename)
+        return filename
+    } catch { return 'Document' }
+}
+
+const getDocExt = (url) => {
+    if (!url) return ''
+    return url.split('.').pop().split('?')[0].toLowerCase()
+}
+
+const downloadSingleFile = async (url) => {
+    try {
+        const response = await fetch(url)
+        const blob = await response.blob()
+        const filename = getDocName(url)
+        saveAs(blob, filename)
+    } catch (e) {
+        console.error(e)
+        // Fallback: open in new tab
+        window.open(url, '_blank')
+    }
+}
+
 const loadingDocsZip = ref(false)
 
 const downloadAllDocs = async () => {
@@ -259,11 +292,10 @@ const downloadAllDocs = async () => {
         const folder = zip.folder(folderName)
         
         const promises = selectedOrderDocs.value.map(async (docUrl, index) => {
-            // Using fetch directly might fail due to CORS on some old assets if not setup, but Cloudinary usually sets proper CORS headers for raw URLs
             const response = await fetch(docUrl)
             const blob = await response.blob()
-            const ext = docUrl.split('.').pop().split('?')[0] || 'jpg'
-            folder.file(`document_${index + 1}.${ext}`, blob)
+            const filename = getDocName(docUrl)
+            folder.file(filename, blob)
         })
         
         await Promise.all(promises)

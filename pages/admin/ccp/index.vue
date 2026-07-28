@@ -151,7 +151,7 @@
                   alt="Reçu de paiement"
                 />
                 <div class="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <UButton color="white" icon="i-heroicons-arrow-down-tray" :to="selectedPayment.proof_file" target="_blank" size="sm">
+                  <UButton color="white" icon="i-heroicons-arrow-down-tray" @click="downloadProofFile" size="sm">
                     Télécharger
                   </UButton>
                 </div>
@@ -170,6 +170,7 @@
 
 <script setup>
 import { h, resolveComponent } from 'vue'
+import { saveAs } from 'file-saver'
 
 definePageMeta({
     layout: 'admin'
@@ -262,6 +263,29 @@ const isRejectModalOpen = ref(false)
 const rejectionReason = ref('')
 const isRejecting = ref(false)
 const paymentToReject = ref(null)
+
+const downloadProofFile = async () => {
+  if (!selectedPayment.value?.proof_file) return
+  
+  const url = selectedPayment.value.proof_file
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    
+    // Extract filename from URL or generate one
+    let filename = 'recu_paiement.jpg'
+    try {
+      const parts = url.split('/')
+      filename = parts[parts.length - 1].split('?')[0]
+      filename = decodeURIComponent(filename)
+    } catch (e) {}
+    
+    saveAs(blob, filename)
+  } catch (e) {
+    console.error(e)
+    window.open(url, '_blank')
+  }
+}
 
 onMounted(() => {
   fetchPayments()
