@@ -127,7 +127,7 @@ const clientOrder = ref({
 })
 
 const authStore = useAuthStore()
-const role = authStore.User?.role 
+const role = computed(() => authStore.User?.role)
 const authorization = authStore.Authorization
 
 const guaranteeValue = (value)=>{
@@ -229,13 +229,13 @@ const submitOrder = async ()=>{
         loading.value = true
         const formData = new FormData()
         formData.append('members', clientOrder.value.members)
-        if (role === 'business') {
+        if (role.value === 'business') {
             formData.append('payment_method', clientOrder.value.payment_method)
         }
         clientOrder.value.file.forEach(file=>{
             formData.append('file[]',file)
         })
-        const url = role === "business"? 'business/order': 'individual/order'
+        const url = role.value === "business"? 'business/order': 'individual/order'
         sendApi(`/client/${props.service}/offers/${props.id}/${url}`, formData, 'POST').then((response)=>{
             if (response) {
                 console.log(response)
@@ -246,7 +246,7 @@ const submitOrder = async ()=>{
                 emit('close')
                 
                 // Redirect to CCP payment confirmation if it's B2C or B2B with CCP
-                if (role === 'individual' || (role === 'business' && clientOrder.value.payment_method === 'ccp')) {
+                if (role.value === 'individual' || (role.value === 'business' && clientOrder.value.payment_method === 'ccp')) {
                     router.push(`/payment/confirm?order_id=${orderId}&type=${props.service}&amount=${amount}`)
                 } else {
                     toast.add({ title: "Commande créée avec succès (Crédit/Facture)", color: 'green' })
