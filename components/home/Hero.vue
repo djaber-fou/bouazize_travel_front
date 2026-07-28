@@ -188,17 +188,15 @@ const stats = ref({
 
 const getFullImageUrl = (url) => {
   if (!url) return null;
-  let path = url;
-  try {
-    if (url.startsWith('http')) {
-      path = new URL(url).pathname;
-    }
-  } catch(e) {}
+  if (url.startsWith('http')) return url;
   
   const baseUrl = import.meta.env.VITE_BASE_URL || 'http://127.0.0.1:8000/api';
   const rootUrl = baseUrl.replace('/api', '');
   
-  return `${rootUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+  const path = url.startsWith('/') ? url : '/' + url;
+  const finalPath = path.startsWith('/storage') ? path : '/storage' + path;
+  
+  return rootUrl + finalPath;
 }
 
 // Re-initialize swiper configuration whenever heroSwiper ref changes

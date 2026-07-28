@@ -14,7 +14,7 @@
                     <swiper-slide v-for="(offer, index) in offers" :key="index" class="py-4">
                         <div @click="openForm(offer?.id)" class="block cursor-pointer group relative overflow-hidden bg-gray-50 aspect-[3/4] border border-gray-100 hover:shadow-lg transition-all duration-300">
                             <!-- Image -->
-                            <img :src="getFullImageUrl(offer?.country_flag)" class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" alt="Omra" />
+                            <img :src="offer?.country_flag" class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" alt="Omra" />
                             
                             <!-- Gradient Overlay -->
                             <div class="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/40 to-transparent"></div>
@@ -133,17 +133,6 @@ const getOffers = async() => {
         }
     } catch (e) {
         console.error(e)
-    }
-}
-
-const getFullImageUrl = (url) => {
-    if (!url) return ''
-    try {
-        const baseUrl = import.meta.env.VITE_BASE_URL.replace(/\/api$/, '')
-        const urlObj = new URL(url)
-        return `${baseUrl}${urlObj.pathname}`
-    } catch (e) {
-        return url
     }
 }
 </script>

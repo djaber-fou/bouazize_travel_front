@@ -12,7 +12,7 @@
             <div class="grid md:grid-cols-2 grid-cols-1 gap-12 px-6 md:px-12 lg:px-24 py-8 max-w-7xl mx-auto">
                 <!-- Left: Offer Details -->
                 <div class="flex flex-col gap-8 items-center md:items-start bg-gray-50/50 dark:bg-slate-900 p-8 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm h-fit">
-                    <img :src="getFullImageUrl(offer?.country_flag)" class="w-full aspect-[4/3] object-cover rounded-none shadow-lg hover:shadow-xl transition-shadow duration-500"/>
+                    <img :src="offer?.country_flag" class="w-full aspect-[4/3] object-cover rounded-none shadow-lg hover:shadow-xl transition-shadow duration-500"/>
                     <div class="flex flex-col gap-4 w-full">
                         <div class="flex flex-wrap gap-3">
                             <UBadge size="lg" class="font-bold shadow-sm" variant="subtle" :color="guaranteeColor(offer?.guarantee)">
@@ -282,15 +282,5 @@ const submitOrder = async ()=>{
     }
 }
 
-const getFullImageUrl = (url) => {
-    if (!url) return ''
-    try {
-        const baseUrl = import.meta.env.VITE_BASE_URL.replace(/\/api$/, '')
-        const urlObj = new URL(url)
-        return `${baseUrl}${urlObj.pathname}`
-    } catch (e) {
-        return url
-    }
-}
 
 </script>  

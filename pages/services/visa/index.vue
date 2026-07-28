@@ -20,10 +20,10 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full mt-6">
             <div class="relative group cursor-pointer overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500" v-for="(country, index) in countries" :key="index">
                 <nuxt-link :to="`visa/${country.id}`">
-                    <img :src="country.landmark ? getFullImageUrl(country.landmark) : '/images/illustrations/landmark.png'" class="aspect-[3/4] w-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"/>
+                    <img :src="country.landmark ?? '/images/illustrations/landmark.png'" class="aspect-[3/4] w-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"/>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-5">
                         <div class="flex items-center gap-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                            <UAvatar :src="getFullImageUrl(country.flag)" size="md" :ui="{image:'object-cover', rounded: 'rounded-none'}" class="ring-2 ring-white/50 shadow-xl"/>
+                            <UAvatar :src="country.flag" size="md" :ui="{image:'object-cover', rounded: 'rounded-none'}" class="ring-2 ring-white/50 shadow-xl"/>
                             <div class="text-white text-2xl font-bold tracking-wide drop-shadow-md">
                                 {{ country.country }}
                             </div>
@@ -45,23 +45,7 @@
 <script setup>
 
 const search = ref("")
-const countries = ref([])
-
-const getFullImageUrl = (url) => {
-  if (!url) return null;
-  let path = url;
-  try {
-    if (url.startsWith('http')) {
-      path = new URL(url).pathname;
-    }
-  } catch(e) {}
-  
-  const baseUrl = import.meta.env.VITE_BASE_URL || 'http://127.0.0.1:8000/api';
-  const rootUrl = baseUrl.replace('/api', '');
-  
-  return `${rootUrl}${path.startsWith('/') ? '' : '/'}${path}`;
-}
-
+const countries = ref([]);
 const pagination = ref({
   pageIndex: localStorage.getItem('current_page') ? localStorage.getItem('current_page') - 1 : undefined,
   pageSize: undefined,

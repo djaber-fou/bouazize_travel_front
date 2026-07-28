@@ -5,7 +5,7 @@
                 <UCard>
                     <template #header>
                         <div class="">
-                            <img :src="getFullImageUrl(offer?.country_flag)" class="object-cover"/>
+                            <img :src="offer?.country_flag" class="object-cover"/>
                         </div>
                     </template>
                     <template #footer>
@@ -68,17 +68,6 @@ const pagination = ref({
   totalItems:undefined,
   totalPages:undefined
 })
-
-const getFullImageUrl = (url) => {
-    if (!url) return ''
-    try {
-        const baseUrl = import.meta.env.VITE_BASE_URL.replace(/\/api$/, '')
-        const urlObj = new URL(url)
-        return `${baseUrl}${urlObj.pathname}`
-    } catch (e) {
-        return url
-    }
-}
 
 
 onMounted(()=>{

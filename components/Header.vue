@@ -3,7 +3,7 @@
         <div class="w-full px-6 md:px-12">
             <nav class="flex justify-between items-center">
                 <nuxt-link to="/" class="flex gap-3 items-center z-[101]">
-                    <img src="/images/logo/logo-new.png" class="w-12 h-12 object-contain" alt="Bouazize Logo"/>
+                    <img src="/images/logo/bouazize-logo.png" class="w-12 h-12 object-contain" alt="Bouazize Logo"/>
                     <div class="max-[400px]:hidden">
                         <p class="font-bold text-2xl tracking-tight transition-colors duration-300" :class="showMenu ? 'text-white' : 'text-secondary dark:text-white'">
                             Bouazize <span class="text-primary">Travel</span>

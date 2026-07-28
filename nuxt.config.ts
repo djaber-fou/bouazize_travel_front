@@ -2,9 +2,8 @@
 export default defineNuxtConfig({
   app:{
     head:{
-      title: 'Bouazize Travel',
       link:[
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-new.png' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon.png' },
       ]
     }
   },
