@@ -418,7 +418,7 @@ const columns = [
                     size:"17",
                     class:"cursor-pointer text-secondary",
                     title:"Voir les documents",
-                    onClick:()=>{openDocsViewer(row.original.id, row.original.file)}
+                    onClick:()=>{openDocsViewer(row.original.id, row.original.documents)}
                 },
             ),
             
