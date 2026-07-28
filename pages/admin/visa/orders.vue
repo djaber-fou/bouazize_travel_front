@@ -233,7 +233,8 @@ import html2canvas from 'html2canvas'
 import axios from 'axios'
 import { useAuthStore } from '#imports'
 import JSZip from 'jszip'
-import { saveAs } from 'file-saver'
+import pkg from 'file-saver'
+const { saveAs } = pkg
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
 const overlay = useOverlay()

@@ -174,7 +174,8 @@
 
 <script setup>
 import { h, resolveComponent } from 'vue'
-import { saveAs } from 'file-saver'
+import pkg from 'file-saver'
+const { saveAs } = pkg
 
 definePageMeta({
     layout: 'admin'
