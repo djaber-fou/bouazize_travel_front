@@ -189,6 +189,32 @@
                 </div>
             </template>
         </UModal>
+        <UModal v-model:open="openDocsModal" fullscreen>
+            <template #header>
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Documents de la commande #{{ selectedDocsOrderId }}</h2>
+                </div>
+            </template>
+            <template #body>
+                <div class="p-6 bg-gray-50 dark:bg-slate-950 min-h-full">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div v-for="(doc, index) in selectedOrderDocs" :key="index" class="flex flex-col gap-2 bg-white dark:bg-slate-900 p-4 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-secondary">Document {{ index + 1 }}</span>
+                                <UButton icon="i-heroicons-arrow-down-tray" :to="doc" target="_blank" size="sm" color="primary" variant="soft" label="Télécharger" />
+                            </div>
+                            <div class="bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center h-64">
+                                <iframe v-if="doc.endsWith('.pdf')" :src="doc" class="w-full h-full border-0"></iframe>
+                                <img v-else :src="doc" class="w-full h-full object-contain" />
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="!selectedOrderDocs?.length" class="text-center text-gray-500 py-10">
+                        Aucun document trouvé pour cette commande.
+                    </div>
+                </div>
+            </template>
+        </UModal>
   </div>
 </template>
 
@@ -208,6 +234,15 @@ const order = ref({})
 const action = ref(null)
 const orderAction = ref(null)
 
+const openDocsModal = ref(false)
+const selectedOrderDocs = ref([])
+const selectedDocsOrderId = ref(null)
+
+const openDocsViewer = (orderId, docs) => {
+    selectedDocsOrderId.value = orderId
+    selectedOrderDocs.value = docs
+    openDocsModal.value = true
+}
 
 const openConfirmation = async(id, action)=> {
     const modal = overlay.create(Confirmation, {
@@ -379,10 +414,11 @@ const columns = [
             h(
                 UIcon,
                 {
-                    name:"i-material-symbols-download",
+                    name:"i-lucide-folder-open",
                     size:"17",
                     class:"cursor-pointer text-secondary",
-                    onClick:()=>{downloadZip(row.original.user.name,row.original.id)}
+                    title:"Voir les documents",
+                    onClick:()=>{openDocsViewer(row.original.id, row.original.file)}
                 },
             ),
             
@@ -544,22 +580,12 @@ const createInvoice = async()=>{
     })
 }
 
-const downloadZip = async (user,id)=> {
-    const authStore = useAuthStore();
-    const token = authStore.Authorization.token;
-    const response = await useFetch(import.meta.env.VITE_BASE_URL+`/admin/visa/orders/${id}/download`,{
-        method:'GET',
-        headers:{
-            Accept:'Application/json',
-            Authorization:'Bearer '+token
-        }
-    })
-    const blob = response.data.value
-    const url = window.URL.createObjectURL(blob);
-
+const downloadZip = async (id, name)=> {
+    const response = await sendApi(`/admin/visa/orders/${id}/download`, null, 'GET', { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([response]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', user+'.zip');
+    link.setAttribute('download', name + '.zip');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
