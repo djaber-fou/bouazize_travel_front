@@ -10,7 +10,7 @@
                 }">
                     <template #header>
                         <div class="relative overflow-hidden aspect-[4/3]">
-                            <img :src="offer?.country_flag" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"/>
+                            <img :src="getFullImageUrl(offer?.country_flag)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"/>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         </div>
                     </template>
@@ -86,6 +86,17 @@ const pagination = ref({
   totalItems:undefined,
   totalPages:undefined
 })
+
+const getFullImageUrl = (url) => {
+    if (!url) return ''
+    try {
+        const baseUrl = import.meta.env.VITE_BASE_URL.replace(/\/api$/, '')
+        const urlObj = new URL(url)
+        return `${baseUrl}${urlObj.pathname}`
+    } catch (e) {
+        return url
+    }
+}
 
 
 onMounted(()=>{
