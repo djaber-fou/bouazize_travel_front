@@ -79,7 +79,7 @@
                                 <div class="text-sm font-medium text-gray-500">Fichiers sélectionnés</div>
                             </div>
                         </div>    
-                        <input type="file" ref="fileInput" @change="onFileChange" class="hidden" :multiple="maxFiles > 1" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"/>
+                        <input type="file" ref="fileInput" @change="onFileChange" class="hidden" :multiple="maxFiles > 1" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.zip,.rar"/>
                     </div>
                     
                     <!-- B2B Payment Method Selector -->
