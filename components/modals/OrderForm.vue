@@ -280,6 +280,10 @@ const submitOrder = async ()=>{
                 const orderId = response.data?.order_id
                 const amount = offer.value?.price * clientOrder.value.members
                 
+                if (orderId) {
+                    sendApi(`/client/${props.service}/orders/${orderId}/sync`, null, 'POST').catch(()=>{});
+                }
+                
                 reset()
                 emit('close')
                 

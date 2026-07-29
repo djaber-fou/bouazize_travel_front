@@ -272,6 +272,10 @@ const addCountry = async ()=>{
     formData.append('is_voyage_organise', country.value.is_voyage_organise)
     loading.value = true
     sendApi('/admin/countries/add',formData,'POST').then(response=>{
+        const countryId = response.data?.country_id
+        if (countryId) {
+            sendApi(`/admin/countries/${countryId}/sync`, null, 'POST').catch(()=>{});
+        }
         getCountries()
         open.value = false
         loading.value = false
@@ -296,6 +300,10 @@ const updateCountry = async(id)=>{
     formData.append('_method','PUT')
     loading.value = true
     sendApi(`/admin/countries/${id}/update`,formData,'POST').then(response=>{
+        const countryId = response.data?.country_id
+        if (countryId) {
+            sendApi(`/admin/countries/${countryId}/sync`, null, 'POST').catch(()=>{});
+        }
         getCountries(pagination.value.pageIndex + 1)
         open.value = false
         loading.value = false
