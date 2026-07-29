@@ -101,23 +101,7 @@ const columns = [
         accessorKey: 'commission',
         header: "Commission",
     },
-    {
-    id: 'actions',
-    cell: ({ row }) => {
-        return h(
-            'div',
-            { class: 'flex gap-3 items-center' },
-            h(
-                UIcon,
-                {
-                    name:"i-material-symbols-edit-square-outline-rounded",
-                    size:"17",
-                    class:"cursor-pointer text-primary",
-                    onClick:()=>{getCountry(row.original.id)}
-                },
-            ),
-        )}
-    }, 
+    }
 ]
 
 const data = ref([])
