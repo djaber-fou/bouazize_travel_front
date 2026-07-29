@@ -1,7 +1,7 @@
 <template>
     <div class="w-full space-y-4 pb-4 px-6 py-6 bg-slate-50/70 dark:bg-slate-950 min-h-full transition-colors duration-300">
         <div class="flex flex-col gap-5">
-            <div class="flex gap-5 w-full justify-center">
+            <div class="flex flex-col sm:flex-row gap-5 w-full justify-center items-center">
                 <div class="flex items-center gap-2">
                     <div class="text-primary font-bold">De:</div>
                     <UPopover>
