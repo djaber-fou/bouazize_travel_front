@@ -87,13 +87,18 @@
                         <PaymentMethodSelector v-model="clientOrder.payment_method" :disableCredit="disableCredit" />
                     </div>
 
-                    <div class="flex flex-col sm:flex-row justify-start gap-4 pt-4 border-t border-gray-100 dark:border-slate-800">
-                        <UButton :loading="loading" loading-icon="i-lucide-loader-circle" @click="submitOrder" class="font-bold text-lg px-8 py-3 rounded-none shadow-md hover:shadow-lg transition-all" color="primary" label="Confirmer la réservation">
-                            <template #trailing>
-                                <UIcon name="i-heroicons-paper-airplane" class="w-5 h-5 ml-2" />
-                            </template>
-                        </UButton>
-                        <UButton @click="reset" variant="soft" color="gray" class="font-bold px-6 py-3 rounded-none" label="Réinitialiser"/>
+                    <div class="flex flex-col gap-2 w-full pt-4 border-t border-gray-100 dark:border-slate-800">
+                        <div v-if="loading" class="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700 mb-2">
+                            <div class="bg-primary h-1.5 rounded-full transition-all duration-300" :style="{ width: uploadProgress + '%' }"></div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row justify-start gap-4">
+                            <UButton :loading="loading" loading-icon="i-lucide-loader-circle" @click="submitOrder" class="font-bold text-lg px-8 py-3 rounded-none shadow-md hover:shadow-lg transition-all" color="primary" :label="loadingText">
+                                <template #trailing>
+                                    <UIcon name="i-heroicons-paper-airplane" class="w-5 h-5 ml-2" v-if="!loading" />
+                                </template>
+                            </UButton>
+                            <UButton @click="reset" variant="soft" color="gray" class="font-bold px-6 py-3 rounded-none" label="Réinitialiser" :disabled="loading"/>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -119,6 +124,8 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 const toast = useToast()
 const loading = ref(false)
+const loadingText = ref('Confirmer la réservation')
+const uploadProgress = ref(0)
 const offer = ref({})
 const clientOrder = ref({
     members:1,
@@ -242,6 +249,8 @@ const submitOrder = async ()=>{
 
     if(clientOrder.value.file.length === maxFiles.value){
         loading.value = true
+        uploadProgress.value = 0
+        loadingText.value = 'Envoi des fichiers (0%)...'
         const formData = new FormData()
         formData.append('members', clientOrder.value.members)
         const isBusiness = ['business', 'Business', 'Entreprise', 'entreprise'].includes(role.value)
@@ -251,8 +260,21 @@ const submitOrder = async ()=>{
         clientOrder.value.file.forEach(file=>{
             formData.append('file[]',file)
         })
+        
+        const configOpts = {
+            onUploadProgress: (progressEvent) => {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                uploadProgress.value = percentCompleted;
+                if (percentCompleted < 100) {
+                    loadingText.value = `Envoi des fichiers (${percentCompleted}%)...`;
+                } else {
+                    loadingText.value = 'Traitement en cours (Veuillez patienter)...';
+                }
+            }
+        }
+        
         const url = isBusiness ? 'business/order': 'individual/order'
-        sendApi(`/client/${props.service}/offers/${props.id}/${url}`, formData, 'POST').then((response)=>{
+        sendApi(`/client/${props.service}/offers/${props.id}/${url}`, formData, 'POST', configOpts).then((response)=>{
             if (response) {
                 console.log(response)
                 const orderId = response.data?.order_id
@@ -270,8 +292,10 @@ const submitOrder = async ()=>{
                 }
             }
             loading.value = false
+            loadingText.value = 'Confirmer la réservation'
         }).catch(() => {
             loading.value = false
+            loadingText.value = 'Confirmer la réservation'
         })
     }else{
         toast.add({

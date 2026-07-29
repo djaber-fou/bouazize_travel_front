@@ -20,7 +20,7 @@ import axios from 'axios'
 
 // export default Axios
 
-export const sendApi = async (path,Data,Method)=>{
+export const sendApi = async (path, Data, Method, configOpts = {}) => {
     const authStore = useAuthStore();
     const token = authStore.Authorization.token;
     
@@ -32,15 +32,12 @@ export const sendApi = async (path,Data,Method)=>{
         Headers.Authorization = 'Bearer '+token 
     }
     axios.defaults.headers = Headers
-    // axios.interceptors.response.use(response=>{
-        
-    //     console.log(response)
-    //     return response
-    // })
+
     const response = await axios({
-        method:Method,
-        url:url,
-        data:Data,
+        method: Method,
+        url: url,
+        data: Data,
+        ...configOpts
     }).then(response=>{
         // const blob = response?.config?.env?.Blob() 
         console.log(response)
