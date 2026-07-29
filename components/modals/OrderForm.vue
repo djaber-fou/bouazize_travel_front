@@ -1,5 +1,4 @@
 <template>
-  <div>
     <UModal fullscreen>
         <template #header>
             <div class="w-full flex justify-between items-center">
@@ -10,7 +9,7 @@
             </div>
         </template>
         <template #body>
-            <div class="grid md:grid-cols-2 grid-cols-1 gap-12 px-6 md:px-12 lg:px-24 py-8 max-w-7xl mx-auto">
+            <div v-if="!openCashModal" class="grid md:grid-cols-2 grid-cols-1 gap-12 px-6 md:px-12 lg:px-24 py-8 max-w-7xl mx-auto">
                 <!-- Left: Offer Details -->
                 <div class="flex flex-col gap-8 items-center md:items-start bg-gray-50/50 dark:bg-slate-900 p-8 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm h-fit">
                     <img :src="offer?.country_flag" class="w-full aspect-[4/3] object-cover rounded-none shadow-lg hover:shadow-xl transition-shadow duration-500"/>
@@ -103,38 +102,24 @@
                     </div>
                 </div>
             </div>
-        </template>
-    </UModal>
-    
-    <UModal v-model:open="openCashModal" prevent-close>
-        <template #header>
-            <div class="flex items-center gap-2 font-bold text-lg text-primary">
-                <UIcon name="i-heroicons-check-circle" class="w-6 h-6 text-green-500" />
-                Commande Confirmée
-            </div>
-        </template>
-        <template #body>
-            <div class="flex flex-col gap-4 text-center">
-                <p class="text-gray-700 dark:text-gray-300">
+            
+            <div v-else class="flex flex-col items-center justify-center h-[70vh] gap-6 text-center">
+                <UIcon name="i-heroicons-check-circle" class="w-24 h-24 text-green-500" />
+                <h2 class="text-3xl font-bold text-primary">Commande Confirmée</h2>
+                <p class="text-xl text-gray-700 dark:text-gray-300 max-w-2xl">
                     Votre commande a été créée avec succès. Veuillez vous rendre à notre agence pour effectuer le paiement en espèces et valider votre réservation.
                 </p>
-                <div class="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 flex flex-col items-center gap-2">
-                    <UIcon name="i-heroicons-map-pin" class="w-8 h-8 text-primary" />
-                    <span class="font-bold">Bouazize Travel</span>
-                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                <div class="bg-gray-50 dark:bg-slate-800 p-8 rounded-xl border border-gray-200 dark:border-slate-700 flex flex-col items-center gap-4 mt-4">
+                    <UIcon name="i-heroicons-map-pin" class="w-12 h-12 text-primary" />
+                    <span class="font-bold text-2xl">Bouazize Travel</span>
+                    <span class="text-lg text-gray-600 dark:text-gray-400">
                         123 Rue de l'Agence, Alger, Algérie
                     </span>
-                    <!-- You can replace the address above with your actual agency location -->
                 </div>
-            </div>
-        </template>
-        <template #footer>
-            <div class="flex justify-center w-full">
-                <UButton @click="closeCashModal" color="primary" class="font-bold px-8" label="Compris, OK" />
+                <UButton @click="closeCashModal" color="primary" class="font-bold px-12 py-4 text-lg mt-8 rounded-none shadow-lg" label="Compris, fermer" />
             </div>
         </template>
     </UModal>
-  </div>
 </template>
 <script setup>
 import { useAuthStore } from '#imports'
