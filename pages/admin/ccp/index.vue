@@ -63,7 +63,8 @@
     <!-- View Modal -->
     <UModal v-model:open="isViewModalOpen" fullscreen>
       <template #header>
-        <div class="flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          <UButton icon="i-heroicons-arrow-left" color="gray" variant="ghost" @click="isViewModalOpen = false" />
           <h2 class="text-xl font-bold text-gray-900 dark:text-white">Détails du paiement CCP #{{ selectedPayment?.id }}</h2>
         </div>
       </template>

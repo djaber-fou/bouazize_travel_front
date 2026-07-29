@@ -191,8 +191,11 @@
         </UModal>
         <UModal v-model:open="openDocsModal" fullscreen>
             <template #header>
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Documents de la commande #{{ selectedDocsOrderId }}</h2>
+                <div class="flex justify-between items-center w-full">
+                    <div class="flex items-center gap-4">
+                        <UButton icon="i-heroicons-arrow-left" color="gray" variant="ghost" @click="openDocsModal = false" />
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Documents de la commande #{{ selectedDocsOrderId }}</h2>
+                    </div>
                     <UButton :loading="loadingDocsZip" loading-icon="i-lucide-loader-circle" icon="i-heroicons-arrow-down-tray" @click="downloadAllDocs" color="primary" variant="solid" label="Télécharger Tout" />
                 </div>
             </template>
