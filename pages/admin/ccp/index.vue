@@ -341,11 +341,12 @@ const confirmPayment = async (id) => {
   isConfirming.value = true
   try {
     await sendApi(`/admin/ccp/payments/${id}/confirm`, {}, 'POST')
-    toast.add({ title: 'Paiement confirmé avec succès', color: 'green' })
     isViewModalOpen.value = false
     fetchPayments()
   } catch (err) {
-    toast.add({ title: err?.message || 'Erreur de confirmation', color: 'red' })
+    if (!err.response?.data?.message) {
+      toast.add({ title: err?.message || 'Erreur de confirmation', color: 'red' })
+    }
   } finally {
     isConfirming.value = false
   }
@@ -361,12 +362,13 @@ const submitReject = async () => {
   isRejecting.value = true
   try {
     await sendApi(`/admin/ccp/payments/${paymentToReject.value.id}/reject`, { rejection_reason: rejectionReason.value }, 'POST')
-    toast.add({ title: 'Paiement rejeté', color: 'orange' })
     isRejectModalOpen.value = false
     isViewModalOpen.value = false
     fetchPayments()
   } catch (err) {
-    toast.add({ title: err?.message || 'Erreur de rejet', color: 'red' })
+    if (!err.response?.data?.message) {
+      toast.add({ title: err?.message || 'Erreur de rejet', color: 'red' })
+    }
   } finally {
     isRejecting.value = false
   }

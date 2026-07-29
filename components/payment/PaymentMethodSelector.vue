@@ -16,7 +16,7 @@
           :checked="modelValue === 'ccp'"
           @change="$emit('update:modelValue', 'ccp')"
         >
-        <span class="flex flex-1">
+        <span class="flex flex-1 pr-8">
           <span class="flex flex-col">
             <span class="block text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
               <Icon name="heroicons:credit-card" class="w-5 h-5 text-primary" />
@@ -47,7 +47,7 @@
           :checked="modelValue === 'cash'"
           @change="$emit('update:modelValue', 'cash')"
         >
-        <span class="flex flex-1">
+        <span class="flex flex-1 pr-8">
           <span class="flex flex-col">
             <span class="block text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
               <Icon name="heroicons:banknotes" class="w-5 h-5 text-green-500" />
@@ -84,7 +84,7 @@
           :checked="modelValue === 'credit'"
           @change="!disableCredit && $emit('update:modelValue', 'credit')"
         >
-        <span class="flex flex-1">
+        <span class="flex flex-1 pr-8">
           <span class="flex flex-col">
             <span class="block text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
               <Icon name="heroicons:document-text" class="w-5 h-5 text-gray-600 dark:text-gray-400" />
