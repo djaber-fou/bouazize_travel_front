@@ -162,16 +162,15 @@ const clientOrder = ref({
     payment_method: 'ccp' // default to CCP
 })
 const openCashModal = ref(false)
+const authStore = useAuthStore()
+const role = computed(() => authStore.User?.role)
 const isBusiness = computed(() => ['business', 'Business', 'Entreprise', 'entreprise'].includes(role.value))
+const authorization = authStore.Authorization
 
 const closeCashModal = () => {
     openCashModal.value = false
     router.push('/client/orders')
 }
-
-const authStore = useAuthStore()
-const role = computed(() => authStore.User?.role)
-const authorization = authStore.Authorization
 
 const guaranteeValue = (value)=>{
     const guarantee = {
