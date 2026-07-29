@@ -82,9 +82,9 @@
                         <input type="file" ref="fileInput" @change="onFileChange" class="hidden" :multiple="maxFiles > 1" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.zip,.rar"/>
                     </div>
                     
-                    <!-- B2B Payment Method Selector -->
-                    <div v-if="['business', 'Business', 'Entreprise', 'entreprise'].includes(role)" class="bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <PaymentMethodSelector v-model="clientOrder.payment_method" :disableCredit="disableCredit" />
+                    <!-- Payment Method Selector -->
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
+                        <PaymentMethodSelector v-model="clientOrder.payment_method" :disableCredit="disableCredit" :showCredit="isBusiness" />
                     </div>
 
                     <div class="flex flex-col gap-2 w-full pt-4 border-t border-gray-100 dark:border-slate-800">
@@ -101,6 +101,35 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </template>
+    </UModal>
+    
+    <UModal v-model:open="openCashModal" prevent-close>
+        <template #header>
+            <div class="flex items-center gap-2 font-bold text-lg text-primary">
+                <UIcon name="i-heroicons-check-circle" class="w-6 h-6 text-green-500" />
+                Commande Confirmée
+            </div>
+        </template>
+        <template #body>
+            <div class="flex flex-col gap-4 text-center">
+                <p class="text-gray-700 dark:text-gray-300">
+                    Votre commande a été créée avec succès. Veuillez vous rendre à notre agence pour effectuer le paiement en espèces et valider votre réservation.
+                </p>
+                <div class="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 flex flex-col items-center gap-2">
+                    <UIcon name="i-heroicons-map-pin" class="w-8 h-8 text-primary" />
+                    <span class="font-bold">Bouazize Travel</span>
+                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                        123 Rue de l'Agence, Alger, Algérie
+                    </span>
+                    <!-- You can replace the address above with your actual agency location -->
+                </div>
+            </div>
+        </template>
+        <template #footer>
+            <div class="flex justify-center w-full">
+                <UButton @click="closeCashModal" color="primary" class="font-bold px-8" label="Compris, OK" />
             </div>
         </template>
     </UModal>
@@ -132,6 +161,13 @@ const clientOrder = ref({
     file:[],
     payment_method: 'ccp' // default to CCP
 })
+const openCashModal = ref(false)
+const isBusiness = computed(() => ['business', 'Business', 'Entreprise', 'entreprise'].includes(role.value))
+
+const closeCashModal = () => {
+    openCashModal.value = false
+    router.push('/client/orders')
+}
 
 const authStore = useAuthStore()
 const role = computed(() => authStore.User?.role)
@@ -253,10 +289,7 @@ const submitOrder = async ()=>{
         loadingText.value = 'Envoi des fichiers (0%)...'
         const formData = new FormData()
         formData.append('members', clientOrder.value.members)
-        const isBusiness = ['business', 'Business', 'Entreprise', 'entreprise'].includes(role.value)
-        if (isBusiness) {
-            formData.append('payment_method', clientOrder.value.payment_method)
-        }
+        formData.append('payment_method', clientOrder.value.payment_method)
         clientOrder.value.file.forEach(file=>{
             formData.append('file[]',file)
         })
@@ -273,7 +306,7 @@ const submitOrder = async ()=>{
             }
         }
         
-        const url = isBusiness ? 'business/order': 'individual/order'
+        const url = isBusiness.value ? 'business/order': 'individual/order'
         sendApi(`/client/${props.service}/offers/${props.id}/${url}`, formData, 'POST', configOpts).then((response)=>{
             if (response) {
                 console.log(response)
@@ -287,9 +320,11 @@ const submitOrder = async ()=>{
                 reset()
                 emit('close')
                 
-                // Redirect to CCP payment confirmation if it's B2C or B2B with CCP
-                if (!isBusiness || (isBusiness && clientOrder.value.payment_method === 'ccp')) {
+                // Redirect to CCP payment confirmation if it's CCP
+                if (clientOrder.value.payment_method === 'ccp') {
                     router.push(`/payment/confirm?order_id=${orderId}&type=${props.service}&amount=${amount}`)
+                } else if (clientOrder.value.payment_method === 'cash') {
+                    openCashModal.value = true
                 } else {
                     toast.add({ title: "Commande créée avec succès (Crédit/Facture)", color: 'green' })
                     router.push('/client/orders')

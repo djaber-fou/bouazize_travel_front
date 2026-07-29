@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Méthode de paiement</h3>
     
-    <div class="grid sm:grid-cols-2 gap-4">
+    <div class="grid sm:grid-cols-3 gap-4">
       <!-- CCP Option -->
       <label 
         class="relative flex cursor-pointer rounded-xl border p-4 shadow-sm focus:outline-none transition-all"
@@ -34,8 +34,40 @@
         />
       </label>
 
+      <!-- Cash Option -->
+      <label 
+        class="relative flex cursor-pointer rounded-xl border p-4 shadow-sm focus:outline-none transition-all"
+        :class="modelValue === 'cash' ? 'border-primary ring-1 ring-primary bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
+      >
+        <input 
+          type="radio" 
+          name="payment_method" 
+          value="cash" 
+          class="sr-only"
+          :checked="modelValue === 'cash'"
+          @change="$emit('update:modelValue', 'cash')"
+        >
+        <span class="flex flex-1">
+          <span class="flex flex-col">
+            <span class="block text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
+              <Icon name="heroicons:banknotes" class="w-5 h-5 text-green-500" />
+              Espèces / En Agence
+            </span>
+            <span class="mt-1 flex items-center text-xs text-gray-500 dark:text-slate-400">
+              Paiement direct à notre agence.
+            </span>
+          </span>
+        </span>
+        <Icon 
+          v-if="modelValue === 'cash'" 
+          name="heroicons:check-circle-solid" 
+          class="h-6 w-6 text-primary absolute top-4 right-4" 
+        />
+      </label>
+
       <!-- Credit Option -->
       <label 
+        v-if="showCredit"
         class="relative flex rounded-xl border p-4 shadow-sm focus:outline-none transition-all"
         :class="[
           disableCredit ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800' : 'cursor-pointer',
@@ -83,6 +115,10 @@ defineProps({
   disableCredit: {
     type: Boolean,
     default: false
+  },
+  showCredit: {
+    type: Boolean,
+    default: true
   }
 })
 

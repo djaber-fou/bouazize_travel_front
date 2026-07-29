@@ -91,7 +91,7 @@
             <template #footer>
                 <div class="w-full grid grid-row-2 gap-2">
                     <div class="w-full">
-                        <div v-if="order?.paiment_status === 'unpaid'" class="w-1/2">
+                        <div v-if="order?.paiment_status === 'unpaid' || order?.paiment_status === 'pending_payment'" class="w-1/2">
                             <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'payer')" class="w-full align-middle font-bold" color="success">
                                 <div class="w-full flex justify-between items-center">
                                     <div>Payé</div>
