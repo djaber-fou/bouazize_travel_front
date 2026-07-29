@@ -18,15 +18,15 @@
                     <div class="container mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-16 items-center relative z-10">
                         <!-- Text Content -->
                         <div class="flex flex-col justify-center gap-8">
-                            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-7xl font-bold text-secondary dark:text-white leading-[1.1] tracking-tight uppercase">
-                                Des expériences <br class="hidden md:block lg:hidden xl:block"/>
-                                <span class="text-primary italic font-serif relative inline-block">
+                            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-5xl xl:text-[4rem] 2xl:text-7xl font-bold text-secondary dark:text-white leading-[1.1] tracking-tight uppercase">
+                                Des expériences
+                                <span class="text-primary italic font-serif relative inline-block mx-2">
                                     inoubliables
                                     <!-- Underline decoration -->
                                     <svg class="absolute w-full h-3 -bottom-1 left-0 text-primary opacity-50" viewBox="0 0 100 10" preserveAspectRatio="none">
                                         <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="4" fill="none" />
                                     </svg>
-                                </span>, <br/>
+                                </span>, <br class="hidden xl:block"/>
                                 des destinations de <span class="text-secondary dark:text-white relative z-10">rêve</span>.
                             </h1>
                             <p class="text-lg text-gray-600 dark:text-slate-300 max-w-lg leading-relaxed font-light">

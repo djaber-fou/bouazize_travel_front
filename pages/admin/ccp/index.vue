@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-6">
     <!-- Header -->
-    <div class="w-full flex justify-between items-center bg-white dark:bg-slate-900 p-6 rounded-none shadow-sm border border-gray-100 dark:border-slate-800">
+    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 p-6 rounded-none shadow-sm border border-gray-100 dark:border-slate-800">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Paiements CCP</h1>
         <p class="text-gray-500 dark:text-slate-400 text-sm mt-1">Gérez et vérifiez les paiements par BaridiMob / CCP.</p>
@@ -17,8 +17,8 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-slate-900 rounded-none shadow-sm border border-gray-100 dark:border-slate-800 p-4 flex flex-wrap gap-4 items-center">
-      <UInput v-model="filters.search" icon="i-heroicons-magnifying-glass" placeholder="Rechercher par client ou N° transaction..." class="w-72" @keyup.enter="fetchPayments" />
+    <div class="bg-white dark:bg-slate-900 rounded-none shadow-sm border border-gray-100 dark:border-slate-800 p-4 flex flex-col sm:flex-row flex-wrap gap-4 items-start sm:items-center">
+      <UInput v-model="filters.search" icon="i-heroicons-magnifying-glass" placeholder="Rechercher par client ou N° transaction..." class="w-full sm:w-72" @keyup.enter="fetchPayments" />
       <USelect v-model="filters.status" :items="statusOptions" @update:model-value="fetchPayments" class="w-44" />
       <USelect v-model="filters.order_type" :items="typeOptions" @update:model-value="fetchPayments" class="w-52" />
     </div>

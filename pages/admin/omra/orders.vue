@@ -1,7 +1,7 @@
 <template>
     <div class="w-full space-y-4 pb-4">
         <div class="flex flex-col gap-5">
-            <div class="flex gap-3">
+            <div class="flex flex-col sm:flex-row gap-3">
                 <UInput 
                 v-model="search"
                 icon="i-lucide-search" 
@@ -9,8 +9,9 @@
                 variant="outline" 
                 placeholder="Rechercher..."
                 @update:model-value="getOrders"
+                class="w-full sm:w-72"
                 />
-                <USelect v-model="orderStatusValue" value-key="id" :items="orderStatusItems" class="w-48" placeholder="Sélectionner" />
+                <USelect v-model="orderStatusValue" value-key="id" :items="orderStatusItems" class="w-full sm:w-48" placeholder="Sélectionner" />
             </div>
             <div>
                 <UTable
@@ -93,7 +94,7 @@
                     <div class="w-full">
                         <div v-if="order?.paiment_status === 'unpaid' || order?.paiment_status === 'pending_payment'" class="w-1/2">
                             <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'payer')" class="w-full align-middle font-bold" color="success">
-                                <div class="w-full flex justify-between items-center">
+                                <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                     <div>Payé</div>
                                     <UIcon name="i-fluent-payment-24-filled"/>
                                 </div>
@@ -104,7 +105,7 @@
                                 openAccept = true
                                 orderAction = 'accept'
                             }" class="w-full align-middle font-bold" color="success">
-                                <div class="w-full flex justify-between items-center">
+                                <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                     <div>Accepter</div>
                                     <UIcon name="i-icon-park-solid-correct"/>
                                 </div>
@@ -113,7 +114,7 @@
                                 openAccept = true
                                 orderAction = 'reject'
                                 }" class="w-full align-middle font-bold" color="error">
-                                <div class="w-full flex justify-between items-center">
+                                <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                     <div>Rejeter</div>
                                     <UIcon name="i-emojione-monotone-heavy-multiplication-x"/>
                                 </div>
@@ -122,7 +123,7 @@
                     </div>
                     <div v-if="order?.status === 'pending'"  class="w-1/2">
                         <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'supprimer')" class="w-full align-middle font-bold" color="error">
-                            <div class="w-full flex justify-between items-center">
+                            <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <div>Supprimer</div>
                                 <UIcon name="i-material-symbols-delete-outline"/>
                             </div>
