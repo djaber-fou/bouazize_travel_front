@@ -1,5 +1,5 @@
 <template>
-    <div class="py-5 px-5 h-screen grid md:gap-x-5 gap-y-5 md:grid-cols-3 grid-cols-1 ">
+    <div class="py-5 px-5 min-h-screen grid md:gap-x-5 gap-y-5 md:grid-cols-3 grid-cols-1 ">
         <div class="flex flex-col gap-5 items-center">
             <div class="relative">
                 <img :src="userImage.url??'/images/blank-profile.png'"  class="w-50 h-50 object-cover rounded-full" @click="console.log('hello')"/>
@@ -32,28 +32,17 @@
             </div>
         </div>
         <div class="col-span-2 flex flex-col gap-10">
-            <swiper-container class="swiper" ref="containerRef">
-                <swiper-slide
+            <div class="flex overflow-x-auto hide-scrollbar gap-2 md:gap-6 border-b border-gray-100 dark:border-slate-800">
+                <div
                     v-for="(item, idx) in items"
                     :key="idx"
-                    
-                >
-                    <div class="h-full md:w-fit w-full flex md:justify-start justify-center items-center cursor-pointer text-secondary font-bold w-25 text-center"
-                    :class="showComponent === item.value?'activeComponent border-b-1 border-primary':''" 
+                    class="py-3 px-2 md:px-4 whitespace-nowrap cursor-pointer font-bold text-center border-b-2 transition-all duration-200 text-sm md:text-base"
+                    :class="showComponent === item.value ? 'border-primary text-primary' : 'border-transparent text-secondary dark:text-slate-400 hover:text-primary'" 
                     @click="showComponent = item.value"
-                    >
-                        {{ item.text }}
-                    </div>
-                </swiper-slide>
-            </swiper-container>
-            <!-- <ul v-for="(item,index) in items" :key="index">
-                <li class="cursor-pointer text-secondary font-bold w-25 text-center"
-                :class="showComponent === item.value?'activeComponent border-b-1 border-primary':''" 
-                @click="showComponent = item.value"
                 >
                     {{ item.text }}
-                </li> -->
-            <!-- </ul> -->
+                </div>
+            </div>
             
             <div class="flex md:justify-start justify-center pb-5">
                 <General :user="user" :token="token" v-if="showComponent === 'general'"/>
@@ -76,26 +65,7 @@ import Margin from '~/components/profile/Margin.vue';
 import Security from '~/components/profile/Security.vue';
 import { getProfile } from '~/services/profile';
 
-const containerRef = ref(null)
-const swiper = useSwiper(containerRef, {
-  effect: 'creative',
-  loop: false,
-  breakpoints:{
-    300:{
-        slidesPerView: 2.5,
-        spaceBetween:2,
-    },
-    566: {
-        slidesPerView: 2,
-        spaceBetween:2,
-    },
-    768: {
-        slidesPerView: 5,
-        spaceBetween:2,
-    },
-  }
-  
-})
+// Tabs handle natively without Swiper
 
 const authStore = useAuthStore()
 const token = computed(() => authStore.Authorization.token)

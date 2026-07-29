@@ -18,9 +18,9 @@
                     <div class="container mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-16 items-center relative z-10">
                         <!-- Text Content -->
                         <div class="flex flex-col justify-center gap-8">
-                            <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-secondary dark:text-white leading-tight tracking-tight uppercase">
-                                Des expériences <br class="hidden md:block"/>
-                                <span class="text-primary italic font-serif relative">
+                            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-7xl font-bold text-secondary dark:text-white leading-[1.1] tracking-tight uppercase">
+                                Des expériences <br class="hidden md:block lg:hidden xl:block"/>
+                                <span class="text-primary italic font-serif relative inline-block">
                                     inoubliables
                                     <!-- Underline decoration -->
                                     <svg class="absolute w-full h-3 -bottom-1 left-0 text-primary opacity-50" viewBox="0 0 100 10" preserveAspectRatio="none">
@@ -48,24 +48,24 @@
                             </div>
 
                             <!-- Analytics / Stats -->
-                            <div class="grid grid-cols-3 gap-6 pt-10 mt-6 border-t border-gray-200 dark:border-slate-800">
-                                <div class="flex flex-col gap-1 group">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-10 mt-6 border-t border-gray-200 dark:border-slate-800">
+                                <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
                                     <h3 class="text-3xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.years }}+</h3>
-                                    <p class="text-xs md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Années <br/>d'expérience</p>
+                                    <p class="text-xs md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Années <br class="hidden sm:block"/>d'expérience</p>
                                 </div>
-                                <div class="flex flex-col gap-1 group">
+                                <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
                                     <h3 class="text-3xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.clients }}+</h3>
-                                    <p class="text-xs md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Clients <br/>satisfaits</p>
+                                    <p class="text-xs md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Clients <br class="hidden sm:block"/>satisfaits</p>
                                 </div>
-                                <div class="flex flex-col gap-1 group">
+                                <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
                                     <h3 class="text-3xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.destinations }}+</h3>
-                                    <p class="text-xs md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Destinations <br/>globales</p>
+                                    <p class="text-xs md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Destinations <br class="hidden sm:block"/>globales</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Professional Photo Collage with Flight Path -->
-                        <div class="relative w-full h-[450px] lg:h-[600px] flex items-center justify-center">
+                        <div class="relative w-full h-[350px] sm:h-[450px] lg:h-[600px] flex items-center justify-center mt-10 lg:mt-0">
                             
                             <!-- Animated Flight Path -->
                             <svg class="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
