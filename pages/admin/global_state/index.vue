@@ -100,7 +100,6 @@ const columns = [
     {
         accessorKey: 'commission',
         header: "Commission",
-    },
     }
 ]
 
