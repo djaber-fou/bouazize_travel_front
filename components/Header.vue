@@ -64,6 +64,14 @@
                                             <Icon name="i-heroicons-paper-airplane" class="w-4 h-4 text-primary" />
                                             Voyage Organisé
                                         </nuxt-link>
+                                        <nuxt-link 
+                                            to="/hotels" 
+                                            class="dropdown-item"
+                                            @click="showServices = false"
+                                        >
+                                            <Icon name="i-heroicons-building-office-2" class="w-4 h-4 text-primary" />
+                                            Hôtellerie
+                                        </nuxt-link>
                                     </div>
                                 </div>
                             </div>

@@ -29,7 +29,7 @@ const services = ref([
     {name:"VISA", image:"/images/services/visa.jpg", link:"/services/visa"},
     {name:"OMRA", image:"/images/services/omra.webp", link:"/services/omra"},
     {name:"VOYAGE ORGANISÉ", image:"/images/services/voyage_organise.jpg", link:"/services/voyage_organise"},
-    {name:"HÔTELLERIE", image:"/images/services/hotels.jpg", link:"#", note:"À venir prochainement"},
+    {name:"HÔTELLERIE", image:"/images/services/hotels.jpg", link:"/hotels"},
 ])
 
 onMounted(()=>{
