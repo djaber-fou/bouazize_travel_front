@@ -10,6 +10,7 @@ const form = ref({
     checkout: '',
     nationality: 'DZ',
     hotel_ids: '', // For testing specifically e.g. 25846, 12296
+    city_code: '', // For open searches
     rooms: [
         { type: 'DBL', required: 1, extrabeds: 0, cots: 0, children: [] }
     ]
@@ -51,7 +52,8 @@ const searchHotels = async () => {
             checkout: form.value.checkout,
             nationality: form.value.nationality,
             rooms: form.value.rooms,
-            hotel_ids: parsedHotelIds
+            hotel_ids: parsedHotelIds,
+            city_code: form.value.city_code.trim() || undefined
         }, 'POST');
 
         if (response && response.status === 'success') {
@@ -100,7 +102,7 @@ const searchHotels = async () => {
                             <input type="date" v-model="form.checkout" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         
-                        <!-- Nationality & Hotel IDs -->
+                        <!-- Nationality & Hotel IDs & City Code -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Nationalité (Code ISO)</label>
                             <input type="text" v-model="form.nationality" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="ex: DZ, IT">
@@ -108,6 +110,10 @@ const searchHotels = async () => {
                         <div>
                             <label class="block text-sm font-medium text-gray-700">IDs Hôtels (Test: 25846, 12296)</label>
                             <input type="text" v-model="form.hotel_ids" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Séparés par virgule">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Code Ville (ex: PAR, DXB)</label>
+                            <input type="text" v-model="form.city_code" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Obligatoire si pas d'ID d'hôtel">
                         </div>
                     </div>
 
@@ -167,33 +173,40 @@ const searchHotels = async () => {
             </div>
 
             <!-- Error Message -->
-            <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mb-8">
+            <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mb-8 rounded-r-lg">
                 <div class="flex">
                     <div class="flex-shrink-0">
                         <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
                     </div>
                     <div class="ml-3">
-                        <p class="text-sm text-red-700">{{ error }}</p>
+                        <p class="text-sm font-medium text-red-700">{{ error }}</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Logs Section (For Testing) -->
-            <div v-if="rawLogs" class="mb-8 bg-gray-800 rounded-xl overflow-hidden shadow-lg">
-                <div class="px-6 py-4 border-b border-gray-700 flex justify-between items-center">
-                    <h3 class="text-lg font-medium text-white">Logs API Netstorming (XML)</h3>
-                    <button @click="showLogs = !showLogs" class="text-gray-400 hover:text-white text-sm">
+            <!-- XML Logs Panel (Netstorming) -->
+            <div v-if="rawLogs" class="mb-8 bg-gray-900 rounded-xl overflow-hidden shadow-xl border border-gray-800">
+                <div class="px-6 py-4 bg-gray-850 border-b border-gray-800 flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
+                        <h3 class="text-base font-semibold text-white">Logs API Netstorming (XML)</h3>
+                    </div>
+                    <button @click="showLogs = !showLogs" type="button" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded text-xs font-medium transition">
                         {{ showLogs ? 'Masquer' : 'Afficher' }}
                     </button>
                 </div>
-                <div v-show="showLogs" class="p-6">
-                    <div class="mb-4">
-                        <h4 class="text-sm font-medium text-gray-400 mb-2">Requête (Request):</h4>
-                        <pre class="text-xs text-green-400 overflow-x-auto whitespace-pre-wrap">{{ rawLogs.request }}</pre>
+                <div v-show="showLogs" class="p-6 space-y-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs font-semibold text-green-400 uppercase tracking-wider">Requête XML (Request):</h4>
+                        </div>
+                        <pre class="text-xs bg-black p-4 rounded-lg text-green-400 overflow-x-auto whitespace-pre-wrap font-mono border border-gray-800">{{ rawLogs.request || 'N/A' }}</pre>
                     </div>
                     <div>
-                        <h4 class="text-sm font-medium text-gray-400 mb-2">Réponse (Response):</h4>
-                        <pre class="text-xs text-blue-400 overflow-x-auto whitespace-pre-wrap">{{ rawLogs.response }}</pre>
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">Réponse XML (Response):</h4>
+                        </div>
+                        <pre class="text-xs bg-black p-4 rounded-lg text-blue-400 overflow-x-auto whitespace-pre-wrap font-mono border border-gray-800">{{ rawLogs.response || 'N/A' }}</pre>
                     </div>
                 </div>
             </div>
