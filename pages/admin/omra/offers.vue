@@ -41,9 +41,14 @@
         close-icon="i-lucide-arrow-right" :close="{
         color: 'secondary',
         class:'cursor-pointer',
+        }"
+        :ui="{
+            content: 'w-screen max-w-6xl lg:max-w-7xl max-w-full',
+            width: 'max-w-6xl lg:max-w-7xl',
+            body: 'p-6 sm:p-8'
         }">
             <template #body>
-                <div class="flex flex-col gap-8 max-w-5xl mx-auto pb-16">
+                <div class="flex flex-col gap-8 w-full max-w-6xl lg:max-w-7xl mx-auto pb-16">
                     <!-- General Information Card -->
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm space-y-6">
                         <div class="font-bold text-lg text-secondary border-b pb-2 flex items-center gap-2">
