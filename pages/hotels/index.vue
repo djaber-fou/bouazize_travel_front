@@ -173,40 +173,13 @@ const searchHotels = async () => {
             </div>
 
             <!-- Error Message -->
-            <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mb-8 rounded-r-lg">
+            <div v-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mb-8">
                 <div class="flex">
                     <div class="flex-shrink-0">
                         <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
                     </div>
                     <div class="ml-3">
-                        <p class="text-sm font-medium text-red-700">{{ error }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- XML Logs Panel (Netstorming) -->
-            <div v-if="rawLogs" class="mb-8 bg-gray-900 rounded-xl overflow-hidden shadow-xl border border-gray-800">
-                <div class="px-6 py-4 bg-gray-850 border-b border-gray-800 flex justify-between items-center">
-                    <div class="flex items-center space-x-2">
-                        <span class="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
-                        <h3 class="text-base font-semibold text-white">Logs API Netstorming (XML)</h3>
-                    </div>
-                    <button @click="showLogs = !showLogs" type="button" class="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded text-xs font-medium transition">
-                        {{ showLogs ? 'Masquer' : 'Afficher' }}
-                    </button>
-                </div>
-                <div v-show="showLogs" class="p-6 space-y-6">
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-xs font-semibold text-green-400 uppercase tracking-wider">Requête XML (Request):</h4>
-                        </div>
-                        <pre class="text-xs bg-black p-4 rounded-lg text-green-400 overflow-x-auto whitespace-pre-wrap font-mono border border-gray-800">{{ rawLogs.request || 'N/A' }}</pre>
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-xs font-semibold text-blue-400 uppercase tracking-wider">Réponse XML (Response):</h4>
-                        </div>
-                        <pre class="text-xs bg-black p-4 rounded-lg text-blue-400 overflow-x-auto whitespace-pre-wrap font-mono border border-gray-800">{{ rawLogs.response || 'N/A' }}</pre>
+                        <p class="text-sm text-red-700">{{ error }}</p>
                     </div>
                 </div>
             </div>

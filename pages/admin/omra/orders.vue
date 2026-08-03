@@ -74,19 +74,26 @@
                         <p class="text-secondary">Date:</p>
                         <NuxtTime :datetime="order?.created_at" locale="fr-FR" year="numeric" month="long" day="numeric"/>
                     </div>
-                    <div class="flex flex-col  gap-2">
-                        <p class="text-secondary">Prix unitaire:</p>
-                        <div>{{ order?.price / order?.members }} DZD</div>
+                    <div v-if="order?.room_type" class="flex flex-col gap-2">
+                        <p class="text-secondary font-bold">Type de Chambre:</p>
+                        <div>
+                            <UBadge color="primary" variant="soft" class="font-bold text-sm">
+                                {{ order?.room_type }}
+                            </UBadge>
+                        </div>
                     </div>
-                    <div class="flex flex-col  gap-2">
-                        <p class="text-secondary">Membres:</p>
-                        <div>{{ order?.members }}</div>
+                    <div class="flex flex-col gap-2">
+                        <p class="text-secondary font-bold">Composition des Voyageurs:</p>
+                        <div class="flex flex-wrap gap-2 text-sm">
+                            <span class="bg-gray-100 dark:bg-slate-800 px-3 py-1 font-semibold text-secondary rounded-none">{{ order?.members }} Adulte(s)</span>
+                            <span v-if="order?.children_count" class="bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 px-3 py-1 font-semibold rounded-none">{{ order?.children_count }} Enfant(s)</span>
+                            <span v-if="order?.babies_count" class="bg-blue-100 dark:bg-blue-900/40 text-blue-900 dark:text-blue-200 px-3 py-1 font-semibold rounded-none">{{ order?.babies_count }} Bébé(s)</span>
+                        </div>
                     </div>
                     <UBadge size="xl" color="success" variant="subtle" class="w-fit flex items-center gap-2">
                         <p class="text-secondary">Prix total:</p>
                         <div class="font-bold">{{ order?.price }} DZD</div>
                     </UBadge>
-                    
                 </div>
             </template>
             <template #footer>
