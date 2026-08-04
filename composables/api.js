@@ -43,12 +43,17 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
         console.log(response)
         if(response.data?.message){
             const toast = useToast()
-            const success = response.data.success
-            toast.add({title:response.data.message, 
-                color:'',
-                progress:false,
-                close:false,
-                ui:{root:success?'bg-success':'bg-error',title:'text-white', close:'neutral'}
+            const isSuccess = response.data.success === true || response.data.status === 'success';
+            toast.add({
+                title: response.data.message, 
+                color: isSuccess ? 'green' : 'red',
+                progress: false,
+                close: true,
+                ui: {
+                    root: isSuccess ? '!bg-emerald-600 !text-white' : '!bg-rose-600 !text-white',
+                    title: 'text-white font-medium',
+                    close: 'text-white'
+                }
             })
         }
         else if(response.status === 401){
