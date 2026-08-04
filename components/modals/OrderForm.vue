@@ -16,9 +16,9 @@
             </div>
         </template>
         <template #body>
-            <div v-if="!openCashModal" class="grid md:grid-cols-2 grid-cols-1 gap-12 px-6 md:px-12 lg:px-24 py-8 max-w-7xl mx-auto">
-                <!-- Left: Offer Details & Price Summary -->
-                <div class="flex flex-col gap-6 items-center md:items-start bg-gray-50/50 dark:bg-slate-900 p-8 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm h-fit">
+            <div v-if="!openCashModal" class="grid lg:grid-cols-12 grid-cols-1 gap-8 lg:gap-12 px-4 sm:px-6 md:px-12 lg:px-16 py-8 max-w-7xl mx-auto items-start">
+                <!-- Left: Sticky Offer Details & Live Price Summary -->
+                <div class="lg:col-span-5 lg:sticky lg:top-4 self-start flex flex-col gap-6 items-center md:items-start bg-gray-50/70 dark:bg-slate-900 p-6 md:p-8 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
                     <img :src="offer?.country_flag" class="w-full aspect-[4/3] object-cover rounded-none shadow-lg hover:shadow-xl transition-shadow duration-500"/>
                     
                     <div class="flex flex-col gap-4 w-full">
@@ -37,26 +37,29 @@
                         <div class="flex flex-col gap-3 mt-2 border-t border-gray-200 dark:border-slate-700 pt-6 w-full">
                             <div class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center justify-between">
                                 <span>Détails de la tarification</span>
-                                <span class="text-primary font-semibold text-xs">Temps réel</span>
+                                <span class="text-primary font-semibold text-xs flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    Temps réel
+                                </span>
                             </div>
 
                             <!-- Breakdown Lines -->
-                            <div class="space-y-2 text-sm bg-white dark:bg-slate-800 p-4 border border-gray-100 dark:border-slate-700 rounded-none">
+                            <div class="space-y-2 text-sm bg-white dark:bg-slate-800 p-4 border border-gray-100 dark:border-slate-700 rounded-none shadow-sm">
                                 <div class="flex justify-between items-center text-gray-700 dark:text-gray-300">
                                     <span>Adultes ({{ clientOrder.members }} × {{ formatPrice(unitAdultPrice) }} DZD)</span>
-                                    <span class="font-bold text-secondary">{{ formatPrice(totalAdultsPrice) }} DZD</span>
+                                    <span class="font-bold text-secondary dark:text-white">{{ formatPrice(totalAdultsPrice) }} DZD</span>
                                 </div>
                                 <div v-if="hasRooms && clientOrder.children_count > 0" class="flex justify-between items-center text-gray-700 dark:text-gray-300">
                                     <span>Enfants ({{ clientOrder.children_count }} × {{ formatPrice(unitChildPrice) }} DZD)</span>
-                                    <span class="font-bold text-secondary">{{ formatPrice(totalChildrenPrice) }} DZD</span>
+                                    <span class="font-bold text-secondary dark:text-white">{{ formatPrice(totalChildrenPrice) }} DZD</span>
                                 </div>
                                 <div v-if="hasRooms && clientOrder.babies_count > 0" class="flex justify-between items-center text-gray-700 dark:text-gray-300">
                                     <span>Bébés ({{ clientOrder.babies_count }} × {{ formatPrice(unitBabyPrice) }} DZD)</span>
-                                    <span class="font-bold text-secondary">{{ formatPrice(totalBabiesPrice) }} DZD</span>
+                                    <span class="font-bold text-secondary dark:text-white">{{ formatPrice(totalBabiesPrice) }} DZD</span>
                                 </div>
                                 
                                 <div class="border-t border-gray-200 dark:border-slate-700 pt-3 mt-3 flex justify-between items-baseline">
-                                    <span class="font-extrabold text-base text-secondary">Montant Total</span>
+                                    <span class="font-extrabold text-base text-secondary dark:text-white">Montant Total</span>
                                     <div class="text-primary text-3xl font-black">
                                         {{ formatPrice(grandTotalPrice) }} <span class="text-sm text-gray-500 font-bold">DZD</span>
                                     </div>
@@ -67,7 +70,7 @@
                 </div>
                 
                 <!-- Right: Booking Form -->
-                <div class="w-full pb-10 flex flex-col gap-8">
+                <div class="lg:col-span-7 w-full pb-10 flex flex-col gap-8">
                     <div class="flex flex-col gap-2">
                         <h2 class="text-3xl font-bold text-secondary">Réserver cette offre</h2>
                         <p class="text-gray-500">Configurez votre séjour et sélectionnez le type de chambre souhaité.</p>
@@ -156,86 +159,130 @@
                         </ul>
                     </div>
 
-                    <!-- Passenger Configuration Card -->
-                    <div class="flex flex-col gap-6 bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
+                    <!-- Passenger Configuration Card (Styled as clean UL / LI List) -->
+                    <div class="flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
                         <div class="font-bold text-secondary text-lg flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
                             <div class="flex items-center gap-2">
                                 <UIcon name="i-heroicons-users" class="text-primary w-5 h-5"/>
                                 <span>2. Nombre de Voyageurs</span>
                             </div>
-                            <span class="text-xs font-medium text-gray-500">Total : {{ totalPassengers }} passager{{ totalPassengers > 1 ? 's' : '' }}</span>
+                            <UBadge color="gray" variant="soft" size="xs" class="font-bold">
+                                Total : {{ totalPassengers }} voyageur{{ totalPassengers > 1 ? 's' : '' }}
+                            </UBadge>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <!-- Adult Passengers Card -->
-                            <div class="p-4 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-none flex flex-col justify-between gap-3">
-                                <div class="flex justify-between items-center">
-                                    <label class="text-xs font-bold text-secondary dark:text-white uppercase tracking-wider">Adultes (Places)</label>
-                                    <span v-if="!isAdultsCustomizable && hasRooms" class="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-none">Fixe</span>
-                                </div>
-
-                                <!-- If Customizable (or Visa): Show counter buttons -->
-                                <div v-if="isAdultsCustomizable" class="flex items-center gap-2">
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-minus" @click="decrementAdults" :disabled="clientOrder.members <= 1"/>
-                                    <span class="font-black text-lg text-secondary dark:text-white w-8 text-center">{{ clientOrder.members }}</span>
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-plus" @click="incrementAdults" :disabled="hasRooms && clientOrder.members >= currentMaxAdults"/>
-                                    <span v-if="hasRooms" class="text-xs text-gray-500 font-medium">/ max {{ currentMaxAdults }}</span>
-                                </div>
-
-                                <!-- If NOT Customizable (1, 2, 3 places or 4/5 full room): Show locked amount -->
-                                <div v-else class="flex items-center gap-2">
-                                    <div class="flex items-center gap-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-3 py-1.5 rounded-none w-full">
-                                        <UIcon name="i-heroicons-lock-closed" class="w-4 h-4 text-primary flex-shrink-0" />
-                                        <span class="font-black text-lg text-secondary dark:text-white">{{ clientOrder.members }}</span>
-                                        <span class="text-xs text-gray-500 font-medium truncate">Adulte{{ clientOrder.members > 1 ? 's' : '' }} (Chambre {{ clientOrder.members }}P)</span>
+                        <!-- Semantic UL / LI Passenger List -->
+                        <ul class="space-y-3">
+                            <!-- 1. Adultes -->
+                            <li class="p-4 border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-none bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <UIcon name="i-heroicons-user" class="w-5 h-5"/>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-bold text-secondary dark:text-white text-base">Adultes</span>
+                                            <UBadge size="xs" color="primary" variant="subtle" class="font-bold">Places principales</UBadge>
+                                            <UBadge v-if="!isAdultsCustomizable && hasRooms" size="xs" color="gray" variant="outline" class="text-[10px] font-semibold">
+                                                Capacité fixe ({{ clientOrder.members }})
+                                            </UBadge>
+                                        </div>
+                                        <div class="text-xs text-gray-500 font-medium">
+                                            {{ formatPrice(unitAdultPrice) }} DZD <span class="text-[11px] text-gray-400">/ personne</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <span class="text-xs text-gray-500">{{ formatPrice(unitAdultPrice) }} DZD / pers</span>
-                            </div>
+                                <!-- Stepper / Locked Controls -->
+                                <div class="flex items-center justify-end sm:justify-center gap-2 flex-shrink-0">
+                                    <!-- If Customizable -->
+                                    <div v-if="isAdultsCustomizable" class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-none shadow-sm">
+                                        <UButton size="xs" color="gray" variant="ghost" icon="i-heroicons-minus" @click="decrementAdults" :disabled="clientOrder.members <= 1" class="rounded-none"/>
+                                        <span class="font-black text-base text-secondary dark:text-white w-8 text-center">{{ clientOrder.members }}</span>
+                                        <UButton size="xs" color="gray" variant="ghost" icon="i-heroicons-plus" @click="incrementAdults" :disabled="hasRooms && clientOrder.members >= currentMaxAdults" class="rounded-none"/>
+                                        <span v-if="hasRooms" class="text-xs text-gray-400 font-medium pl-1">/ {{ currentMaxAdults }} max</span>
+                                    </div>
 
-                            <!-- Children (2-12 years) -->
-                            <div v-if="hasRooms" class="p-4 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-none flex flex-col justify-between gap-3">
-                                <div class="flex justify-between items-center">
-                                    <label class="text-xs font-bold text-secondary dark:text-white uppercase tracking-wider">Enfants (2-12 ans)</label>
-                                    <span v-if="currentMaxChildren <= 0" class="text-[11px] text-gray-400">Non autorisé</span>
+                                    <!-- If Locked (1, 2, 3 places) -->
+                                    <div v-else class="flex items-center gap-2 bg-gray-100 dark:bg-slate-700/60 px-3 py-1.5 border border-gray-200 dark:border-slate-600 rounded-none text-xs font-bold text-secondary dark:text-gray-200">
+                                        <UIcon name="i-heroicons-lock-closed" class="w-3.5 h-3.5 text-primary"/>
+                                        <span>{{ clientOrder.members }} Place{{ clientOrder.members > 1 ? 's' : '' }} (Verrouillé)</span>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- 2. Enfants (2-12 ans) -->
+                            <li v-if="hasRooms" class="p-4 border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-none bg-emerald-500/10 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <UIcon name="i-heroicons-user-group" class="w-5 h-5"/>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-bold text-secondary dark:text-white text-base">Enfants</span>
+                                            <UBadge size="xs" color="emerald" variant="subtle" class="font-bold">2 à 12 ans</UBadge>
+                                            <span v-if="currentMaxChildren <= 0" class="text-[11px] text-gray-400 italic">Non autorisé dans cette chambre</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500 font-medium">
+                                            {{ unitChildPrice > 0 ? `${formatPrice(unitChildPrice)} DZD / enfant` : 'Tarif non défini' }}
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div class="flex items-center gap-2">
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-minus" @click="decrementChildren" :disabled="clientOrder.children_count <= 0 || currentMaxChildren <= 0"/>
-                                    <span class="font-black text-lg text-secondary dark:text-white w-8 text-center">{{ clientOrder.children_count }}</span>
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-plus" @click="incrementChildren" :disabled="clientOrder.children_count >= currentMaxChildren || currentMaxChildren <= 0"/>
-                                    <span class="text-xs text-gray-500 font-medium">/ max {{ currentMaxChildren }}</span>
+                                <!-- Stepper -->
+                                <div class="flex items-center justify-end sm:justify-center gap-2 flex-shrink-0">
+                                    <div class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-none shadow-sm" :class="{ 'opacity-50 pointer-events-none': currentMaxChildren <= 0 }">
+                                        <UButton size="xs" color="gray" variant="ghost" icon="i-heroicons-minus" @click="decrementChildren" :disabled="clientOrder.children_count <= 0 || currentMaxChildren <= 0" class="rounded-none"/>
+                                        <span class="font-black text-base text-secondary dark:text-white w-8 text-center">{{ clientOrder.children_count }}</span>
+                                        <UButton size="xs" color="gray" variant="ghost" icon="i-heroicons-plus" @click="incrementChildren" :disabled="clientOrder.children_count >= currentMaxChildren || currentMaxChildren <= 0" class="rounded-none"/>
+                                        <span class="text-xs text-gray-400 font-medium pl-1">/ {{ currentMaxChildren }} max</span>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- 3. Bébés (0-2 ans) -->
+                            <li v-if="hasRooms" class="p-4 border border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50 rounded-none flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-none bg-sky-500/10 text-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <UIcon name="i-heroicons-heart" class="w-5 h-5"/>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-bold text-secondary dark:text-white text-base">Bébés</span>
+                                            <UBadge size="xs" color="info" variant="subtle" class="font-bold">0 à 2 ans</UBadge>
+                                            <span v-if="currentMaxBabies <= 0" class="text-[11px] text-gray-400 italic">Non autorisé dans cette chambre</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500 font-medium">
+                                            {{ unitBabyPrice > 0 ? `${formatPrice(unitBabyPrice)} DZD / bébé` : 'Tarif non défini' }}
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <span class="text-xs text-gray-500">{{ unitChildPrice > 0 ? `${formatPrice(unitChildPrice)} DZD / enf` : 'Non disponible' }}</span>
-                            </div>
-
-                            <!-- Babies (0-2 years) -->
-                            <div v-if="hasRooms" class="p-4 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-none flex flex-col justify-between gap-3">
-                                <div class="flex justify-between items-center">
-                                    <label class="text-xs font-bold text-secondary dark:text-white uppercase tracking-wider">Bébés (0-2 ans)</label>
-                                    <span v-if="currentMaxBabies <= 0" class="text-[11px] text-gray-400">Non autorisé</span>
+                                <!-- Stepper -->
+                                <div class="flex items-center justify-end sm:justify-center gap-2 flex-shrink-0">
+                                    <div class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-none shadow-sm" :class="{ 'opacity-50 pointer-events-none': currentMaxBabies <= 0 }">
+                                        <UButton size="xs" color="gray" variant="ghost" icon="i-heroicons-minus" @click="decrementBabies" :disabled="clientOrder.babies_count <= 0 || currentMaxBabies <= 0" class="rounded-none"/>
+                                        <span class="font-black text-base text-secondary dark:text-white w-8 text-center">{{ clientOrder.babies_count }}</span>
+                                        <UButton size="xs" color="gray" variant="ghost" icon="i-heroicons-plus" @click="incrementBabies" :disabled="clientOrder.babies_count >= currentMaxBabies || currentMaxBabies <= 0" class="rounded-none"/>
+                                        <span class="text-xs text-gray-400 font-medium pl-1">/ {{ currentMaxBabies }} max</span>
+                                    </div>
                                 </div>
-
-                                <div class="flex items-center gap-2">
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-minus" @click="decrementBabies" :disabled="clientOrder.babies_count <= 0 || currentMaxBabies <= 0"/>
-                                    <span class="font-black text-lg text-secondary dark:text-white w-8 text-center">{{ clientOrder.babies_count }}</span>
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-plus" @click="incrementBabies" :disabled="clientOrder.babies_count >= currentMaxBabies || currentMaxBabies <= 0"/>
-                                    <span class="text-xs text-gray-500 font-medium">/ max {{ currentMaxBabies }}</span>
-                                </div>
-
-                                <span class="text-xs text-gray-500">{{ unitBabyPrice > 0 ? `${formatPrice(unitBabyPrice)} DZD / bébé` : 'Non disponible' }}</span>
-                            </div>
-                        </div>
+                            </li>
+                        </ul>
 
                         <!-- Documents Required Info -->
-                        <div class="flex flex-col gap-3 pt-2">
-                            <div class="font-bold text-secondary text-sm flex items-center gap-2">
-                                <UIcon name="i-heroicons-document-text" class="text-primary w-4 h-4"/>
-                                Documents requis par passager ({{ totalTravelersWithDocs }} voyageur{{ totalTravelersWithDocs > 1 ? 's' : '' }})
+                        <div class="flex flex-col gap-3 pt-4 border-t border-gray-100 dark:border-slate-800">
+                            <div class="font-bold text-secondary text-sm flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <UIcon name="i-heroicons-document-text" class="text-primary w-4 h-4"/>
+                                    <span>Documents requis par passager ({{ totalTravelersWithDocs }} voyageur{{ totalTravelersWithDocs > 1 ? 's' : '' }})</span>
+                                </div>
+                                <UBadge size="xs" color="primary" variant="subtle" class="font-bold">
+                                    {{ maxFiles }} fichier{{ maxFiles > 1 ? 's' : '' }} au total
+                                </UBadge>
                             </div>
-                            <div class="bg-gray-50 dark:bg-slate-800 rounded-none p-4 border border-gray-100 dark:border-slate-700">
+
+                            <div v-if="offer?.documents && offer.documents.length > 0" class="bg-gray-50 dark:bg-slate-800 rounded-none p-4 border border-gray-100 dark:border-slate-700">
                                 <ul class="flex flex-col gap-2 list-inside">
                                     <li class="flex gap-3 items-center text-secondary font-medium text-sm" v-for="(document, index) in offer?.documents" :key="index">
                                         <UIcon name="i-heroicons-check-circle" class="text-green-500 w-4 h-4"/>
@@ -243,24 +290,40 @@
                                     </li>
                                 </ul>
                             </div>
+                            <div v-else class="text-xs text-gray-400 italic p-3 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700">
+                                Aucun document particulier n'est requis pour cette offre.
+                            </div>
                         </div>
 
                         <!-- File Upload Box -->
-                        <div @click.prevent="handleUploadClick" class="relative flex flex-col gap-4 items-center justify-center cursor-pointer w-full h-48 bg-gray-50 dark:bg-slate-800 hover:bg-primary/5 dark:hover:bg-primary/10 border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-primary dark:hover:border-primary rounded-none transition-all duration-300 group">
-                            <div class="w-16 h-16 rounded-none bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                <UIcon name="i-mynaui-upload-solid" size="32" class="text-primary"/>
-                            </div>
-                            <div v-if="!clientOrder.file.length" class="text-secondary font-semibold text-center px-4">
-                                Cliquez pour ajouter les <span class="text-primary">fichiers requis</span> ({{ maxFiles }} au total)
-                            </div>
-                            <div v-else class="flex flex-col items-center gap-1">
-                                <div class="text-2xl font-extrabold text-primary">
-                                    {{ clientOrder.file.length }} <span class="text-gray-400 text-lg">/ {{ maxFiles }}</span>
+                        <div v-if="maxFiles > 0" class="flex flex-col gap-2">
+                            <div @click.prevent="handleUploadClick" class="relative flex flex-col gap-4 items-center justify-center cursor-pointer w-full h-40 bg-gray-50 dark:bg-slate-800 hover:bg-primary/5 dark:hover:bg-primary/10 border-2 border-dashed border-gray-300 dark:border-slate-600 hover:border-primary dark:hover:border-primary rounded-none transition-all duration-300 group">
+                                <div class="w-14 h-14 rounded-none bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                    <UIcon name="i-mynaui-upload-solid" size="28" class="text-primary"/>
                                 </div>
-                                <div class="text-sm font-medium text-gray-500">Fichiers sélectionnés</div>
+                                <div v-if="!clientOrder.file.length" class="text-secondary font-semibold text-center px-4 text-sm">
+                                    Cliquez pour ajouter les <span class="text-primary">fichiers requis</span> ({{ maxFiles }} au total)
+                                </div>
+                                <div v-else class="flex flex-col items-center gap-1">
+                                    <div class="text-xl font-extrabold text-primary">
+                                        {{ clientOrder.file.length }} <span class="text-gray-400 text-sm">/ {{ maxFiles }}</span>
+                                    </div>
+                                    <div class="text-xs font-medium text-gray-500">Fichiers sélectionnés (Cliquez pour en ajouter d'autres)</div>
+                                </div>
                             </div>
-                        </div>    
-                        <input type="file" ref="fileInput" @change="onFileChange" class="hidden" :multiple="maxFiles > 1" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.zip,.rar"/>
+                            <input type="file" ref="fileInput" @change="onFileChange" class="hidden" :multiple="maxFiles > 1" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.zip,.rar"/>
+
+                            <!-- Removable Files List Chips -->
+                            <div v-if="clientOrder.file.length > 0" class="flex flex-wrap gap-2 pt-2">
+                                <div v-for="(file, fIdx) in clientOrder.file" :key="fIdx" class="bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-1.5 text-xs font-medium text-secondary dark:text-gray-200 flex items-center gap-2 rounded-none">
+                                    <UIcon name="i-heroicons-document" class="w-4 h-4 text-primary flex-shrink-0"/>
+                                    <span class="truncate max-w-[180px]">{{ file.name }}</span>
+                                    <button type="button" @click.stop="removeFile(fIdx)" class="text-gray-400 hover:text-red-500 transition-colors p-0.5" title="Supprimer ce fichier">
+                                        <UIcon name="i-heroicons-x-mark" class="w-4 h-4"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Payment Method Selector -->
@@ -557,6 +620,10 @@ onMounted(()=>{
 })
 
 const fileInput = ref(null)
+
+const removeFile = (idx) => {
+    clientOrder.value.file.splice(idx, 1)
+}
 
 const handleUploadClick = () => {
     if (!authorization?.token) {
