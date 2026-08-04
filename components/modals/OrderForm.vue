@@ -78,79 +78,153 @@
                         Vous devez vous connecter pour uploader vos documents et réserver.
                     </div>
 
-                    <!-- Room Selector (Only for Omra and Voyage Organise when rooms are configured) -->
+                    <!-- Room Selector as UL / LI List (Omra and Voyage Organise) -->
                     <div v-if="hasRooms" class="flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <div class="font-bold text-secondary text-lg flex items-center gap-2">
-                            <UIcon name="i-heroicons-home-modern" class="text-primary w-5 h-5"/>
-                            1. Choisissez le type de chambre
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div v-for="(room, index) in availableRooms" :key="room.id || index"
-                                 @click="selectRoom(index)"
-                                 :class="[
-                                     'p-4 border-2 cursor-pointer transition-all duration-300 rounded-none flex flex-col justify-between gap-2',
-                                     selectedRoomIndex === index 
-                                        ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md' 
-                                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 bg-gray-50/50 dark:bg-slate-800/50'
-                                 ]">
-                                <div class="flex justify-between items-start">
-                                    <div class="font-bold text-secondary text-sm">{{ room.name }}</div>
-                                    <UBadge size="xs" :color="selectedRoomIndex === index ? 'primary' : 'gray'" variant="subtle" class="font-bold">
-                                        {{ room.capacity || room.type }} Place{{ (room.capacity > 1 || room.type > 1) ? 's' : '' }}
-                                    </UBadge>
-                                </div>
-                                
-                                <div class="flex justify-between items-baseline mt-1">
-                                    <span class="text-xs text-gray-500">Par adulte</span>
-                                    <span class="font-bold text-primary text-base">{{ formatPrice(getRoomAdultPrice(room)) }} DZD</span>
-                                </div>
-
-                                <div v-if="room.notes" class="text-xs text-gray-400 italic">
-                                    {{ room.notes }}
-                                </div>
+                        <div class="font-bold text-secondary text-lg flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <UIcon name="i-heroicons-home-modern" class="text-primary w-5 h-5"/>
+                                <span>1. Choisissez votre type de chambre</span>
                             </div>
+                            <UBadge color="primary" variant="subtle" size="xs" class="font-bold">
+                                {{ availableRooms.length }} option{{ availableRooms.length > 1 ? 's' : '' }} disponible{{ availableRooms.length > 1 ? 's' : '' }}
+                            </UBadge>
                         </div>
+
+                        <!-- Semantic UL / LI Room Selection List -->
+                        <ul class="space-y-3">
+                            <li v-for="(room, index) in availableRooms" :key="room.id || index"
+                                @click="selectRoom(index)"
+                                :class="[
+                                    'p-4 border-2 cursor-pointer transition-all duration-200 rounded-none flex flex-col md:flex-row md:items-center justify-between gap-4',
+                                    selectedRoomIndex === index 
+                                        ? 'border-primary bg-primary/[0.04] dark:bg-primary/[0.08] shadow-md ring-1 ring-primary/20' 
+                                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/60'
+                                ]">
+                                
+                                <div class="flex items-start gap-3">
+                                    <!-- Custom Radio Indicator -->
+                                    <div class="mt-0.5 flex-shrink-0">
+                                        <div :class="[
+                                            'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
+                                            selectedRoomIndex === index ? 'border-primary bg-primary' : 'border-gray-300 dark:border-slate-600'
+                                        ]">
+                                            <div v-if="selectedRoomIndex === index" class="w-2 h-2 rounded-full bg-white"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Room Info -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-bold text-secondary dark:text-white text-base">{{ room.name }}</span>
+                                            
+                                            <UBadge size="xs" :color="selectedRoomIndex === index ? 'primary' : 'gray'" variant="soft" class="font-bold">
+                                                {{ room.capacity || room.type }} Place{{ (room.capacity > 1 || room.type > 1) ? 's' : '' }}
+                                            </UBadge>
+
+                                            <!-- Capacity Mode Badge -->
+                                            <UBadge v-if="Number(room.capacity || room.type) <= 3" size="xs" color="gray" variant="outline" class="text-[10px] font-semibold">
+                                                {{ room.capacity || room.type }} Adulte{{ (room.capacity > 1 || room.type > 1) ? 's' : '' }} fixe
+                                            </UBadge>
+                                            <UBadge v-else-if="room.allow_custom_adults" size="xs" color="info" variant="subtle" class="text-[10px] font-semibold">
+                                                Réservation par place (1 à {{ room.capacity || room.type }} pers.)
+                                            </UBadge>
+                                            <UBadge v-else size="xs" color="gray" variant="outline" class="text-[10px] font-semibold">
+                                                Chambre complète ({{ room.capacity || room.type }} pers.)
+                                            </UBadge>
+                                        </div>
+
+                                        <p v-if="room.notes" class="text-xs text-gray-500 italic">{{ room.notes }}</p>
+
+                                        <!-- Sub options (Children / Babies availability) -->
+                                        <div class="flex items-center gap-3 text-xs text-gray-500 pt-0.5 flex-wrap">
+                                            <span v-if="room.max_children > 0" class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                                                <UIcon name="i-heroicons-check" class="w-3.5 h-3.5"/> Max {{ room.max_children }} enfant(s) ({{ formatPrice(room.child_price) }} DZD)
+                                            </span>
+                                            <span v-if="room.max_babies > 0" class="flex items-center gap-1 text-sky-600 dark:text-sky-400 font-medium">
+                                                <UIcon name="i-heroicons-check" class="w-3.5 h-3.5"/> Max {{ room.max_babies }} bébé(s) ({{ formatPrice(room.baby_price) }} DZD)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Room Price -->
+                                <div class="text-right flex md:flex-col items-baseline md:items-end justify-between border-t md:border-t-0 pt-2 md:pt-0 border-gray-100 dark:border-slate-800 flex-shrink-0">
+                                    <span class="text-xs text-gray-500">Prix par adulte</span>
+                                    <span class="font-black text-primary text-lg md:text-xl">{{ formatPrice(getRoomAdultPrice(room)) }} <span class="text-xs font-semibold">DZD</span></span>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
 
                     <!-- Passenger Configuration Card -->
                     <div class="flex flex-col gap-6 bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <div class="font-bold text-secondary text-lg flex items-center gap-2">
-                            <UIcon name="i-heroicons-users" class="text-primary w-5 h-5"/>
-                            2. Configuration des Voyageurs
+                        <div class="font-bold text-secondary text-lg flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <UIcon name="i-heroicons-users" class="text-primary w-5 h-5"/>
+                                <span>2. Nombre de Voyageurs</span>
+                            </div>
+                            <span class="text-xs font-medium text-gray-500">Total : {{ totalPassengers }} passager{{ totalPassengers > 1 ? 's' : '' }}</span>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <!-- Adult Passengers -->
-                            <div class="p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-none flex flex-col gap-2">
-                                <label class="text-xs font-bold text-secondary">Adultes (Places)</label>
-                                <div class="flex items-center gap-2">
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-minus" @click="decrementAdults" :disabled="clientOrder.members <= 1"/>
-                                    <span class="font-black text-lg text-secondary w-8 text-center">{{ clientOrder.members }}</span>
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-plus" @click="incrementAdults" :disabled="hasRooms && clientOrder.members >= currentMaxAdults"/>
+                            <!-- Adult Passengers Card -->
+                            <div class="p-4 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-none flex flex-col justify-between gap-3">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-xs font-bold text-secondary dark:text-white uppercase tracking-wider">Adultes (Places)</label>
+                                    <span v-if="!isAdultsCustomizable && hasRooms" class="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-none">Fixe</span>
                                 </div>
+
+                                <!-- If Customizable (or Visa): Show counter buttons -->
+                                <div v-if="isAdultsCustomizable" class="flex items-center gap-2">
+                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-minus" @click="decrementAdults" :disabled="clientOrder.members <= 1"/>
+                                    <span class="font-black text-lg text-secondary dark:text-white w-8 text-center">{{ clientOrder.members }}</span>
+                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-plus" @click="incrementAdults" :disabled="hasRooms && clientOrder.members >= currentMaxAdults"/>
+                                    <span v-if="hasRooms" class="text-xs text-gray-500 font-medium">/ max {{ currentMaxAdults }}</span>
+                                </div>
+
+                                <!-- If NOT Customizable (1, 2, 3 places or 4/5 full room): Show locked amount -->
+                                <div v-else class="flex items-center gap-2">
+                                    <div class="flex items-center gap-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 px-3 py-1.5 rounded-none w-full">
+                                        <UIcon name="i-heroicons-lock-closed" class="w-4 h-4 text-primary flex-shrink-0" />
+                                        <span class="font-black text-lg text-secondary dark:text-white">{{ clientOrder.members }}</span>
+                                        <span class="text-xs text-gray-500 font-medium truncate">Adulte{{ clientOrder.members > 1 ? 's' : '' }} (Chambre {{ clientOrder.members }}P)</span>
+                                    </div>
+                                </div>
+
                                 <span class="text-xs text-gray-500">{{ formatPrice(unitAdultPrice) }} DZD / pers</span>
                             </div>
 
                             <!-- Children (2-12 years) -->
-                            <div v-if="hasRooms" class="p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-none flex flex-col gap-2">
-                                <label class="text-xs font-bold text-secondary">Enfants (2-12 ans)</label>
-                                <div class="flex items-center gap-2">
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-minus" @click="decrementChildren" :disabled="clientOrder.children_count <= 0"/>
-                                    <span class="font-black text-lg text-secondary w-8 text-center">{{ clientOrder.children_count }}</span>
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-plus" @click="incrementChildren" :disabled="clientOrder.children_count >= currentMaxChildren"/>
+                            <div v-if="hasRooms" class="p-4 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-none flex flex-col justify-between gap-3">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-xs font-bold text-secondary dark:text-white uppercase tracking-wider">Enfants (2-12 ans)</label>
+                                    <span v-if="currentMaxChildren <= 0" class="text-[11px] text-gray-400">Non autorisé</span>
                                 </div>
+
+                                <div class="flex items-center gap-2">
+                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-minus" @click="decrementChildren" :disabled="clientOrder.children_count <= 0 || currentMaxChildren <= 0"/>
+                                    <span class="font-black text-lg text-secondary dark:text-white w-8 text-center">{{ clientOrder.children_count }}</span>
+                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-plus" @click="incrementChildren" :disabled="clientOrder.children_count >= currentMaxChildren || currentMaxChildren <= 0"/>
+                                    <span class="text-xs text-gray-500 font-medium">/ max {{ currentMaxChildren }}</span>
+                                </div>
+
                                 <span class="text-xs text-gray-500">{{ unitChildPrice > 0 ? `${formatPrice(unitChildPrice)} DZD / enf` : 'Non disponible' }}</span>
                             </div>
 
                             <!-- Babies (0-2 years) -->
-                            <div v-if="hasRooms" class="p-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-none flex flex-col gap-2">
-                                <label class="text-xs font-bold text-secondary">Bébés (0-2 ans)</label>
-                                <div class="flex items-center gap-2">
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-minus" @click="decrementBabies" :disabled="clientOrder.babies_count <= 0"/>
-                                    <span class="font-black text-lg text-secondary w-8 text-center">{{ clientOrder.babies_count }}</span>
-                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-plus" @click="incrementBabies" :disabled="clientOrder.babies_count >= currentMaxBabies"/>
+                            <div v-if="hasRooms" class="p-4 bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 rounded-none flex flex-col justify-between gap-3">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-xs font-bold text-secondary dark:text-white uppercase tracking-wider">Bébés (0-2 ans)</label>
+                                    <span v-if="currentMaxBabies <= 0" class="text-[11px] text-gray-400">Non autorisé</span>
                                 </div>
+
+                                <div class="flex items-center gap-2">
+                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-minus" @click="decrementBabies" :disabled="clientOrder.babies_count <= 0 || currentMaxBabies <= 0"/>
+                                    <span class="font-black text-lg text-secondary dark:text-white w-8 text-center">{{ clientOrder.babies_count }}</span>
+                                    <UButton size="sm" color="gray" variant="soft" icon="i-heroicons-plus" @click="incrementBabies" :disabled="clientOrder.babies_count >= currentMaxBabies || currentMaxBabies <= 0"/>
+                                    <span class="text-xs text-gray-500 font-medium">/ max {{ currentMaxBabies }}</span>
+                                </div>
+
                                 <span class="text-xs text-gray-500">{{ unitBabyPrice > 0 ? `${formatPrice(unitBabyPrice)} DZD / bébé` : 'Non disponible' }}</span>
                             </div>
                         </div>
@@ -343,11 +417,33 @@ const currentMaxBabies = computed(() => {
     return 2
 })
 
+const isAdultsCustomizable = computed(() => {
+    if (!hasRooms.value || !selectedRoom.value) return true; // for visa or generic services
+    const cap = Number(selectedRoom.value.capacity || selectedRoom.value.type || 1);
+    // 1, 2, 3 places rooms have strictly FIXED adult count (1, 2 or 3)
+    if (cap <= 3) return false;
+    // 4 and 5 places rooms: check allow_custom_adults
+    return Boolean(selectedRoom.value.allow_custom_adults !== false);
+})
+
+const totalPassengers = computed(() => {
+    return (Number(clientOrder.value.members) || 0) + (Number(clientOrder.value.children_count) || 0) + (Number(clientOrder.value.babies_count) || 0);
+})
+
 const selectRoom = (index) => {
     selectedRoomIndex.value = index
     const room = availableRooms.value[index]
     if (room) {
-        clientOrder.value.members = Number(room.capacity || room.type || 1)
+        const cap = Number(room.capacity || room.type || 1)
+        if (cap <= 3) {
+            clientOrder.value.members = cap
+        } else {
+            if (room.allow_custom_adults !== false) {
+                clientOrder.value.members = Math.min(Math.max(clientOrder.value.members, 1), cap)
+            } else {
+                clientOrder.value.members = cap
+            }
+        }
         if (clientOrder.value.children_count > currentMaxChildren.value) {
             clientOrder.value.children_count = currentMaxChildren.value
         }

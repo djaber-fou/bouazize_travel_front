@@ -23,19 +23,33 @@
                         </div>
                     </template>
                     <template #default>
-                        <div class="flex flex-col gap-2">
+                        <div class="flex flex-col gap-3">
                             <h3 class="text-xl font-bold text-secondary dark:text-white line-clamp-2 leading-tight group-hover:text-primary transition-colors" :title="offer?.name">{{ truncate(offer?.name ,50) }}</h3>
-                            <div class="flex items-center gap-2 text-gray-500 text-sm mt-1">
+                            <div class="flex items-center gap-2 text-gray-500 text-sm">
                                 <UIcon name="i-heroicons-clock" class="w-4 h-4 text-primary" />
                                 <span>{{ truncate(offer?.duration || 'Séjour complet', 30) }}</span>
                             </div>
-                            <div v-if="offer?.rooms && offer.rooms.length > 0" class="flex flex-wrap gap-1 mt-2">
-                                <UBadge v-for="(rm, rIdx) in offer.rooms.slice(0, 3)" :key="rIdx" size="xs" color="gray" variant="soft" class="text-[10px] font-semibold">
-                                    {{ rm.name || `${rm.capacity || rm.type} Places` }}
-                                </UBadge>
-                                <UBadge v-if="offer.rooms.length > 3" size="xs" color="gray" variant="soft" class="text-[10px] font-semibold">
-                                    +{{ offer.rooms.length - 3 }}
-                                </UBadge>
+                            
+                            <!-- Rooms List -->
+                            <div v-if="offer?.rooms && offer.rooms.length > 0" class="pt-2 border-t border-gray-100 dark:border-slate-800">
+                                <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <UIcon name="i-heroicons-home-modern" class="w-3.5 h-3.5 text-primary"/>
+                                    Chambres disponibles :
+                                </div>
+                                <ul class="space-y-1.5">
+                                    <li v-for="(rm, rIdx) in offer.rooms.slice(0, 3)" :key="rIdx" class="text-xs bg-gray-50/80 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-none flex items-center justify-between border border-gray-100 dark:border-slate-700/60">
+                                        <span class="font-medium text-secondary dark:text-gray-200 truncate pr-2 flex items-center gap-1.5">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>
+                                            <span class="truncate">{{ rm.name || `${rm.capacity || rm.type} Places` }}</span>
+                                        </span>
+                                        <span class="font-bold text-primary flex-shrink-0 text-[11px]">
+                                            {{ (rm.b2c_price || rm.purchase_price) ? `${Number(rm.b2c_price || rm.purchase_price).toLocaleString('fr-FR')} DZD` : '' }}
+                                        </span>
+                                    </li>
+                                    <li v-if="offer.rooms.length > 3" class="text-[11px] text-gray-400 italic pl-1">
+                                        + {{ offer.rooms.length - 3 }} autre(s) chambre(s)
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </template>

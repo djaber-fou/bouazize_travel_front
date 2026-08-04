@@ -158,7 +158,7 @@
                                 </div>
 
                                 <!-- Children and Babies Pricing for this room -->
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-none">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-none mb-3">
                                     <UFormField :ui="{label:'text-xs font-medium text-amber-900 dark:text-amber-300'}" label="Max Bébés (0-2 ans)">
                                         <UInput size="sm" type="number" min="0" max="3" v-model.number="room.max_babies"/>
                                     </UFormField>
@@ -171,6 +171,20 @@
                                     <UFormField :ui="{label:'text-xs font-medium text-amber-900 dark:text-amber-300'}" label="Prix Enfant (DZD)">
                                         <UInput size="sm" type="number" min="0" placeholder="0.00" v-model.number="room.child_price"/>
                                     </UFormField>
+                                </div>
+
+                                <!-- Active Adult Places Selection - ONLY for 4 and 5 Places Rooms -->
+                                <div v-if="Number(room.capacity || room.type) >= 4" class="p-3.5 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-none flex items-center justify-between gap-4">
+                                    <div class="space-y-0.5">
+                                        <div class="font-bold text-xs text-blue-950 dark:text-blue-200 flex items-center gap-1.5">
+                                            <UIcon name="i-heroicons-user-group" class="w-4 h-4 text-primary" />
+                                            Activer la sélection des places adultes (Réservation par place)
+                                        </div>
+                                        <p class="text-[11px] text-blue-800/80 dark:text-blue-300">
+                                            Permet au client de choisir le nombre de places adultes (1 à {{ room.capacity || room.type }}). Si désactivé, le client doit obligatoirement réserver les {{ room.capacity || room.type }} places adultes de la chambre.
+                                        </p>
+                                    </div>
+                                    <USwitch v-model="room.allow_custom_adults" />
                                 </div>
                             </div>
                         </div>
@@ -431,11 +445,13 @@ const openForm = ()=>{
 }
 
 const createDefaultRoom = (capacity, name) => {
+    const cap = Number(capacity);
     return {
         id: "room_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
-        type: String(capacity),
+        type: String(cap),
         name: name,
-        capacity: capacity,
+        capacity: cap,
+        allow_custom_adults: cap >= 4,
         purchase_price: 120000,
         b2b_price: 135000,
         b2c_price: 150000,
