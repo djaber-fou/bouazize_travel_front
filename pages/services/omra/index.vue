@@ -8,7 +8,7 @@
         </div>
 
         <!-- Filter & Sorting Bar -->
-        <div class="w-full px-6 md:px-12 max-w-7xl mx-auto">
+        <div class="w-full px-4 sm:px-8 lg:px-12 max-w-[1700px] mx-auto">
             <div class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
                 <!-- Search & Filters Row -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
@@ -113,7 +113,7 @@
             <UButton v-if="hasActiveFilters" color="primary" variant="outline" label="Réinitialiser les filtres" @click="resetFilters" />
         </div>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full px-6 md:px-12 max-w-7xl mx-auto">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full px-4 sm:px-8 lg:px-12 max-w-[1700px] mx-auto">
             <div v-for="(offer, index) in offers" :key="index">
                 <UCard :ui="{
                     base: 'group overflow-hidden border border-gray-100 dark:border-slate-800 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 rounded-none bg-white dark:bg-slate-900 flex flex-col h-full',
@@ -142,14 +142,6 @@
                             <div class="flex items-center gap-2 text-gray-500 text-sm mt-1">
                                 <UIcon name="i-heroicons-clock" class="w-4 h-4 text-primary" />
                                 <span>{{ truncate(offer?.duration || 'Séjour complet', 30) }}</span>
-                            </div>
-                            <div v-if="offer?.rooms && offer.rooms.length > 0" class="flex flex-wrap gap-1 mt-2">
-                                <UBadge v-for="(rm, rIdx) in offer.rooms.slice(0, 3)" :key="rIdx" size="xs" color="gray" variant="soft" class="text-[10px] font-semibold">
-                                    {{ rm.name || `${rm.capacity || rm.type} Places` }}
-                                </UBadge>
-                                <UBadge v-if="offer.rooms.length > 3" size="xs" color="gray" variant="soft" class="text-[10px] font-semibold">
-                                    +{{ offer.rooms.length - 3 }}
-                                </UBadge>
                             </div>
                         </div>
                     </template>

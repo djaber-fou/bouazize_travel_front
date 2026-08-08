@@ -1,7 +1,7 @@
 <template>
     <div class="w-full flex flex-col gap-6 min-h-[calc(100vh-80px)] py-8 pb-16 bg-gray-50/50 dark:bg-slate-950">
         <!-- Filter & Sorting Bar -->
-        <div class="w-full px-6 md:px-12 max-w-7xl mx-auto">
+        <div class="w-full px-4 sm:px-8 lg:px-12 max-w-[1700px] mx-auto">
             <div class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
                 <!-- Search & Filters Row -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
@@ -107,7 +107,7 @@
             <UButton v-if="hasActiveFilters" color="primary" variant="outline" label="Réinitialiser les filtres" @click="resetFilters" />
         </div>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full px-6 md:px-12 max-w-7xl mx-auto">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full px-4 sm:px-8 lg:px-12 max-w-[1700px] mx-auto">
             <div v-for="(offer, index) in offers" :key="index">
                 <UCard :ui="{
                     base: 'group overflow-hidden rounded-none border border-gray-100 dark:border-slate-800 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 bg-white dark:bg-slate-900 flex flex-col h-full',
@@ -135,28 +135,6 @@
                             <div class="flex items-center gap-2 text-gray-500 text-sm">
                                 <UIcon name="i-heroicons-clock" class="w-4 h-4 text-primary" />
                                 <span>{{ truncate(offer?.duration || 'Séjour complet', 30) }}</span>
-                            </div>
-                            
-                            <!-- Rooms List -->
-                            <div v-if="offer?.rooms && offer.rooms.length > 0" class="pt-2 border-t border-gray-100 dark:border-slate-800">
-                                <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                    <UIcon name="i-heroicons-home-modern" class="w-3.5 h-3.5 text-primary"/>
-                                    Chambres disponibles :
-                                </div>
-                                <ul class="space-y-1.5">
-                                    <li v-for="(rm, rIdx) in offer.rooms.slice(0, 3)" :key="rIdx" class="text-xs bg-gray-50/80 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-none flex items-center justify-between border border-gray-100 dark:border-slate-700/60">
-                                        <span class="font-medium text-secondary dark:text-gray-200 truncate pr-2 flex items-center gap-1.5">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0"></span>
-                                            <span class="truncate">{{ rm.name || `${rm.capacity || rm.type} Places` }}</span>
-                                        </span>
-                                        <span class="font-bold text-primary flex-shrink-0 text-[11px]">
-                                            {{ (rm.b2c_price || rm.purchase_price) ? `${Number(rm.b2c_price || rm.purchase_price).toLocaleString('fr-FR')} DZD` : '' }}
-                                        </span>
-                                    </li>
-                                    <li v-if="offer.rooms.length > 3" class="text-[11px] text-gray-400 italic pl-1">
-                                        + {{ offer.rooms.length - 3 }} autre(s) chambre(s)
-                                    </li>
-                                </ul>
                             </div>
                         </div>
                     </template>

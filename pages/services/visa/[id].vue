@@ -1,25 +1,25 @@
 <template>
-    <div class="w-full flex flex-col gap-5 min-h-[calc(100vh-80px)] py-10">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 w-full px-12">
+    <div class="w-full flex flex-col gap-6 min-h-[calc(100vh-80px)] py-8 pb-16 bg-gray-50/50 dark:bg-slate-950">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full px-4 sm:px-8 lg:px-12 max-w-[1700px] mx-auto">
             <div v-for="(offer, index) in offers" :key="index">
                 <UCard :ui="{
-                    base: 'group overflow-hidden rounded-none border border-gray-100 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1',
+                    base: 'group overflow-hidden rounded-none border border-gray-100 dark:border-slate-800 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 bg-white dark:bg-slate-900 flex flex-col h-full',
                     header: { padding: 'p-0 sm:p-0' },
-                    body: { padding: 'p-5 sm:p-5' },
-                    footer: { padding: 'px-5 py-4 sm:px-5 sm:py-4 bg-gray-50/50' }
+                    body: { padding: 'p-5 sm:p-5 flex-1' },
+                    footer: { padding: 'px-5 py-4 sm:px-5 sm:py-4 bg-gray-50/50 dark:bg-slate-800/50' }
                 }">
                     <template #header>
-                        <div class="relative overflow-hidden aspect-[4/3]">
-                            <img :src="offer?.country_flag" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"/>
+                        <div class="relative overflow-hidden aspect-[4/3] bg-gray-100 dark:bg-slate-800">
+                            <img :src="offer?.country_flag" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" alt="Offre Visa"/>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         </div>
                     </template>
                     <template #default>
                         <div class="flex flex-col gap-2">
-                            <h3 class="text-xl font-bold text-secondary line-clamp-2 leading-tight group-hover:text-primary transition-colors" :title="offer?.name">{{ truncate(offer?.name ,50) }}</h3>
+                            <h3 class="text-xl font-bold text-secondary dark:text-white line-clamp-2 leading-tight group-hover:text-primary transition-colors" :title="offer?.name">{{ truncate(offer?.name ,50) }}</h3>
                             <div class="flex items-center gap-2 text-gray-500 text-sm mt-1">
-                                <Icon name="i-heroicons-clock" class="w-4 h-4" />
-                                <span>{{ truncate(offer?.duration, 30) }}</span>
+                                <UIcon name="i-heroicons-clock" class="w-4 h-4 text-primary" />
+                                <span>{{ truncate(offer?.duration || 'Traitement rapide', 30) }}</span>
                             </div>
                         </div>
                     </template>
@@ -28,17 +28,18 @@
                             <div class="flex flex-col-reverse xl:flex-row justify-between items-start xl:items-center gap-3">
                                 <UBadge class="w-fit shadow-sm" variant="subtle" :color="guaranteeColor(offer?.guarantee)">
                                     <div class="font-bold flex items-center gap-1">
-                                        <Icon name="i-heroicons-shield-check" class="w-4 h-4" v-if="offer?.guarantee !== 'without'" />
+                                        <UIcon name="i-heroicons-shield-check" class="w-4 h-4" v-if="offer?.guarantee !== 'without'" />
                                         {{ guaranteeValue(offer?.guarantee) }}
                                     </div>
                                 </UBadge>
                                 <div class="text-primary font-bold text-xl flex items-baseline gap-1">
-                                    {{ offer?.price }} <span class="text-sm text-gray-500 font-medium">DZD</span>
+                                    <span class="text-xs text-gray-400 font-normal">À partir de</span>
+                                    {{ offer?.price }} <span class="text-xs text-gray-500 font-medium">DZD</span>
                                 </div>
                             </div>
-                            <UButton block class="font-bold rounded-none shadow-md hover:shadow-lg transition-all" size="lg" color="primary" label="Voir les détails" @click="openForm(offer?.id)">
+                            <UButton block class="font-bold rounded-none shadow-md hover:shadow-lg transition-all cursor-pointer" size="lg" color="primary" label="Voir les détails" @click="openForm(offer?.id)">
                                 <template #trailing>
-                                    <Icon name="i-heroicons-arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    <UIcon name="i-heroicons-arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </template>
                             </UButton>
                         </div>
