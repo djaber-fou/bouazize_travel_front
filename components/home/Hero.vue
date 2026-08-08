@@ -204,8 +204,9 @@ const getFullImageUrl = (url) => {
 // Re-initialize swiper configuration whenever heroSwiper ref changes
 useSwiper(heroSwiper, {
     loop: true,
+    speed: 600,
     autoplay: {
-        delay: 7000,
+        delay: 2500,
         disableOnInteraction: false,
     },
     pagination: {

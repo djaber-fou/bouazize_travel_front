@@ -19,7 +19,7 @@
             <div v-if="!openCashModal" class="grid lg:grid-cols-12 grid-cols-1 gap-8 lg:gap-12 px-4 sm:px-6 md:px-12 lg:px-16 py-8 max-w-7xl mx-auto items-start">
                 <!-- Left: Sticky Offer Details & Live Price Summary -->
                 <div class="lg:col-span-5 lg:sticky lg:top-4 self-start flex flex-col gap-6 items-center md:items-start bg-gray-50/70 dark:bg-slate-900 p-6 md:p-8 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
-                    <img :src="offer?.country_flag" class="w-full aspect-[4/3] object-cover rounded-none shadow-lg hover:shadow-xl transition-shadow duration-500"/>
+                    <img :src="offer?.image || offer?.country_flag" class="w-full aspect-[4/3] object-cover rounded-none shadow-lg hover:shadow-xl transition-shadow duration-500"/>
                     
                     <div class="flex flex-col gap-4 w-full">
                         <div class="flex flex-wrap gap-2">

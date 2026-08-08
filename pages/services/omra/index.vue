@@ -1,20 +1,130 @@
 <template>
-    <div class="min-h-[calc(100vh-80px)] w-full flex flex-col gap-5 py-8 pb-16">
-        <div class="py-5 flex flex-col gap-3 items-center">
-            <div class="text-secondary text-3xl font-bold uppercase tracking-wide">Nos Offres Omra</div>
+    <div class="min-h-[calc(100vh-80px)] w-full flex flex-col gap-6 py-8 pb-16 bg-gray-50/50 dark:bg-slate-950">
+        <!-- Header -->
+        <div class="py-4 flex flex-col gap-3 items-center text-center px-4">
+            <div class="text-secondary dark:text-white text-3xl md:text-4xl font-bold uppercase tracking-wide">Nos Offres Omra</div>
             <div class="w-20 h-1 bg-primary"></div>
+            <p class="text-gray-500 dark:text-gray-400 text-sm max-w-xl">Découvrez nos formules Omra avec des dates de départ flexibles, hébergements vérifiés et accompagnement de confiance.</p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full px-6 md:px-12">
+
+        <!-- Filter & Sorting Bar -->
+        <div class="w-full px-6 md:px-12 max-w-7xl mx-auto">
+            <div class="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
+                <!-- Search & Filters Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <!-- Search by name/keywords -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <UIcon name="i-heroicons-magnifying-glass" class="w-4 h-4 text-primary" />
+                            Rechercher
+                        </label>
+                        <UInput 
+                            v-model="search" 
+                            placeholder="Rechercher une offre..." 
+                            icon="i-heroicons-magnifying-glass" 
+                            size="md"
+                            class="w-full"
+                        />
+                    </div>
+
+                    <!-- Filter by Start Date -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <UIcon name="i-heroicons-calendar" class="w-4 h-4 text-primary" />
+                            À partir du
+                        </label>
+                        <UInput 
+                            type="date" 
+                            v-model="startDate" 
+                            size="md"
+                            class="w-full"
+                        />
+                    </div>
+
+                    <!-- Filter by End Date -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <UIcon name="i-heroicons-calendar-days" class="w-4 h-4 text-primary" />
+                            Jusqu'au
+                        </label>
+                        <UInput 
+                            type="date" 
+                            v-model="endDate" 
+                            size="md"
+                            class="w-full"
+                        />
+                    </div>
+
+                    <!-- Sort Order Dropdown -->
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <UIcon name="i-heroicons-arrows-up-down" class="w-4 h-4 text-primary" />
+                            Trier par
+                        </label>
+                        <USelect 
+                            v-model="sortBy" 
+                            :items="sortOptions" 
+                            size="md"
+                            class="w-full"
+                        />
+                    </div>
+                </div>
+
+                <!-- Active Filters & Reset Row -->
+                <div v-if="hasActiveFilters" class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-slate-800 text-xs">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-gray-500 font-medium">Filtres actifs :</span>
+                        <UBadge v-if="search" color="primary" variant="subtle" class="gap-1">
+                            Mot-clé: "{{ search }}"
+                            <UIcon name="i-material-symbols-close" class="w-3.5 h-3.5 cursor-pointer" @click="search = ''" />
+                        </UBadge>
+                        <UBadge v-if="startDate" color="primary" variant="subtle" class="gap-1">
+                            Dès le: {{ startDate }}
+                            <UIcon name="i-material-symbols-close" class="w-3.5 h-3.5 cursor-pointer" @click="startDate = ''" />
+                        </UBadge>
+                        <UBadge v-if="endDate" color="primary" variant="subtle" class="gap-1">
+                            Jusqu'au: {{ endDate }}
+                            <UIcon name="i-material-symbols-close" class="w-3.5 h-3.5 cursor-pointer" @click="endDate = ''" />
+                        </UBadge>
+                        <UBadge v-if="sortBy !== 'departure_date_asc'" color="gray" variant="subtle" class="gap-1">
+                            Tri: {{ currentSortLabel }}
+                            <UIcon name="i-material-symbols-close" class="w-3.5 h-3.5 cursor-pointer" @click="sortBy = 'departure_date_asc'" />
+                        </UBadge>
+                    </div>
+                    <UButton size="xs" color="gray" variant="ghost" icon="i-heroicons-arrow-path" label="Réinitialiser les filtres" @click="resetFilters" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Offers Grid or Empty / Loading State -->
+        <div v-if="loading" class="w-full flex justify-center items-center py-20">
+            <div class="flex flex-col items-center gap-3">
+                <UIcon name="i-lucide-loader-circle" class="w-10 h-10 text-primary animate-spin" />
+                <span class="text-sm text-gray-500">Chargement des offres en cours...</span>
+            </div>
+        </div>
+
+        <div v-else-if="offers.length === 0" class="w-full max-w-md mx-auto py-16 text-center flex flex-col items-center gap-4 px-4">
+            <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400">
+                <UIcon name="i-heroicons-calendar-days" class="w-8 h-8" />
+            </div>
+            <h3 class="text-lg font-bold text-secondary dark:text-white">Aucune offre trouvée</h3>
+            <p class="text-sm text-gray-500">Aucune offre Omra ne correspond à vos critères de recherche ou à la période sélectionnée.</p>
+            <UButton v-if="hasActiveFilters" color="primary" variant="outline" label="Réinitialiser les filtres" @click="resetFilters" />
+        </div>
+
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full px-6 md:px-12 max-w-7xl mx-auto">
             <div v-for="(offer, index) in offers" :key="index">
                 <UCard :ui="{
-                    base: 'group overflow-hidden border border-gray-100 dark:border-slate-800 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 rounded-none bg-white dark:bg-slate-900',
+                    base: 'group overflow-hidden border border-gray-100 dark:border-slate-800 hover:border-primary/20 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 rounded-none bg-white dark:bg-slate-900 flex flex-col h-full',
                     header: { padding: 'p-0 sm:p-0' },
-                    body: { padding: 'p-5 sm:p-5' },
+                    body: { padding: 'p-5 sm:p-5 flex-1' },
                     footer: { padding: 'px-5 py-4 sm:px-5 sm:py-4 bg-gray-50/50 dark:bg-slate-800/50' }
                 }">
                     <template #header>
-                        <div class="relative overflow-hidden aspect-[4/3]">
-                            <img :src="offer?.country_flag" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"/>
+                        <div class="relative overflow-hidden aspect-[4/3] bg-gray-100 dark:bg-slate-800">
+                            <!-- Custom offer image or country flag fallback -->
+                            <img :src="offer?.image || offer?.country_flag" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" alt="Offre Omra"/>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             
                             <!-- Departure Date Badge -->
@@ -57,7 +167,7 @@
                                     {{ offer?.price }} <span class="text-xs text-gray-500 font-medium">DZD</span>
                                 </div>
                             </div>
-                            <UButton block class="font-bold shadow-md hover:shadow-lg transition-all rounded-none" size="lg" color="primary" label="Voir les détails" @click="openForm(offer?.id)">
+                            <UButton block class="font-bold shadow-md hover:shadow-lg transition-all rounded-none cursor-pointer" size="lg" color="primary" label="Voir les détails" @click="openForm(offer?.id)">
                                 <template #trailing>
                                     <UIcon name="i-heroicons-arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </template>
@@ -67,9 +177,10 @@
                 </UCard>
             </div>
         </div>
-        <div class="w-full flex justify-center mt-5">
+
+        <!-- Pagination -->
+        <div class="w-full flex justify-center mt-5" v-if="pagination.totalItems > pagination.pageSize">
             <UPagination
-            v-if="pagination.totalItems > 0"
             :default-page="(pagination.pageIndex || 0) + 1"
             :items-per-page="pagination.pageSize"
             :total="pagination.totalItems"
@@ -81,12 +192,43 @@
 
 <script setup>
 import OrderForm from '~/components/modals/OrderForm.vue'
-import { useAuthStore } from '#imports'
-import { ref, onMounted } from 'vue'
+import { useAuthStore, refDebounced } from '#imports'
+import { ref, computed, watch, onMounted } from 'vue'
 
 const authStore = useAuthStore()
 const authorization = authStore.Authorization
 const offers = ref([])
+const loading = ref(false)
+
+// Filter & Sort State
+const search = ref('')
+const searchDebounce = refDebounced(search, 300)
+const startDate = ref('')
+const endDate = ref('')
+const sortBy = ref('departure_date_asc')
+
+const sortOptions = [
+    { label: 'Date de départ (Croissant - Plus proche)', value: 'departure_date_asc' },
+    { label: 'Date de départ (Décroissant - Plus lointain)', value: 'departure_date_desc' },
+    { label: 'Nouveautés (Derniers ajouts)', value: 'newest' },
+    { label: 'Prix croissant (Moins cher)', value: 'price_asc' },
+    { label: 'Prix décroissant (Plus cher)', value: 'price_desc' }
+]
+
+const currentSortLabel = computed(() => {
+    return sortOptions.find(o => o.value === sortBy.value)?.label || sortBy.value
+})
+
+const hasActiveFilters = computed(() => {
+    return Boolean(search.value || startDate.value || endDate.value || sortBy.value !== 'departure_date_asc')
+})
+
+const resetFilters = () => {
+    search.value = ''
+    startDate.value = ''
+    endDate.value = ''
+    sortBy.value = 'departure_date_asc'
+}
 
 const overlay = useOverlay()
 
@@ -101,17 +243,21 @@ const openForm = async(id)=> {
 }
 
 const pagination = ref({
-  pageIndex: undefined,
-  pageSize: undefined,
-  totalItems:undefined,
-  totalPages:undefined
+  pageIndex: 0,
+  pageSize: 12,
+  totalItems: 0,
+  totalPages: 1
 })
 
 onMounted(()=>{
-    getOffers()
+    getOffers(1)
 })
 
-const truncate= (string, value)=>{
+watch([searchDebounce, startDate, endDate, sortBy], () => {
+    getOffers(1)
+})
+
+const truncate = (string, value)=>{
     if(!string) return ''
     if(string.length > value){
         return string.substring(0, value) + '…';
@@ -139,15 +285,35 @@ const guaranteeColor = (value)=>{
 }
 
 const getOffers = async(page=1)=>{
+    loading.value = true
     const url = authorization?.token ? '/client/omra':'/omra'
-    sendApi(`${url}/offers?page=${page}&per_page=12`,null,'GET').then(response=>{
-        offers.value = response.data.data
+    let query = `${url}/offers?page=${page}&per_page=12`
+    
+    if (searchDebounce.value && searchDebounce.value.trim()) {
+        query += `&search=${encodeURIComponent(searchDebounce.value.trim())}`
+    }
+    if (startDate.value) {
+        query += `&start_date=${encodeURIComponent(startDate.value)}`
+    }
+    if (endDate.value) {
+        query += `&end_date=${encodeURIComponent(endDate.value)}`
+    }
+    if (sortBy.value) {
+        query += `&sort_by=${encodeURIComponent(sortBy.value)}`
+    }
+
+    sendApi(query, null, 'GET').then(response=>{
+        offers.value = response.data?.data || []
         pagination.value = {
-            pageIndex:response.pagination.current_page - 1,
-            pageSize:response.pagination.per_page,
-            totalItems:response.pagination.total_items,
-            totalPages:response.pagination.total_pages
+            pageIndex: (response.pagination?.current_page || 1) - 1,
+            pageSize: response.pagination?.per_page || 12,
+            totalItems: response.pagination?.total_items || 0,
+            totalPages: response.pagination?.total_pages || 1
         }
+        loading.value = false
+    }).catch(() => {
+        offers.value = []
+        loading.value = false
     })
 }
 

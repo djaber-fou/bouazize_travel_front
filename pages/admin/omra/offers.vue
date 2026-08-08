@@ -77,6 +77,19 @@
                             <UFormField :ui="{label:'text-secondary font-bold'}" label="Garantie" name="guarantee">
                                 <USelect placeholder="Type de garantie" v-model="offer.guarantee" :items="guaranteeTypes" class="w-full" />
                             </UFormField>
+
+                            <UFormField :ui="{label:'text-secondary font-bold'}" label="Photo personnalisée de l'offre" name="image" class="md:col-span-2">
+                                <div class="flex flex-col gap-3">
+                                    <input type="file" @change="onFileChange" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer"/>
+                                    <div v-if="previewImage || offer.image" class="relative w-full sm:w-64 h-36 border border-gray-200 dark:border-slate-700 overflow-hidden group rounded-sm shadow-xs">
+                                        <img :src="previewImage || offer.image" class="w-full h-full object-cover" alt="Aperçu de l'offre" />
+                                        <button type="button" @click="removeImage" class="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-80 hover:opacity-100 transition shadow cursor-pointer">
+                                            <UIcon name="i-material-symbols-close" class="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400">Si aucune image n'est choisie, l'image / drapeau du pays sera utilisé par défaut.</p>
+                                </div>
+                            </UFormField>
                         </div>
 
                         <!-- Departure & Return Dates with Auto-Duration -->
@@ -282,9 +295,27 @@ const offer = ref({
     purchase_price:null,
     b2b_price:null,
     b2c_price:null,
+    image:null,
     rooms:[],
     documents:[],
 })
+
+const imageFile = ref(null)
+const previewImage = ref(null)
+
+const onFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+        imageFile.value = file
+        previewImage.value = URL.createObjectURL(file)
+    }
+}
+
+const removeImage = () => {
+    imageFile.value = null
+    previewImage.value = null
+    offer.value.image = null
+}
 
 const guaranteeTypes = ref([
     { label:"Avec garantie de retour", value:"with" },
@@ -300,9 +331,10 @@ const columns = [
         accessorKey: 'name',
         header: 'Offre Omra',
         cell:({row})=>{
+            const offerImg = row.original.image || row.original.country?.flag
             return h('div',{class:'flex items-center gap-3'},[
                 h(UAvatar,{
-                    src:row.original.country?.flag,
+                    src: offerImg,
                     size: 'xl',
                 }),
                 h('div',{},[
@@ -420,6 +452,8 @@ onMounted(()=>{
 const openForm = ()=>{
     action.value = "Ajouter"
     open.value = true
+    imageFile.value = null
+    previewImage.value = null
     offer.value = {
         id:null,
         country_id: country.value?.value || null,
@@ -433,6 +467,7 @@ const openForm = ()=>{
         purchase_price: null,
         b2b_price: null,
         b2c_price: null,
+        image: null,
         rooms:[
             createDefaultRoom(2, "Chambre Double (غرفة ثنائية)")
         ],
@@ -565,6 +600,8 @@ const getOffer = async (id)=>{
     action.value = "Modifier"
     open.value = true
     loading.value = true
+    imageFile.value = null
+    previewImage.value = null
     sendApi(`/admin/omra/offers/${id}`,null,'GET').then(response=>{
         const res = response.data
         offer.value = {
@@ -580,6 +617,7 @@ const getOffer = async (id)=>{
             purchase_price: res.purchase_price,
             b2b_price: res.business_price,
             b2c_price: res.individual_price,
+            image: res.image || null,
             rooms: res.rooms && Array.isArray(res.rooms) ? res.rooms : [],
             documents: (res.documents || []).map(doc => doc.name || doc)
         }
@@ -597,10 +635,47 @@ const getOffer = async (id)=>{
     })
 }
 
+const buildOfferFormData = () => {
+    const fd = new FormData()
+    if (offer.value.country_id) fd.append('country_id', offer.value.country_id)
+    if (offer.value.provider_id) fd.append('provider_id', offer.value.provider_id)
+    if (offer.value.offer_name) fd.append('offer_name', offer.value.offer_name)
+    if (offer.value.guarantee) fd.append('guarantee', offer.value.guarantee)
+    if (offer.value.duration) fd.append('duration', offer.value.duration)
+    if (offer.value.departure_date) fd.append('departure_date', offer.value.departure_date)
+    if (offer.value.return_date) fd.append('return_date', offer.value.return_date)
+    fd.append('available', offer.value.available ? '1' : '0')
+    if (offer.value.purchase_price) fd.append('purchase_price', offer.value.purchase_price)
+    if (offer.value.b2b_price) fd.append('b2b_price', offer.value.b2b_price)
+    if (offer.value.b2c_price) fd.append('b2c_price', offer.value.b2c_price)
+
+    if (imageFile.value) {
+        fd.append('image', imageFile.value)
+    } else if (offer.value.image) {
+        fd.append('image', offer.value.image)
+    }
+
+    (offer.value.rooms || []).forEach((room, index) => {
+        Object.keys(room).forEach(key => {
+            const val = room[key]
+            if (val !== undefined && val !== null) {
+                fd.append(`rooms[${index}][${key}]`, typeof val === 'boolean' ? (val ? '1' : '0') : val)
+            }
+        })
+    })
+
+    (offer.value.documents || []).forEach((doc, index) => {
+        fd.append(`documents[${index}]`, doc)
+    })
+
+    return fd
+}
+
 const addOffer = async ()=>{
     loading.value = true
     syncMinPrices()
-    sendApi('/admin/omra/offers/add', offer.value, 'POST').then(response=>{
+    const payload = buildOfferFormData()
+    sendApi('/admin/omra/offers/add', payload, 'POST').then(response=>{
         getOffers()
         open.value = false
         loading.value = false
@@ -612,7 +687,8 @@ const addOffer = async ()=>{
 const updateOffer = async(id)=>{
     loading.value = true
     syncMinPrices()
-    sendApi(`/admin/omra/offers/${id}/update`, offer.value, 'PUT').then(response=>{
+    const payload = buildOfferFormData()
+    sendApi(`/admin/omra/offers/${id}/update`, payload, 'POST').then(response=>{
         getOffers(pagination.value.pageIndex + 1)
         open.value = false
         loading.value = false
