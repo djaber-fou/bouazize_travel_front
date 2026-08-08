@@ -22,28 +22,31 @@ import axios from 'axios'
 
 export const sendApi = async (path, Data, Method, configOpts = {}) => {
     const authStore = useAuthStore();
-    const token = authStore.Authorization.token;
+    const token = authStore?.Authorization?.token;
     
     const url = import.meta.env.VITE_BASE_URL + path;
-    const Headers = {
-        Accept:'Application/json',
+    const reqHeaders = {
+        'Accept': 'application/json',
+        ...(configOpts.headers || {})
+    };
+    if (token) {
+        reqHeaders['Authorization'] = 'Bearer ' + token;
     }
-    if(token){
-        Headers.Authorization = 'Bearer '+token 
-    }
-    axios.defaults.headers = Headers
+
+    const { headers: _, ...restConfigOpts } = configOpts;
 
     const response = await axios({
         method: Method,
         url: url,
         data: Data,
-        ...configOpts
+        headers: reqHeaders,
+        timeout: 15000,
+        ...restConfigOpts
     }).then(response=>{
-        // const blob = response?.config?.env?.Blob() 
         console.log(response)
         if(response.data?.message){
             const toast = useToast()
-            const isSuccess = response.data.success === true || response.data.status === 'success';
+            const isSuccess = response.data.success === true || response.data.status === 'success' || response.status === 200 || response.status === 201;
             toast.add({
                 title: response.data.message, 
                 color: isSuccess ? 'green' : 'red',

@@ -675,26 +675,34 @@ const addOffer = async ()=>{
     loading.value = true
     syncMinPrices()
     const payload = buildOfferFormData()
-    sendApi('/admin/voyage_organise/offers/add', payload, 'POST').then(response=>{
-        getOffers()
-        open.value = false
+    try {
+        const response = await sendApi('/admin/voyage_organise/offers/add', payload, 'POST')
+        if (response && (response.success || response.status === 'success' || response.message)) {
+            await getOffers()
+            open.value = false
+        }
+    } catch (err) {
+        console.error('Error creating Voyage Organisé offer:', err)
+    } finally {
         loading.value = false
-    }).catch(() => {
-        loading.value = false
-    })
+    }
 }
 
 const updateOffer = async(id)=>{
     loading.value = true
     syncMinPrices()
     const payload = buildOfferFormData()
-    sendApi(`/admin/voyage_organise/offers/${id}/update`, payload, 'POST').then(response=>{
-        getOffers(pagination.value.pageIndex + 1)
-        open.value = false
+    try {
+        const response = await sendApi(`/admin/voyage_organise/offers/${id}/update`, payload, 'POST')
+        if (response && (response.success || response.status === 'success' || response.message)) {
+            await getOffers(pagination.value.pageIndex + 1)
+            open.value = false
+        }
+    } catch (err) {
+        console.error('Error updating Voyage Organisé offer:', err)
+    } finally {
         loading.value = false
-    }).catch(() => {
-        loading.value = false
-    })
+    }
 }
 
 const onPageChange = async (page)=>{
