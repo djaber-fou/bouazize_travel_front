@@ -76,8 +76,16 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
         
         if (error.response) {
             // Server responded with an error (e.g. 422, 500)
-            if (error.response.data && error.response.data.message) {
-                errorMsg = error.response.data.message
+            if (error.response.data) {
+                if (error.response.data.errors && typeof error.response.data.errors === 'object') {
+                    const firstKey = Object.keys(error.response.data.errors)[0]
+                    const firstVal = error.response.data.errors[firstKey]
+                    errorMsg = Array.isArray(firstVal) ? firstVal[0] : String(firstVal)
+                } else if (error.response.data.message) {
+                    errorMsg = error.response.data.message
+                } else {
+                    errorMsg = `Erreur serveur: ${error.response.status}`
+                }
             } else {
                 errorMsg = `Erreur serveur: ${error.response.status}`
             }
@@ -91,17 +99,21 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
             }
         } else if (error.request) {
             // No response received (Network error, timeout, or PHP aborted due to post_max_size)
-            errorMsg = "Erreur réseau ou fichier trop volumineux."
+            errorMsg = "Erreur de connexion ou délai d'attente dépassé."
         } else {
             errorMsg = error.message
         }
         
         toast.add({
             title: errorMsg, 
-            color: '',
+            color: 'red',
             progress: false,
-            close: false,
-            ui: {root:'bg-error',title:'text-white', close:'neutral'}
+            close: true,
+            ui: {
+                root: '!bg-rose-600 !text-white',
+                title: 'text-white font-medium',
+                close: 'text-white'
+            }
         })
         
         return undefined

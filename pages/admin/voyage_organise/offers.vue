@@ -684,19 +684,29 @@ const getOffer = async (id)=>{
     })
 }
 
+const getSelectedId = (val) => {
+    if (val === null || val === undefined) return null
+    if (typeof val === 'object') return val.value || val.id || null
+    return val
+}
+
 const buildOfferFormData = () => {
     const fd = new FormData()
-    if (offer.value.country_id) fd.append('country_id', offer.value.country_id)
-    if (offer.value.provider_id) fd.append('provider_id', offer.value.provider_id)
+    const countryId = getSelectedId(offer.value.country_id) || getSelectedId(country.value)
+    if (countryId) fd.append('country_id', countryId)
+
+    const providerId = getSelectedId(offer.value.provider_id) || getSelectedId(provider.value)
+    if (providerId) fd.append('provider_id', providerId)
+
     if (offer.value.offer_name) fd.append('offer_name', offer.value.offer_name)
     if (offer.value.guarantee) fd.append('guarantee', offer.value.guarantee)
     if (offer.value.duration) fd.append('duration', offer.value.duration)
     if (offer.value.departure_date) fd.append('departure_date', offer.value.departure_date)
     if (offer.value.return_date) fd.append('return_date', offer.value.return_date)
     fd.append('available', offer.value.available ? '1' : '0')
-    if (offer.value.purchase_price) fd.append('purchase_price', offer.value.purchase_price)
-    if (offer.value.b2b_price) fd.append('b2b_price', offer.value.b2b_price)
-    if (offer.value.b2c_price) fd.append('b2c_price', offer.value.b2c_price)
+    if (offer.value.purchase_price !== null && offer.value.purchase_price !== undefined && offer.value.purchase_price !== '') fd.append('purchase_price', offer.value.purchase_price)
+    if (offer.value.b2b_price !== null && offer.value.b2b_price !== undefined && offer.value.b2b_price !== '') fd.append('b2b_price', offer.value.b2b_price)
+    if (offer.value.b2c_price !== null && offer.value.b2c_price !== undefined && offer.value.b2c_price !== '') fd.append('b2c_price', offer.value.b2c_price)
 
     if (imageFile.value) {
         fd.append('image', imageFile.value)
