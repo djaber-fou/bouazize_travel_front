@@ -270,6 +270,7 @@
 import { h, resolveComponent, ref, watch, onMounted } from 'vue'
 import { refDebounced } from '#imports'
 import { UIcon } from '#components'
+import { uploadToCloudinary } from '~/composables/useCloudinaryUpload'
 
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
@@ -304,59 +305,11 @@ const offer = ref({
 const imageFile = ref(null)
 const previewImage = ref(null)
 
-const compressImage = async (file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) => {
-    return new Promise((resolve) => {
-        if (!file || !file.type || !file.type.startsWith('image/')) {
-            return resolve(file)
-        }
-        const reader = new FileReader()
-        reader.readAsDataURL(file)
-        reader.onload = (event) => {
-            const img = new Image()
-            img.src = event.target.result
-            img.onload = () => {
-                let width = img.width
-                let height = img.height
-
-                if (width > maxWidth || height > maxHeight) {
-                    if (width > height) {
-                        height = Math.round((height * maxWidth) / width)
-                        width = maxWidth
-                    } else {
-                        width = Math.round((width * maxHeight) / height)
-                        height = maxHeight
-                    }
-                }
-
-                const canvas = document.createElement('canvas')
-                canvas.width = width
-                canvas.height = height
-                const ctx = canvas.getContext('2d')
-                ctx.drawImage(img, 0, 0, width, height)
-
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
-                            type: 'image/jpeg',
-                            lastModified: Date.now()
-                        })
-                        resolve(compressedFile)
-                    } else {
-                        resolve(file)
-                    }
-                }, 'image/jpeg', quality)
-            }
-            img.onerror = () => resolve(file)
-        }
-        reader.onerror = () => resolve(file)
-    })
-}
-
-const onFileChange = async (e) => {
+const onFileChange = (e) => {
     const file = e.target.files?.[0]
     if (file) {
         previewImage.value = URL.createObjectURL(file)
-        imageFile.value = await compressImage(file)
+        imageFile.value = file
     }
 }
 
@@ -690,7 +643,7 @@ const getSelectedId = (val) => {
     return val
 }
 
-const buildOfferFormData = () => {
+const buildOfferPayload = (imageUrl) => {
     const fd = new FormData()
     const countryId = getSelectedId(offer.value.country_id) || getSelectedId(country.value)
     if (countryId) fd.append('country_id', countryId)
@@ -708,8 +661,9 @@ const buildOfferFormData = () => {
     if (offer.value.b2b_price !== null && offer.value.b2b_price !== undefined && offer.value.b2b_price !== '') fd.append('b2b_price', offer.value.b2b_price)
     if (offer.value.b2c_price !== null && offer.value.b2c_price !== undefined && offer.value.b2c_price !== '') fd.append('b2c_price', offer.value.b2c_price)
 
-    if (imageFile.value) {
-        fd.append('image', imageFile.value)
+    // Image is now always a URL string (from Cloudinary or existing)
+    if (imageUrl) {
+        fd.append('image', imageUrl)
     } else if (offer.value.image) {
         fd.append('image', offer.value.image)
     }
@@ -723,18 +677,39 @@ const buildOfferFormData = () => {
         })
     })
 
-    (offer.value.documents || []).forEach((doc, index) => {
+    ;(offer.value.documents || []).forEach((doc, index) => {
         fd.append(`documents[${index}]`, doc)
     })
 
     return fd
 }
 
-const addOffer = async ()=>{
+/**
+ * Upload image to Cloudinary first (if a new file was selected),
+ * then send the offer data with the image URL to the backend.
+ */
+const resolveImageUrl = async () => {
+    if (!imageFile.value) return offer.value.image || null
+
+    const toast = useToast()
+    toast.add({ title: "Téléchargement de l'image en cours...", color: 'blue', progress: false, close: true, ui: { root: '!bg-blue-600 !text-white', title: 'text-white font-medium', close: 'text-white' } })
+
+    const url = await uploadToCloudinary(imageFile.value, 'voyages_organises')
+    if (!url) {
+        toast.add({ title: "Échec du téléchargement de l'image. Veuillez réessayer.", color: 'red', progress: false, close: true, ui: { root: '!bg-rose-600 !text-white', title: 'text-white font-medium', close: 'text-white' } })
+        return null
+    }
+    return url
+}
+
+const addOffer = async () => {
     loading.value = true
     syncMinPrices()
-    const payload = buildOfferFormData()
     try {
+        const imageUrl = await resolveImageUrl()
+        if (imageFile.value && !imageUrl) { loading.value = false; return }
+
+        const payload = buildOfferPayload(imageUrl)
         const response = await sendApi('/admin/voyage_organise/offers/add', payload, 'POST')
         if (response && (response.success || response.status === 'success' || response.message)) {
             await getOffers()
@@ -747,11 +722,14 @@ const addOffer = async ()=>{
     }
 }
 
-const updateOffer = async(id)=>{
+const updateOffer = async (id) => {
     loading.value = true
     syncMinPrices()
-    const payload = buildOfferFormData()
     try {
+        const imageUrl = await resolveImageUrl()
+        if (imageFile.value && !imageUrl) { loading.value = false; return }
+
+        const payload = buildOfferPayload(imageUrl)
         const response = await sendApi(`/admin/voyage_organise/offers/${id}/update`, payload, 'POST')
         if (response && (response.success || response.status === 'success' || response.message)) {
             await getOffers(pagination.value.pageIndex + 1)
