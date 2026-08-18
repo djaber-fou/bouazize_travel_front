@@ -14,14 +14,15 @@
                 </div>
 
                 <div class="w-full md:w-80">
-                <UInput 
-                    v-model="search"
-                    icon="i-lucide-search" 
-                    size="lg" 
-                    placeholder="Rechercher une destination..."
-                    @update:model-value="getCountries"
-                    :ui="{ base: 'shadow-sm rounded-none' }"
-                />
+                    <UInput 
+                        v-model="search"
+                        icon="i-lucide-search" 
+                        size="lg" 
+                        placeholder="Rechercher une destination..."
+                        @update:model-value="getCountries"
+                        :ui="{ base: 'shadow-sm rounded-none' }"
+                    />
+                </div>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full mt-6">
