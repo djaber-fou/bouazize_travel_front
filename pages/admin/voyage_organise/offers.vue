@@ -289,8 +289,8 @@ const offer = ref({
     country_id:null,
     provider_id:null,
     offer_name:null,
-    departure_date:null,
-    return_date:null,
+    dates: [{ departure_date: '', return_date: '' }],
+    is_national: false,
     duration:null,
     available:true,
     guarantee:null,
@@ -461,8 +461,8 @@ const openForm = ()=>{
         country_id: country.value?.value || null,
         provider_id: provider.value?.value || null,
         offer_name:'',
-        departure_date: '',
-        return_date: '',
+        dates: [{ departure_date: '', return_date: '' }],
+        is_national: false,
         duration:'',
         available:true,
         guarantee:'with',
@@ -533,14 +533,25 @@ const syncMinPrices = () => {
     }
 }
 
-const autoCalculateDuration = () => {
-    if (offer.value.departure_date && offer.value.return_date) {
-        const d1 = new Date(offer.value.departure_date);
-        const d2 = new Date(offer.value.return_date);
-        const diffTime = d2 - d1;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        if (diffDays > 0) {
-            offer.value.duration = `${diffDays} Jours / ${diffDays - 1} Nuits`;
+const addDatePair = () => {
+    if (!offer.value.dates) offer.value.dates = []
+    offer.value.dates.push({ departure_date: '', return_date: '' })
+}
+const removeDatePair = (index) => {
+    offer.value.dates.splice(index, 1)
+}
+
+const autoCalculateDuration = (index = 0) => {
+    if (offer.value.dates && offer.value.dates[index]) {
+        const d = offer.value.dates[index]
+        if (d.departure_date && d.return_date) {
+            const d1 = new Date(d.departure_date);
+            const d2 = new Date(d.return_date);
+            const diffTime = d2 - d1;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays > 0) {
+                offer.value.duration = `${diffDays} Jours / ${diffDays - 1} Nuits`;
+            }
         }
     }
 }
@@ -611,8 +622,8 @@ const getOffer = async (id)=>{
             country_id: res.country?.id,
             provider_id: res.provider?.value || res.provider?.id,
             offer_name: res.name,
-            departure_date: res.departure_date || '',
-            return_date: res.return_date || '',
+            dates: (res.dates && res.dates.length > 0) ? res.dates : [{ departure_date: res.departure_date || '', return_date: res.return_date || '' }],
+            is_national: Boolean(res.is_national),
             duration: res.duration,
             available: Boolean(res.available),
             guarantee: res.guarantee,
@@ -654,8 +665,20 @@ const buildOfferPayload = (imageUrl) => {
     if (offer.value.offer_name) fd.append('offer_name', offer.value.offer_name)
     if (offer.value.guarantee) fd.append('guarantee', offer.value.guarantee)
     if (offer.value.duration) fd.append('duration', offer.value.duration)
-    if (offer.value.departure_date) fd.append('departure_date', offer.value.departure_date)
-    if (offer.value.return_date) fd.append('return_date', offer.value.return_date)
+    if (offer.value.dates && offer.value.dates.length > 0) {
+        offer.value.dates.forEach((d, i) => {
+            if (d.departure_date) fd.append(`dates[${i}][departure_date]`, d.departure_date)
+            if (d.return_date) fd.append(`dates[${i}][return_date]`, d.return_date)
+        })
+    }
+    
+    // Ensure the main fields are set to something valid for validation
+    if (offer.value.dates && offer.value.dates[0]) {
+        if (offer.value.dates[0].departure_date) fd.append('departure_date', offer.value.dates[0].departure_date)
+        if (offer.value.dates[0].return_date) fd.append('return_date', offer.value.dates[0].return_date)
+    }
+
+    fd.append('is_national', offer.value.is_national ? '1' : '0')
     fd.append('available', offer.value.available ? '1' : '0')
     if (offer.value.purchase_price !== null && offer.value.purchase_price !== undefined && offer.value.purchase_price !== '') fd.append('purchase_price', offer.value.purchase_price)
     if (offer.value.b2b_price !== null && offer.value.b2b_price !== undefined && offer.value.b2b_price !== '') fd.append('b2b_price', offer.value.b2b_price)
@@ -748,6 +771,16 @@ const onPageChange = async (page)=>{
 
 watch(searchCountry, ()=>{
     getCountries()
+})
+
+watch(() => offer.value.country_id, (newVal) => {
+    // Auto-detect National if country is Algeria
+    const selected = countries.value.find(c => c.value === newVal || c.id === newVal)
+    if (selected && selected.label && selected.label.toLowerCase().includes('alg')) {
+        offer.value.is_national = true
+    } else {
+        offer.value.is_national = false
+    }
 })
 watch(searchProvider, ()=>{
     getProviders()

@@ -6,7 +6,14 @@
                 <div class="w-16 h-1 bg-primary"></div>
             </div>
             
-            <div class="w-full md:w-80">
+            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto items-center">
+                <div class="flex bg-gray-100 p-1 rounded-sm w-full md:w-auto">
+                    <button @click="setFilter('all')" :class="['px-4 py-2 text-sm font-bold flex-1 md:flex-none transition-colors', filterType === 'all' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700']">Tous</button>
+                    <button @click="setFilter('national')" :class="['px-4 py-2 text-sm font-bold flex-1 md:flex-none transition-colors', filterType === 'national' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700']">National</button>
+                    <button @click="setFilter('international')" :class="['px-4 py-2 text-sm font-bold flex-1 md:flex-none transition-colors', filterType === 'international' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700']">International</button>
+                </div>
+
+                <div class="w-full md:w-80">
                 <UInput 
                     v-model="search"
                     icon="i-lucide-search" 
@@ -45,7 +52,15 @@
 <script setup>
 
 const search = ref("")
+const filterType = ref("all")
 const countries = ref([]);
+
+const setFilter = (type) => {
+    filterType.value = type;
+    localStorage.removeItem('current_page');
+    pagination.value.pageIndex = 0;
+    getCountries(1);
+}
 const pagination = ref({
   pageIndex: localStorage.getItem('current_page') ? localStorage.getItem('current_page') - 1 : undefined,
   pageSize: undefined,
@@ -63,7 +78,11 @@ const getCountries = async (page=1)=>{
         console.log("localstorage")
         page = localStorage.getItem('current_page')
     }
-    sendApi(`/voyage_organise?page=${page}&per_page=12&search=${search.value}`,null,'GET').then(response=>{
+    let url = `/voyage_organise?page=${page}&per_page=12&search=${search.value}`;
+    if (filterType.value !== 'all') {
+        url += `&type=${filterType.value}`;
+    }
+    sendApi(url,null,'GET').then(response=>{
         console.log(response)
         countries.value = response.data.data
         pagination.value = {

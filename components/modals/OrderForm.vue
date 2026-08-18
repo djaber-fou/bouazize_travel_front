@@ -382,6 +382,10 @@ const props = defineProps({
     service: {
         type: String,
         default: 'visa'
+    },
+    selectedDate: {
+        type: String,
+        default: null
     }
 })
 

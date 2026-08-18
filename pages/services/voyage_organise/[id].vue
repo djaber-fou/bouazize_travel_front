@@ -183,6 +183,7 @@ const authorization = authStore.Authorization
 const {id} = useRoute().params
 const offers = ref([])
 const loading = ref(false)
+const selectedDates = ref({})
 
 // Filter & Sort State
 const search = ref('')
@@ -216,11 +217,21 @@ const resetFilters = () => {
 
 const overlay = useOverlay()
 
-const openForm = async(id)=> {
+const openForm = async(offer)=> {
+    // If client hasn't clicked a date explicitly, use the first available one as fallback
+    let fallbackDate = null;
+    if (offer.dates && offer.dates.length > 0) {
+        fallbackDate = offer.dates[0].departure_date;
+    } else {
+        fallbackDate = offer.departure_date;
+    }
+    const chosenDate = selectedDates.value[offer.id] || fallbackDate;
+
     const form = overlay.create(OrderForm, {
         props:{
-            id:id,
-            service: 'voyage_organise'
+            id: offer.id,
+            service: 'voyage_organise',
+            selectedDate: chosenDate
         },
     })
     const instance = form.open()
