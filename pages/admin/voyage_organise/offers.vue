@@ -102,7 +102,7 @@
                                     <UToggle v-model="offer.is_national" size="lg" color="primary" />
                                     <span class="text-sm font-medium" :class="offer.is_national ? 'text-primary' : 'text-gray-400'">National (Local)</span>
                                 </div>
-                                <span class="text-xs text-gray-500 mt-1 block">Si le pays contient "Algérie", ce bouton s'activera automatiquement.</span>
+                                <span class="text-xs text-gray-500 mt-1 block">Si le pays contient "Algerie", ce bouton s'activera automatiquement.</span>
                             </UFormField>
                         </div>
                         
