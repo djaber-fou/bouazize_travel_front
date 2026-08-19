@@ -152,7 +152,7 @@
                                     {{ offer?.price }} <span class="text-xs text-gray-500 font-medium">DZD</span>
                                 </div>
                             </div>
-                            <UButton block class="font-bold rounded-none shadow-md hover:shadow-lg transition-all cursor-pointer" size="lg" color="primary" label="Voir les détails" @click="openForm(offer?.id)">
+                            <UButton block class="font-bold rounded-none shadow-md hover:shadow-lg transition-all cursor-pointer" size="lg" color="primary" label="Voir les détails" @click="openForm(offer)">
                                 <template #trailing>
                                     <UIcon name="i-heroicons-arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </template>

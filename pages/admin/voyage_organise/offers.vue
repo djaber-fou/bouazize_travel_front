@@ -93,17 +93,41 @@
                             </UFormField>
                         </div>
 
+                        
+                        <!-- National / International Toggle -->
+                        <div class="pt-4 border-t border-gray-100 dark:border-slate-800">
+                            <UFormField :ui="{label:'text-secondary font-bold'}" label="Type de voyage" name="is_national">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-sm font-medium" :class="offer.is_national ? 'text-gray-400' : 'text-primary'">International</span>
+                                    <UToggle v-model="offer.is_national" size="lg" color="primary" />
+                                    <span class="text-sm font-medium" :class="offer.is_national ? 'text-primary' : 'text-gray-400'">National (Local)</span>
+                                </div>
+                                <span class="text-xs text-gray-500 mt-1 block">Si le pays contient "Algérie", ce bouton s'activera automatiquement.</span>
+                            </UFormField>
+                        </div>
+                        
                         <!-- Departure & Return Dates with Auto-Duration -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-100 dark:border-slate-800">
-                            <UFormField :ui="{label:'text-secondary font-bold'}" label="Date de départ (Vol Aller)" name="departure_date">
-                                <UInput type="date" v-model="offer.departure_date" @change="autoCalculateDuration" class="w-full"/>
-                            </UFormField>
+                        <div class="pt-4 border-t border-gray-100 dark:border-slate-800 flex flex-col gap-4">
+                            <div class="flex justify-between items-center">
+                                <div class="font-bold text-secondary">Dates de départ disponibles</div>
+                                <UButton @click="addDatePair" color="gray" variant="ghost" icon="i-heroicons-plus" size="sm" label="Ajouter une date" />
+                            </div>
+                            
+                            <div v-for="(dateObj, index) in offer.dates" :key="index" class="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-end bg-gray-50 dark:bg-slate-800/50 p-3 rounded-md">
+                                <UFormField :ui="{label:'text-secondary font-bold text-sm'}" :label="`Date de départ ${index + 1}`" :name="`dates_${index}_departure`">
+                                    <UInput type="date" v-model="dateObj.departure_date" @change="autoCalculateDuration(index)" class="w-full"/>
+                                </UFormField>
 
-                            <UFormField :ui="{label:'text-secondary font-bold'}" label="Date de retour (Vol Retour)" name="return_date">
-                                <UInput type="date" v-model="offer.return_date" @change="autoCalculateDuration" class="w-full"/>
-                            </UFormField>
+                                <UFormField :ui="{label:'text-secondary font-bold text-sm'}" :label="`Date de retour ${index + 1}`" :name="`dates_${index}_return`">
+                                    <UInput type="date" v-model="dateObj.return_date" @change="autoCalculateDuration(index)" class="w-full"/>
+                                </UFormField>
 
-                            <UFormField :ui="{label:'text-secondary font-bold'}" label="Durée du séjour" name="duration">
+                                <div class="pb-1" v-if="offer.dates.length > 1">
+                                    <UButton @click="removeDatePair(index)" color="red" variant="soft" icon="i-heroicons-trash" size="sm" />
+                                </div>
+                            </div>
+
+                            <UFormField :ui="{label:'text-secondary font-bold'}" label="Durée du séjour (Calculée automatiquement si vide)" name="duration">
                                 <UInput placeholder="Ex: 8 Jours / 7 Nuits" v-model="offer.duration" class="w-full"/>
                             </UFormField>
                         </div>
