@@ -81,6 +81,49 @@
                         Vous devez vous connecter pour uploader vos documents et réserver.
                     </div>
 
+                    
+                    <!-- Departure Date Selector for Voyage Organise -->
+                    <div v-if="offer?.dates && offer.dates.length > 0" class="flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
+                        <div class="font-bold text-secondary text-lg flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <UIcon name="i-heroicons-calendar-days" class="text-primary w-5 h-5"/>
+                                <span>Date de départ du voyage</span>
+                            </div>
+                            <UBadge color="primary" variant="subtle" size="xs" class="font-bold">
+                                {{ offer.dates.length }} date{{ offer.dates.length > 1 ? 's' : '' }} disponible{{ offer.dates.length > 1 ? 's' : '' }}
+                            </UBadge>
+                        </div>
+
+                        <!-- Date Selection Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div 
+                                v-for="(dateEntry, dIdx) in offer.dates" 
+                                :key="dateEntry.id || dIdx"
+                                @click="chosenDepartureDate = dateEntry.departure_date"
+                                :class="[
+                                    'p-3.5 border-2 cursor-pointer transition-all rounded-none flex items-center justify-between gap-3',
+                                    chosenDepartureDate === dateEntry.departure_date 
+                                        ? 'border-primary bg-primary/[0.04] dark:bg-primary/[0.08] ring-1 ring-primary/20 shadow-sm' 
+                                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/60'
+                                ]"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <div :class="[
+                                        'w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0',
+                                        chosenDepartureDate === dateEntry.departure_date ? 'border-primary bg-primary' : 'border-gray-300 dark:border-slate-600'
+                                    ]">
+                                        <div v-if="chosenDepartureDate === dateEntry.departure_date" class="w-2 h-2 rounded-full bg-white"></div>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-sm text-secondary dark:text-white">Départ : {{ dateEntry.departure_date }}</span>
+                                        <span v-if="dateEntry.return_date" class="text-xs text-gray-500">Retour : {{ dateEntry.return_date }}</span>
+                                    </div>
+                                </div>
+                                <UBadge v-if="chosenDepartureDate === dateEntry.departure_date" size="xs" color="primary" variant="subtle" class="font-bold">Sélectionné</UBadge>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Room Selector as UL / LI List (Omra and Voyage Organise) -->
                     <div v-if="hasRooms" class="flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
                         <div class="font-bold text-secondary text-lg flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
@@ -396,6 +439,23 @@ const loadingText = ref('Confirmer la réservation')
 const uploadProgress = ref(0)
 const offer = ref({})
 const selectedRoomIndex = ref(0)
+const chosenDepartureDate = ref(props.selectedDate || null)
+
+watch(() => props.selectedDate, (newVal) => {
+    if (newVal) chosenDepartureDate.value = newVal
+})
+
+watch(() => offer.value, (newOffer) => {
+    if (newOffer) {
+        if (!chosenDepartureDate.value) {
+            if (newOffer.dates && newOffer.dates.length > 0) {
+                chosenDepartureDate.value = newOffer.dates[0].departure_date
+            } else if (newOffer.departure_date) {
+                chosenDepartureDate.value = newOffer.departure_date
+            }
+        }
+    }
+}, { immediate: true })
 
 const clientOrder = ref({
     members: 1,
@@ -707,6 +767,9 @@ const submitOrder = async ()=>{
         formData.append('members', clientOrder.value.members)
         formData.append('payment_method', clientOrder.value.payment_method)
         
+        if (chosenDepartureDate.value) {
+            formData.append('selected_date', chosenDepartureDate.value)
+        }
         if (hasRooms.value && selectedRoom.value) {
             formData.append('room_id', selectedRoom.value.id || selectedRoomIndex.value)
             formData.append('room_type', selectedRoom.value.name || selectedRoom.value.type)

@@ -136,6 +136,34 @@
                                 <UIcon name="i-heroicons-clock" class="w-4 h-4 text-primary" />
                                 <span>{{ truncate(offer?.duration || 'Séjour complet', 30) }}</span>
                             </div>
+
+                            <!-- Multi-dates selection chips -->
+                            <div v-if="offer?.dates && offer.dates.length > 0" class="flex flex-col gap-1.5 pt-2 border-t border-gray-100 dark:border-slate-800">
+                                <div class="text-xs font-bold text-gray-500 dark:text-gray-400 flex items-center justify-between">
+                                    <span class="flex items-center gap-1">
+                                        <UIcon name="i-heroicons-calendar-days" class="w-3.5 h-3.5 text-primary" />
+                                        Dates de départ :
+                                    </span>
+                                    <span class="text-[10px] text-primary font-semibold">{{ offer.dates.length }} option{{ offer.dates.length > 1 ? 's' : '' }}</span>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                                    <button 
+                                        type="button"
+                                        v-for="(dateEntry, dIdx) in offer.dates" 
+                                        :key="dIdx"
+                                        @click.stop="selectedDates[offer.id] = dateEntry.departure_date"
+                                        :class="[
+                                            'px-2 py-1 text-xs font-bold rounded-none border transition-all cursor-pointer flex items-center gap-1',
+                                            (selectedDates[offer.id] || (offer.dates[0] && offer.dates[0].departure_date)) === dateEntry.departure_date
+                                                ? 'bg-primary text-white border-primary shadow-xs'
+                                                : 'bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-slate-700 hover:border-primary/50'
+                                        ]"
+                                    >
+                                        <UIcon name="i-heroicons-calendar" class="w-3 h-3" />
+                                        {{ dateEntry.departure_date }}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </template>
                     <template #footer>

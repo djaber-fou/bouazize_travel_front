@@ -3,18 +3,18 @@
     <div class="w-full space-y-4 pb-4">
         <div class="flex flex-col gap-5">
             <div class="flex justify-between items-center">
-                <div class="flex gap-4">
+                <div class="flex flex-wrap gap-3 items-center">
                   <UInput 
-                v-model="search"
-                icon="i-lucide-search" 
-                size="md" 
-                variant="outline" 
-                placeholder="Rechercher un voyage organisé..."
-                @update:model-value="getOffers"
-                class="w-72"
-                />
-                  <USelect v-model="statusFilter" :options="[{label:'Tous (Statut)',value:'all'},{label:'Active',value:'active'},{label:'Désactivée',value:'inactive'}]" @change="getOffers(1)" class="w-40" />
-                  <USelect v-model="typeFilter" :options="[{label:'Tous (Type)',value:'all'},{label:'National',value:'national'},{label:'International',value:'international'}]" @change="getOffers(1)" class="w-40" />
+                    v-model="search"
+                    icon="i-lucide-search" 
+                    size="md" 
+                    variant="outline" 
+                    placeholder="Rechercher un voyage organisé..."
+                    @update:model-value="getOffers(1)"
+                    class="w-72"
+                  />
+                  <USelect v-model="statusFilter" :items="statusOptions" class="w-40" />
+                  <USelect v-model="typeFilter" :items="typeOptions" class="w-44" />
                 </div>
                 <UButton @click="openForm" :ui="{leadingIcon:'text-neutral'}" class="font-bold shadow-md" icon="i-material-symbols-add-2" label="Ajouter un Voyage Organisé"/>
             </div>
@@ -102,11 +102,10 @@
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-800">
                             <UFormField :ui="{label:'text-secondary font-bold'}" label="Type de voyage" name="is_national">
                                 <div class="flex items-center gap-3">
-                                    <span class="text-sm font-medium" :class="offer.is_national ? 'text-gray-400' : 'text-primary'">International</span>
-                                    <UToggle v-model="offer.is_national" size="lg" color="primary" />
-                                    <span class="text-sm font-medium" :class="offer.is_national ? 'text-primary' : 'text-gray-400'">National (Local)</span>
+                                    <button type="button" @click="offer.is_national = false" :class="!offer.is_national ? 'text-primary font-bold' : 'text-gray-400 font-medium'" class="text-sm cursor-pointer transition-colors">International</button>
+                                    <USwitch v-model="offer.is_national" size="lg" />
+                                    <button type="button" @click="offer.is_national = true" :class="offer.is_national ? 'text-primary font-bold' : 'text-gray-400 font-medium'" class="text-sm cursor-pointer transition-colors">National (Local)</button>
                                 </div>
-                                
                             </UFormField>
                         </div>
                         
@@ -468,8 +467,25 @@ const country = ref({})
 const providers = ref([])
 const provider = ref({})
 
+
+const statusOptions = [
+    { label: 'Tous (Statut)', value: 'all' },
+    { label: 'Active', value: 'active' },
+    { label: 'Désactivée', value: 'inactive' }
+]
+
+const typeOptions = [
+    { label: 'Tous (Type)', value: 'all' },
+    { label: 'National', value: 'national' },
+    { label: 'International', value: 'international' }
+]
+
 const statusFilter = ref('all')
 const typeFilter = ref('all')
+
+watch([statusFilter, typeFilter], () => {
+    getOffers(1)
+})
 const search = ref('')
 const searchDebounce = refDebounced(search,200)
 const searchCountry = ref('')
@@ -653,7 +669,7 @@ const getOffer = async (id)=>{
             provider_id: res.provider?.value || res.provider?.id,
             offer_name: res.name,
             dates: (res.dates && res.dates.length > 0) ? res.dates : [{ departure_date: res.departure_date || '', return_date: res.return_date || '' }],
-            is_national: Boolean(res.is_national),
+            is_national: res.is_national !== undefined && res.is_national !== null ? Boolean(Number(res.is_national)) : true,
             duration: res.duration,
             available: Boolean(res.available),
             guarantee: res.guarantee,
