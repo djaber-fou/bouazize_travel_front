@@ -3,7 +3,8 @@
     <div class="w-full space-y-4 pb-4">
         <div class="flex flex-col gap-5">
             <div class="flex justify-between items-center">
-                <UInput 
+                <div class="flex gap-4">
+                  <UInput 
                 v-model="search"
                 icon="i-lucide-search" 
                 size="md" 
@@ -12,6 +13,9 @@
                 @update:model-value="getOffers"
                 class="w-72"
                 />
+                  <USelect v-model="statusFilter" :options="[{label:'Tous (Statut)',value:'all'},{label:'Active',value:'active'},{label:'Désactivée',value:'inactive'}]" @change="getOffers(1)" class="w-40" />
+                  <USelect v-model="typeFilter" :options="[{label:'Tous (Type)',value:'all'},{label:'National',value:'national'},{label:'International',value:'international'}]" @change="getOffers(1)" class="w-40" />
+                </div>
                 <UButton @click="openForm" :ui="{leadingIcon:'text-neutral'}" class="font-bold shadow-md" icon="i-material-symbols-add-2" label="Ajouter un Voyage Organisé"/>
             </div>
             <div>
@@ -102,7 +106,7 @@
                                     <UToggle v-model="offer.is_national" size="lg" color="primary" />
                                     <span class="text-sm font-medium" :class="offer.is_national ? 'text-primary' : 'text-gray-400'">National (Local)</span>
                                 </div>
-                                <span class="text-xs text-gray-500 mt-1 block">Si le pays contient "Algerie", ce bouton s'activera automatiquement.</span>
+                                
                             </UFormField>
                         </div>
                         
@@ -464,6 +468,8 @@ const country = ref({})
 const providers = ref([])
 const provider = ref({})
 
+const statusFilter = ref('all')
+const typeFilter = ref('all')
 const search = ref('')
 const searchDebounce = refDebounced(search,200)
 const searchCountry = ref('')
@@ -619,7 +625,7 @@ const getProviders = async ()=>{
 
 const getOffers = async (page=1)=>{
     loading.value = true
-    sendApi(`/admin/voyage_organise/offers?page=${page}&per_page=10&search=${search.value}`,null,'GET').then(response=>{
+    sendApi(`/admin/voyage_organise/offers?page=${page}&per_page=10&search=${search.value}&status=${statusFilter.value}&type=${typeFilter.value}`,null,'GET').then(response=>{
         data.value = response.data.data
         pagination.value = {
             pageIndex: response.pagination.current_page - 1,
