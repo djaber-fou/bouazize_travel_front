@@ -314,7 +314,7 @@ const offer = ref({
     provider_id:null,
     offer_name:null,
     dates: [{ departure_date: '', return_date: '' }],
-    is_national: false,
+    is_national: true,
     duration:null,
     available:true,
     guarantee:null,
@@ -486,7 +486,7 @@ const openForm = ()=>{
         provider_id: provider.value?.value || null,
         offer_name:'',
         dates: [{ departure_date: '', return_date: '' }],
-        is_national: false,
+        is_national: true,
         duration:'',
         available:true,
         guarantee:'with',
@@ -797,15 +797,7 @@ watch(searchCountry, ()=>{
     getCountries()
 })
 
-watch(() => offer.value.country_id, (newVal) => {
-    // Auto-detect National if country is Algeria
-    const selected = countries.value.find(c => c.value === newVal || c.id === newVal)
-    if (selected && selected.label && selected.label.toLowerCase().includes('alg')) {
-        offer.value.is_national = true
-    } else {
-        offer.value.is_national = false
-    }
-})
+
 watch(searchProvider, ()=>{
     getProviders()
 })
