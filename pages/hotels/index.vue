@@ -21,6 +21,36 @@ const d12 = new Date(today.getTime() + 12 * 24 * 60 * 60 * 1000);
 form.value.checkin = d10.toISOString().split('T')[0];
 form.value.checkout = d12.toISOString().split('T')[0];
 
+
+const popularCities = [
+    { name: 'Dubai', code: 'DXB', country: 'Émirats arabes unis' },
+    { name: 'Istanbul', code: 'IST', country: 'Turquie' },
+    { name: 'Antalya', code: 'AYT', country: 'Turquie' },
+    { name: 'Paris', code: 'PAR', country: 'France' },
+    { name: 'Londres', code: 'LON', country: 'Royaume-Uni' },
+    { name: 'Rome', code: 'ROM', country: 'Italie' },
+    { name: 'Venise', code: 'VCEI', country: 'Italie' },
+    { name: 'Kuala Lumpur', code: 'KUL', country: 'Malaisie' },
+    { name: 'Doha', code: 'DOH', country: 'Qatar' },
+    { name: 'Le Caire', code: 'CAI', country: 'Egypte' },
+    { name: 'Djeddah', code: 'JED', country: 'Arabie Saoudite' },
+    { name: 'Mekkah', code: 'MED', country: 'Arabie Saoudite' },
+    { name: 'Alger', code: 'ALG', country: 'Algérie' },
+    { name: 'Oran', code: 'ORN', country: 'Algérie' }
+];
+const destinationQuery = ref('');
+const showCitySuggestions = ref(false);
+const filteredCities = computed(() => {
+    if (!destinationQuery.value) return popularCities;
+    const q = destinationQuery.value.toLowerCase();
+    return popularCities.filter(c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q) || c.country.toLowerCase().includes(q));
+});
+const selectCity = (city) => {
+    destinationQuery.value = city.name + ', ' + city.country;
+    form.value.city_code = city.code;
+    showCitySuggestions.value = false;
+};
+
 const results = ref([]);
 const loading = ref(false);
 const error = ref(null);
@@ -268,55 +298,80 @@ const printVoucher = () => {
             </div>
 
             
-                <form @submit.prevent="searchHotels" class="relative max-w-4xl mx-auto bg-[#cdd5de]/95 backdrop-blur-sm rounded-md shadow-2xl p-5 border border-white/30 text-slate-800 font-sans">
+                
+                <form @submit.prevent="searchHotels" class="relative max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-6 border border-slate-200 dark:border-slate-800">
                     <!-- Top Right Button -->
                     <div class="absolute top-4 right-4">
-                        <button type="button" class="bg-[#6b7c93] hover:bg-[#5b6a7e] text-white text-[10px] uppercase font-bold px-3 py-1.5 rounded flex items-center gap-1 transition-colors cursor-pointer">
+                        <button type="button" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] uppercase font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             RECHERCHES RÉCENTES
                         </button>
                     </div>
 
                     <!-- Row 1: Destination -->
-                    <div class="flex flex-wrap md:flex-nowrap items-end gap-3 mb-4 mt-2">
-                        <div class="flex-1">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Choisissez votre destination</label>
-                            <input type="text" v-model="form.city_code" class="w-full bg-white border border-slate-300 px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm" placeholder="ex: DXB, PAR, IST">
+                    <div class="flex flex-wrap md:flex-nowrap items-start gap-4 mb-5 mt-2">
+                        <div class="flex-1 relative">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5">Choisissez votre destination</label>
+                            <input 
+                                type="text" 
+                                v-model="destinationQuery" 
+                                @focus="showCitySuggestions = true" 
+                                @blur="setTimeout(() => showCitySuggestions = false, 200)"
+                                class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl transition-all" 
+                                placeholder="Où allez-vous ? (ex: Dubai, Paris)"
+                            >
+                            <!-- City Suggestions Dropdown -->
+                            <div v-if="showCitySuggestions" class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                <div 
+                                    v-for="city in filteredCities" :key="city.code"
+                                    @click="selectCity(city)"
+                                    class="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer flex justify-between items-center"
+                                >
+                                    <div>
+                                        <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ city.name }}</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">{{ city.country }}</div>
+                                    </div>
+                                    <span class="text-xs font-mono font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{{ city.code }}</span>
+                                </div>
+                                <div v-if="filteredCities.length === 0" class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
+                                    Aucune ville trouvée.
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <label class="flex items-center gap-1.5 text-[11px] text-slate-700 font-semibold cursor-pointer">
+                        <div class="flex items-center gap-2 mt-7">
+                            <label class="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-semibold cursor-pointer">
                                 <span>Géocodage</span>
-                                <input type="checkbox" class="w-3.5 h-3.5 accent-[#4caf50]">
+                                <input type="checkbox" class="w-4 h-4 accent-blue-600 rounded cursor-pointer">
                             </label>
                         </div>
-                        <div class="w-16">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1 text-center">Km</label>
-                            <input type="number" value="5" class="w-full bg-white border border-slate-300 px-2 py-1.5 text-xs text-center text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm">
+                        <div class="w-20">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5 text-center">Km</label>
+                            <input type="number" value="5" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2.5 text-sm text-center text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl">
                         </div>
                     </div>
 
                     <!-- Row 2: Dates and Config -->
-                    <div class="flex flex-wrap md:flex-nowrap items-end gap-3 mb-4">
-                        <div class="w-40">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">De</label>
+                    <div class="flex flex-wrap md:flex-nowrap items-end gap-4 mb-5">
+                        <div class="w-full md:w-48">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5">De</label>
                             <div class="relative">
-                                <input type="date" v-model="form.checkin" class="w-full bg-[#f8f9fa] border border-slate-300 pl-8 pr-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm" required>
-                                <svg class="w-4 h-4 text-[#d9a05b] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+                                <input type="date" v-model="form.checkin" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 pl-10 pr-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl" required>
+                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
                         </div>
-                        <div class="w-40">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">au</label>
+                        <div class="w-full md:w-48">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5">au</label>
                             <div class="relative">
-                                <input type="date" v-model="form.checkout" class="w-full bg-[#f8f9fa] border border-slate-300 pl-8 pr-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm" required>
-                                <svg class="w-4 h-4 text-[#d9a05b] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+                                <input type="date" v-model="form.checkout" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 pl-10 pr-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl" required>
+                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
                         </div>
                         
                         <div class="flex-1"></div>
                         
                         <div class="w-24">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1 text-center">Nuits</label>
-                            <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-center text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm appearance-none cursor-pointer">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5 text-center">Nuits</label>
+                            <select class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2.5 text-sm text-center text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl cursor-pointer">
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -327,8 +382,8 @@ const printVoucher = () => {
                             </select>
                         </div>
                         <div class="w-24">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1 text-center">Chambres</label>
-                            <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-center text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm appearance-none cursor-pointer" @change="form.rooms = Array.from({length: parseInt($event.target.value)}, () => ({ type: 'DBL', required: 1, extrabeds: 0, cots: 0, children: [] }))">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5 text-center">Chambres</label>
+                            <select class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2.5 text-sm text-center text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl cursor-pointer" @change="form.rooms = Array.from({length: parseInt($event.target.value)}, () => ({ type: 'DBL', required: 1, extrabeds: 0, cots: 0, children: [] }))">
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">3</option>
@@ -337,16 +392,16 @@ const printVoucher = () => {
                         </div>
                     </div>
 
-                    <!-- Room Loop (like CHAMBRE 1, CHAMBRE 2) -->
-                    <div class="bg-[#bfc8d3] p-3 mb-4 border-t border-[#aeb8c4] space-y-3">
-                        <div v-for="(room, index) in form.rooms" :key="index" class="flex flex-wrap items-center gap-4">
-                            <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider w-24">
+                    <!-- Room Loop -->
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl mb-5 border border-slate-200 dark:border-slate-700 space-y-4">
+                        <div v-for="(room, index) in form.rooms" :key="index" class="flex flex-wrap items-center gap-5">
+                            <div class="text-xs font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider w-28">
                                 CHAMBRE {{ index + 1 }}
                             </div>
                             
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-600 mb-1">Adultes</label>
-                                <select class="w-16 bg-white border border-slate-300 px-2 py-1 text-xs text-center text-slate-700 focus:outline-none rounded-sm cursor-pointer">
+                                <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">Adultes</label>
+                                <select class="w-20 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-sm text-center text-slate-800 dark:text-slate-200 focus:outline-none rounded-lg cursor-pointer">
                                     <option>1</option>
                                     <option selected>2</option>
                                     <option>3</option>
@@ -355,8 +410,8 @@ const printVoucher = () => {
                             </div>
                             
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-600 mb-1">Nombre d'enfants</label>
-                                <select :value="room.children.length" @change="room.children = Array.from({length: parseInt($event.target.value)}, () => 0)" class="w-16 bg-white border border-slate-300 px-2 py-1 text-xs text-center text-slate-700 focus:outline-none rounded-sm cursor-pointer">
+                                <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">Enfants</label>
+                                <select :value="room.children.length" @change="room.children = Array.from({length: parseInt($event.target.value)}, () => 0)" class="w-20 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-sm text-center text-slate-800 dark:text-slate-200 focus:outline-none rounded-lg cursor-pointer">
                                     <option value="0">0</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -364,75 +419,75 @@ const printVoucher = () => {
                                 </select>
                             </div>
                             
-                            <div class="flex flex-col items-center justify-end h-[42px]">
-                                <label class="block text-[10px] font-bold text-slate-600 mb-1">Berceau</label>
-                                <input type="checkbox" v-model="room.cots" :true-value="1" :false-value="0" class="w-3.5 h-3.5 accent-[#4caf50] cursor-pointer">
+                            <div class="flex flex-col items-center justify-end h-[48px]">
+                                <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-2">Berceau</label>
+                                <input type="checkbox" v-model="room.cots" :true-value="1" :false-value="0" class="w-4 h-4 accent-blue-600 rounded cursor-pointer">
                             </div>
                             
-                            <div class="flex flex-col justify-end h-[42px] ml-4">
-                                <label class="flex items-center gap-1.5 text-[11px] text-slate-700 cursor-pointer">
-                                    <input type="radio" v-model="room.type" value="DBL" class="w-3 h-3 accent-[#d9a05b] cursor-pointer">
+                            <div class="flex flex-col justify-end h-[48px] ml-4">
+                                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                    <input type="radio" v-model="room.type" value="DBL" class="w-3.5 h-3.5 accent-blue-600 cursor-pointer">
                                     <span>Double</span>
                                 </label>
-                                <label class="flex items-center gap-1.5 text-[11px] text-slate-700 cursor-pointer mt-1">
-                                    <input type="radio" v-model="room.type" value="TWN" class="w-3 h-3 accent-[#d9a05b] cursor-pointer">
+                                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer mt-1.5">
+                                    <input type="radio" v-model="room.type" value="TWN" class="w-3.5 h-3.5 accent-blue-600 cursor-pointer">
                                     <span>Chambre Twin</span>
                                 </label>
                             </div>
 
-                            <!-- Child ages row if any children -->
-                            <div v-if="room.children.length > 0" class="w-full flex flex-wrap items-center gap-2 mt-2 ml-[112px]">
+                            <!-- Child ages row -->
+                            <div v-if="room.children.length > 0" class="w-full flex flex-wrap items-center gap-3 mt-2 md:ml-[132px]">
                                 <div v-for="(childAge, cIdx) in room.children" :key="cIdx">
-                                    <label class="block text-[9px] font-bold text-slate-500 mb-0.5">Âge enf {{ cIdx+1 }}</label>
-                                    <input type="number" v-model="room.children[cIdx]" min="0" max="17" class="w-14 bg-white border border-slate-300 px-1 py-1 text-xs text-center focus:outline-none rounded-sm">
+                                    <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Âge enf {{ cIdx+1 }}</label>
+                                    <input type="number" v-model="room.children[cIdx]" min="0" max="17" class="w-16 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-2 py-1.5 text-xs text-center text-slate-900 dark:text-white focus:outline-none rounded-lg">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Advanced Options Accordion -->
-                    <div class="mb-4 bg-[#c5cfd9] rounded-sm overflow-hidden border border-[#aeb8c4]">
-                        <div class="flex items-center justify-between px-3 py-1.5 bg-[#aab5c2] cursor-pointer" onclick="document.getElementById('advanced_opts').classList.toggle('hidden'); document.getElementById('adv_btn_text').innerText = document.getElementById('advanced_opts').classList.contains('hidden') ? '+' : '-'">
+                    <div class="mb-6 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <div class="flex items-center justify-between px-4 py-3 bg-slate-100 dark:bg-slate-800 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" onclick="document.getElementById('advanced_opts').classList.toggle('hidden'); document.getElementById('adv_btn_text').innerText = document.getElementById('advanced_opts').classList.contains('hidden') ? '+' : '-'">
                             <div class="flex items-center gap-2">
-                                <span class="text-[#d9a05b] font-bold">|</span>
-                                <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">OPTIONS AVANCÉES</span>
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Options Avancées</span>
                             </div>
-                            <button type="button" class="w-4 h-4 bg-white flex items-center justify-center border border-slate-300 text-slate-500 text-xs font-bold hover:bg-slate-50 cursor-pointer">
-                                <span id="adv_btn_text">-</span>
+                            <button type="button" class="w-6 h-6 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-lg leading-none cursor-pointer">
+                                <span id="adv_btn_text" class="font-medium pb-0.5">+</span>
                             </button>
                         </div>
                         
-                        <div id="advanced_opts" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-3">
+                        <div id="advanced_opts" class="hidden p-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Etoiles</label>
-                                    <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-slate-700 focus:outline-none rounded-sm cursor-pointer appearance-none">
-                                        <option>Sélect/ment...</option>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5">Etoiles</label>
+                                    <select class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none rounded-xl cursor-pointer">
+                                        <option>Indifférent</option>
                                         <option>5 Etoiles</option>
                                         <option>4 Etoiles</option>
                                         <option>3 Etoiles</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Critères de sélection</label>
-                                    <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-slate-700 focus:outline-none rounded-sm cursor-pointer appearance-none">
-                                        <option>Sélect/ment...</option>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5">Critères de sélection</label>
+                                    <select class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none rounded-xl cursor-pointer">
+                                        <option>Tous</option>
                                     </select>
                                 </div>
                             </div>
                             
-                            <div class="space-y-3">
+                            <div class="space-y-4">
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Budget</label>
-                                    <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-slate-700 focus:outline-none rounded-sm cursor-pointer appearance-none">
-                                        <option>Algerian Dinar</option>
-                                        <option>Euro</option>
-                                        <option>US Dollar</option>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5">Budget</label>
+                                    <select class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none rounded-xl cursor-pointer">
+                                        <option>Dinar Algérien (DZD)</option>
+                                        <option>Euro (EUR)</option>
+                                        <option>US Dollar (USD)</option>
                                     </select>
                                 </div>
-                                <div class="pt-5">
-                                    <label class="flex items-center gap-1.5 text-[11px] text-slate-700 font-semibold cursor-pointer">
-                                        <input type="checkbox" class="w-3 h-3 accent-[#4caf50]">
+                                <div class="pt-6">
+                                    <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                        <input type="checkbox" class="w-4 h-4 accent-blue-600 rounded">
                                         <span>Tarifs remboursables uniquement</span>
                                     </label>
                                 </div>
@@ -442,26 +497,28 @@ const printVoucher = () => {
 
                     <!-- Bottom Row: Nationality & Submit -->
                     <div class="flex flex-wrap md:flex-nowrap items-end justify-between gap-4">
-                        <div class="w-48">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Nationalité de passager</label>
-                            <select v-model="form.nationality" class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-slate-700 focus:outline-none rounded-sm uppercase cursor-pointer appearance-none">
-                                <option value="DZ">ALGERIA</option>
-                                <option value="FR">FRANCE</option>
-                                <option value="TR">TURKEY</option>
-                                <option value="AE">UAE</option>
+                        <div class="w-56">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1.5">Nationalité</label>
+                            <select v-model="form.nationality" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl uppercase cursor-pointer">
+                                <option value="DZ">Algérie</option>
+                                <option value="FR">France</option>
+                                <option value="TR">Turquie</option>
+                                <option value="AE">Émirats Arabes Unis</option>
                             </select>
-                            <label class="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold cursor-pointer mt-2">
-                                <input type="checkbox" class="w-3 h-3 accent-[#4caf50]">
-                                <span>hôtels disponibles uniquement</span>
+                            <label class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 font-semibold cursor-pointer mt-3">
+                                <input type="checkbox" class="w-3.5 h-3.5 accent-blue-600 rounded">
+                                <span>Hôtels disponibles uniquement</span>
                             </label>
                         </div>
                         
-                        <button type="submit" :disabled="loading" class="bg-[#3a913f] hover:bg-[#327d36] text-white text-sm font-bold tracking-wider px-10 py-2.5 rounded-sm shadow-md transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-2">
-                            <svg v-if="loading" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                        <button type="submit" :disabled="loading" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold tracking-wider px-10 py-3.5 rounded-xl shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2">
+                            <svg v-if="loading" class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             RECHERCHER
                         </button>
                     </div>
                 </form>
+
 
             </div>
 
