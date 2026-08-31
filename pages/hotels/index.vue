@@ -267,93 +267,202 @@ const printVoucher = () => {
                 
             </div>
 
-            <form @submit.prevent="searchHotels" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                        <!-- Dates -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">Check-in</label>
-                            <input type="date" v-model="form.checkin" required class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900 outline-none transition-all">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">Check-out</label>
-                            <input type="date" v-model="form.checkout" required class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900 outline-none transition-all">
-                        </div>
-                        
-                        <!-- City Code -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">Code Ville (ex: DXB)</label>
-                            <input type="text" v-model="form.city_code" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm uppercase focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900 outline-none transition-all" placeholder="ex: DXB, PAR, IST">
-                        </div>
+            
+                <form @submit.prevent="searchHotels" class="relative max-w-4xl mx-auto bg-[#cdd5de]/95 backdrop-blur-sm rounded-md shadow-2xl p-5 border border-white/30 text-slate-800 font-sans">
+                    <!-- Top Right Button -->
+                    <div class="absolute top-4 right-4">
+                        <button type="button" class="bg-[#6b7c93] hover:bg-[#5b6a7e] text-white text-[10px] uppercase font-bold px-3 py-1.5 rounded flex items-center gap-1 transition-colors cursor-pointer">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            RECHERCHES RÉCENTES
+                        </button>
+                    </div>
 
-                        <!-- Nationality -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">Nationalité (ISO)</label>
-                            <input type="text" v-model="form.nationality" required class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm uppercase focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900 outline-none transition-all" placeholder="ex: DZ, FR">
+                    <!-- Row 1: Destination -->
+                    <div class="flex flex-wrap md:flex-nowrap items-end gap-3 mb-4 mt-2">
+                        <div class="flex-1">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Choisissez votre destination</label>
+                            <input type="text" v-model="form.city_code" class="w-full bg-white border border-slate-300 px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm" placeholder="ex: DXB, PAR, IST">
                         </div>
-
-                        <!-- Hotel IDs -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">IDs Hôtels (Optionnel)</label>
-                            <input type="text" v-model="form.hotel_ids" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3.5 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900 outline-none transition-all" placeholder="ex: 25846, 12296">
+                        <div class="flex items-center gap-2 mb-1">
+                            <label class="flex items-center gap-1.5 text-[11px] text-slate-700 font-semibold cursor-pointer">
+                                <span>Géocodage</span>
+                                <input type="checkbox" class="w-3.5 h-3.5 accent-[#4caf50]">
+                            </label>
+                        </div>
+                        <div class="w-16">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1 text-center">Km</label>
+                            <input type="number" value="5" class="w-full bg-white border border-slate-300 px-2 py-1.5 text-xs text-center text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm">
                         </div>
                     </div>
 
-                    <!-- Rooms Configurator -->
-                    <div class="border-t border-slate-100 dark:border-slate-800 pt-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Configuration des Chambres</h3>
-                            <button type="button" @click="addRoom" class="inline-flex items-center px-3 py-1.5 border border-blue-200 dark:border-blue-800 text-xs font-semibold rounded-lg text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 transition-colors cursor-pointer">
-                                + Ajouter Chambre
-                            </button>
+                    <!-- Row 2: Dates and Config -->
+                    <div class="flex flex-wrap md:flex-nowrap items-end gap-3 mb-4">
+                        <div class="w-40">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">De</label>
+                            <div class="relative">
+                                <input type="date" v-model="form.checkin" class="w-full bg-[#f8f9fa] border border-slate-300 pl-8 pr-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm" required>
+                                <svg class="w-4 h-4 text-[#d9a05b] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+                            </div>
+                        </div>
+                        <div class="w-40">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">au</label>
+                            <div class="relative">
+                                <input type="date" v-model="form.checkout" class="w-full bg-[#f8f9fa] border border-slate-300 pl-8 pr-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm" required>
+                                <svg class="w-4 h-4 text-[#d9a05b] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+                            </div>
                         </div>
                         
-                        <div class="space-y-4">
-                            <div v-for="(room, index) in form.rooms" :key="index" class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 relative">
-                                <button v-if="form.rooms.length > 1" @click="removeRoom(index)" type="button" class="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer">
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                </button>
-                                
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Type de Chambre</label>
-                                        <select v-model="room.type" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                                            <option value="SGL">Single (1 personne)</option>
-                                            <option value="DBL">Double (2 personnes)</option>
-                                            <option value="TRP">Triple (3 personnes)</option>
-                                            <option value="QUD">Quadruple (4 personnes)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Lits Supplémentaires</label>
-                                        <input type="number" min="0" v-model="room.extrabeds" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Lits Bébés (Cots)</label>
-                                        <input type="number" min="0" v-model="room.cots" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Enfants</label>
-                                        <button type="button" @click="addChild(index)" class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">+ Ajouter Enfant</button>
-                                        <div v-for="(child, cIndex) in room.children" :key="cIndex" class="mt-1 flex items-center gap-2">
-                                            <input type="number" min="0" max="17" v-model="room.children[cIndex]" class="w-16 rounded-md border border-slate-300 dark:border-slate-700 px-2 py-1 text-xs bg-white dark:bg-slate-800" placeholder="Âge">
-                                            <button type="button" @click="room.children.splice(cIndex, 1)" class="text-red-500 text-xs">✕</button>
-                                        </div>
-                                    </div>
+                        <div class="flex-1"></div>
+                        
+                        <div class="w-24">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1 text-center">Nuits</label>
+                            <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-center text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm appearance-none cursor-pointer">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                                <option>6</option>
+                                <option>7</option>
+                            </select>
+                        </div>
+                        <div class="w-24">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1 text-center">Chambres</label>
+                            <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-center text-slate-700 focus:outline-none focus:border-[#4caf50] rounded-sm appearance-none cursor-pointer" @change="form.rooms = Array.from({length: parseInt($event.target.value)}, () => ({ type: 'DBL', required: 1, extrabeds: 0, cots: 0, children: [] }))">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Room Loop (like CHAMBRE 1, CHAMBRE 2) -->
+                    <div class="bg-[#bfc8d3] p-3 mb-4 border-t border-[#aeb8c4] space-y-3">
+                        <div v-for="(room, index) in form.rooms" :key="index" class="flex flex-wrap items-center gap-4">
+                            <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wider w-24">
+                                CHAMBRE {{ index + 1 }}
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1">Adultes</label>
+                                <select class="w-16 bg-white border border-slate-300 px-2 py-1 text-xs text-center text-slate-700 focus:outline-none rounded-sm cursor-pointer">
+                                    <option>1</option>
+                                    <option selected>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1">Nombre d'enfants</label>
+                                <select :value="room.children.length" @change="room.children = Array.from({length: parseInt($event.target.value)}, () => 0)" class="w-16 bg-white border border-slate-300 px-2 py-1 text-xs text-center text-slate-700 focus:outline-none rounded-sm cursor-pointer">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex flex-col items-center justify-end h-[42px]">
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1">Berceau</label>
+                                <input type="checkbox" v-model="room.cots" :true-value="1" :false-value="0" class="w-3.5 h-3.5 accent-[#4caf50] cursor-pointer">
+                            </div>
+                            
+                            <div class="flex flex-col justify-end h-[42px] ml-4">
+                                <label class="flex items-center gap-1.5 text-[11px] text-slate-700 cursor-pointer">
+                                    <input type="radio" v-model="room.type" value="DBL" class="w-3 h-3 accent-[#d9a05b] cursor-pointer">
+                                    <span>Double</span>
+                                </label>
+                                <label class="flex items-center gap-1.5 text-[11px] text-slate-700 cursor-pointer mt-1">
+                                    <input type="radio" v-model="room.type" value="TWN" class="w-3 h-3 accent-[#d9a05b] cursor-pointer">
+                                    <span>Chambre Twin</span>
+                                </label>
+                            </div>
+
+                            <!-- Child ages row if any children -->
+                            <div v-if="room.children.length > 0" class="w-full flex flex-wrap items-center gap-2 mt-2 ml-[112px]">
+                                <div v-for="(childAge, cIdx) in room.children" :key="cIdx">
+                                    <label class="block text-[9px] font-bold text-slate-500 mb-0.5">Âge enf {{ cIdx+1 }}</label>
+                                    <input type="number" v-model="room.children[cIdx]" min="0" max="17" class="w-14 bg-white border border-slate-300 px-1 py-1 text-xs text-center focus:outline-none rounded-sm">
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="pt-4 flex justify-end">
-                        <button type="submit" :disabled="loading" class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 disabled:opacity-50 text-sm cursor-pointer">
-                            <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                            </svg>
-                            {{ loading ? 'Recherche en cours...' : 'Rechercher les Disponibilités' }}
+                    <!-- Advanced Options Accordion -->
+                    <div class="mb-4 bg-[#c5cfd9] rounded-sm overflow-hidden border border-[#aeb8c4]">
+                        <div class="flex items-center justify-between px-3 py-1.5 bg-[#aab5c2] cursor-pointer" onclick="document.getElementById('advanced_opts').classList.toggle('hidden'); document.getElementById('adv_btn_text').innerText = document.getElementById('advanced_opts').classList.contains('hidden') ? '+' : '-'">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[#d9a05b] font-bold">|</span>
+                                <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">OPTIONS AVANCÉES</span>
+                            </div>
+                            <button type="button" class="w-4 h-4 bg-white flex items-center justify-center border border-slate-300 text-slate-500 text-xs font-bold hover:bg-slate-50 cursor-pointer">
+                                <span id="adv_btn_text">-</span>
+                            </button>
+                        </div>
+                        
+                        <div id="advanced_opts" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Etoiles</label>
+                                    <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-slate-700 focus:outline-none rounded-sm cursor-pointer appearance-none">
+                                        <option>Sélect/ment...</option>
+                                        <option>5 Etoiles</option>
+                                        <option>4 Etoiles</option>
+                                        <option>3 Etoiles</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Critères de sélection</label>
+                                    <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-slate-700 focus:outline-none rounded-sm cursor-pointer appearance-none">
+                                        <option>Sélect/ment...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Budget</label>
+                                    <select class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-slate-700 focus:outline-none rounded-sm cursor-pointer appearance-none">
+                                        <option>Algerian Dinar</option>
+                                        <option>Euro</option>
+                                        <option>US Dollar</option>
+                                    </select>
+                                </div>
+                                <div class="pt-5">
+                                    <label class="flex items-center gap-1.5 text-[11px] text-slate-700 font-semibold cursor-pointer">
+                                        <input type="checkbox" class="w-3 h-3 accent-[#4caf50]">
+                                        <span>Tarifs remboursables uniquement</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Row: Nationality & Submit -->
+                    <div class="flex flex-wrap md:flex-nowrap items-end justify-between gap-4">
+                        <div class="w-48">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Nationalité de passager</label>
+                            <select v-model="form.nationality" class="w-full bg-[#f8f9fa] border border-slate-300 px-2 py-1.5 text-xs text-slate-700 focus:outline-none rounded-sm uppercase cursor-pointer appearance-none">
+                                <option value="DZ">ALGERIA</option>
+                                <option value="FR">FRANCE</option>
+                                <option value="TR">TURKEY</option>
+                                <option value="AE">UAE</option>
+                            </select>
+                            <label class="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold cursor-pointer mt-2">
+                                <input type="checkbox" class="w-3 h-3 accent-[#4caf50]">
+                                <span>hôtels disponibles uniquement</span>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" :disabled="loading" class="bg-[#3a913f] hover:bg-[#327d36] text-white text-sm font-bold tracking-wider px-10 py-2.5 rounded-sm shadow-md transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-2">
+                            <svg v-if="loading" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            RECHERCHER
                         </button>
                     </div>
                 </form>
+
             </div>
 
             <!-- Error Message -->
