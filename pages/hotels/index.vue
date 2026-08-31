@@ -671,5 +671,5 @@ const printVoucher = () => {
             </div>
 
         </div>
-    </div>
+    
 </template>
