@@ -99,7 +99,7 @@
                                 :class="showUserMenu ? 'rotate-180 text-primary' : ''"
                             />
                         </button>
-                        <Transition name="dropdown">
+                        <Transition name="user-dropdown">
                             <div 
                                 v-if="showUserMenu"
                                 class="absolute right-0 top-full pt-3 w-56 z-50"
@@ -108,17 +108,18 @@
                             >
                                 <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden">
                                     <div class="p-2 flex flex-col gap-0.5">
-                                        <nuxt-link 
+                                        <component 
+                                            :is="item?.link ? `nuxt-link` : `button`"
                                             v-for="(item, index) in menuItems" 
                                             :key="index" 
                                             :to="item?.link" 
                                             @click="() => { if(item?.action) item.action(); showUserMenu = false; }" 
-                                            class="dropdown-item"
+                                            class="dropdown-item text-left"
                                             :class="item?.class"
                                         >
                                             <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4" />
                                             {{ item.text }}
-                                        </nuxt-link>
+                                        </component>
                                     </div>
                                 </div>
                             </div>
@@ -151,9 +152,9 @@
                 
                 <div v-if="token" class="w-full flex flex-col items-center space-y-4 pt-8 border-t border-white/20">
                     <p class="text-primary text-lg mb-2">Bonjour, {{ user?.name }}</p>
-                    <nuxt-link v-for="(item, index) in menuItems" :key="index" :to="item?.link" @click="() => { if(item?.action) item.action(); showMenu=false; }" class="text-xl text-gray-300 hover:text-white transition-colors" :class="item?.class">
+                    <component :is="item?.link ? `nuxt-link` : `button`" v-for="(item, index) in menuItems" :key="index" :to="item?.link" @click="() => { if(item?.action) item.action(); showMenu=false; }" class="text-xl text-gray-300 hover:text-white transition-colors" :class="item?.class">
                         {{ item.text }}
-                    </nuxt-link>
+                    </component>
                 </div>
                 
                 <div v-else class="pt-8 w-full border-t border-white/20 flex justify-center">
@@ -271,3 +272,18 @@ watch(showMenu, (val) => {
     transform: translateX(-50%) translateY(-4px) scale(0.97);
 }
 </style>
+
+.user-dropdown-enter-active {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.user-dropdown-leave-active {
+    transition: all 0.15s ease-in;
+}
+.user-dropdown-enter-from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+}
+.user-dropdown-leave-to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+}
