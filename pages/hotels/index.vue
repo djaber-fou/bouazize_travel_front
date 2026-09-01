@@ -11,12 +11,6 @@ const currentView = ref('search'); // 'search' | 'results' | 'prebooking' | 'con
 //  CITY DATABASE (real names -> Netstorming codes)
 // ============================================================
 const allCities = [
-  { name: 'Donatello Hotel', code: 'DXB', country: 'Dubai', type: 'hotel' },
-  { name: 'Atlantis The Palm', code: 'DXB', country: 'Dubai', type: 'hotel' },
-  { name: 'Burj Al Arab', code: 'DXB', country: 'Dubai', type: 'hotel' },
-  { name: 'Ritz Paris', code: 'PAR', country: 'Paris', type: 'hotel' },
-  { name: 'The Peninsula', code: 'PAR', country: 'Paris', type: 'hotel' },
-  { name: 'Hilton Bosphorus', code: 'IST', country: 'Istanbul', type: 'hotel' },
   { name: 'Dubai', code: 'DXB', country: 'Emirats Arabes Unis' },
   { name: 'Abu Dhabi', code: 'AUH', country: 'Emirats Arabes Unis' },
   { name: 'Sharjah', code: 'SHJ', country: 'Emirats Arabes Unis' },
@@ -816,10 +810,8 @@ const sidebarOpen = ref(true);
           </div>          <div v-for="hotel in paginatedResults" :key="hotel.id" class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
 
             <div class="flex flex-col md:flex-row">
-              <div class="w-full md:w-56 h-44 md:h-auto bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 relative shrink-0 overflow-hidden">
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <svg class="w-12 h-12 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                </div>
+              <div class="w-full md:w-56 h-44 md:h-auto flex items-center justify-center relative shrink-0 overflow-hidden">
+                <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=60" class="absolute inset-0 w-full h-full object-cover" />
                 <div v-if="hotel.promo" class="absolute top-3 left-3 px-3 py-1.5 bg-blue-600 text-white text-[10px] font-black uppercase rounded-md shadow-lg flex items-center gap-1">
                   <Icon name="i-heroicons-sparkles" class="w-3.5 h-3.5" /> OFFRE SPECIALE!
                 </div>
@@ -930,9 +922,9 @@ const sidebarOpen = ref(true);
               </div>
             </div>
 
-            <div v-if="hotel.arrangements.length > 2" class="p-3 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 text-center border-t border-pink-200 dark:border-pink-900">
-              <button @click="toggleHotelRooms(hotel.id)" class="px-6 py-2.5 rounded-full bg-pink-500 hover:bg-pink-600 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-pink-500/30 cursor-pointer transition-all">
-                {{ expandedHotels[hotel.id] ? "MASQUER LES PROMOTIONS" : "DECOUVREZ TOUTES NOS PROMOTIONS!" }}
+            <div v-if="hotel.arrangements.length > 2" class="p-3 bg-slate-50 dark:bg-slate-800/30 text-center border-t border-slate-200 dark:border-slate-800">
+              <button @click="toggleHotelRooms(hotel.id)" class="px-6 py-2.5 rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black uppercase tracking-wider shadow-sm cursor-pointer transition-all">
+                {{ expandedHotels[hotel.id] ? "MASQUER LES OFFRES" : "AFFICHER PLUS D'OFFRES" }}
               </button>
             </div>
           </div>
@@ -1161,6 +1153,9 @@ const sidebarOpen = ref(true);
     </div>
   </div>
 </template>
+
+
+
 
 
 
