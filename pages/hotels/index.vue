@@ -86,7 +86,7 @@ const filteredCities = computed(() => {
 const selectCity = (city) => {
   destinationQuery.value = city.name + ', ' + city.country;
   selectedCityObj.value = city;
-  form.value.city_code = city.code;
+  form.value.city_code = (city.code === 'SHJ') ? 'DXB' : city.code;
   showCitySuggestions.value = false;
 };
 
@@ -475,6 +475,7 @@ const cancellationCounts = computed(() => {
 });
 
 const priceRange = computed(() => {
+  if (!results.value || results.value.length === 0) return { min: 0, max: 0 };
   let min = Infinity, max = 0;
   results.value.forEach(h => {
     const p = getMinPrice(h);
@@ -1105,7 +1106,7 @@ const sidebarOpen = ref(true);
             </div>
 
             <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5 border border-slate-200 dark:border-slate-700">
-              <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Reçu de paiement</h3>
+              <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Re�u de paiement</h3>
               <div class="flex justify-between text-sm mb-2 text-slate-600 dark:text-slate-400">
                 <span>Chambre {{ selectedArrangement?.room_type }}</span>
                 <span>{{ formatPrice(selectedArrangement?.price) }} DZD</span>
@@ -1135,3 +1136,4 @@ const sidebarOpen = ref(true);
     </div>
   </div>
 </template>
+
