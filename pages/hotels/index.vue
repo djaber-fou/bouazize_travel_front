@@ -11,6 +11,11 @@ const currentView = ref('search'); // 'search' | 'results' | 'prebooking' | 'con
 //  CITY DATABASE (real names -> Netstorming codes)
 // ============================================================
 const allCities = [
+  { name: 'Atlantis The Palm', code: 'DXB', country: 'Dubai', type: 'hotel' },
+  { name: 'Burj Al Arab', code: 'DXB', country: 'Dubai', type: 'hotel' },
+  { name: 'Ritz Paris', code: 'PAR', country: 'Paris', type: 'hotel' },
+  { name: 'The Peninsula', code: 'PAR', country: 'Paris', type: 'hotel' },
+  { name: 'Hilton Bosphorus', code: 'IST', country: 'Istanbul', type: 'hotel' },
   { name: 'Dubai', code: 'DXB', country: 'Emirats Arabes Unis' },
   { name: 'Abu Dhabi', code: 'AUH', country: 'Emirats Arabes Unis' },
   { name: 'Sharjah', code: 'SHJ', country: 'Emirats Arabes Unis' },
@@ -435,7 +440,25 @@ const goBackToSearch = () => {
   nextTick(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
 };
 
-const formatPrice = (price) => {
+const hotelImages = [
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1542314831-c6a4d1409a1d?auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1551882547-ff40c0d5b5df?auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=500&q=60',
+    'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=500&q=60'
+  ];
+  const getHotelImage = (id) => {
+    if (!id) return hotelImages[0];
+    const numId = typeof id === 'string' ? id.charCodeAt(0) + id.charCodeAt(id.length - 1) : id;
+    return hotelImages[numId % hotelImages.length];
+  };
+
+  const formatPrice = (price) => {
   if (!price) return '0,00';
   return Number(price).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
@@ -811,7 +834,7 @@ const sidebarOpen = ref(true);
 
             <div class="flex flex-col md:flex-row">
               <div class="w-full md:w-56 h-44 md:h-auto flex items-center justify-center relative shrink-0 overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=60" class="absolute inset-0 w-full h-full object-cover" />
+                <img :src="getHotelImage(hotel.id)" class="absolute inset-0 w-full h-full object-cover" />
                 <div v-if="hotel.promo" class="absolute top-3 left-3 px-3 py-1.5 bg-blue-600 text-white text-[10px] font-black uppercase rounded-md shadow-lg flex items-center gap-1">
                   <Icon name="i-heroicons-sparkles" class="w-3.5 h-3.5" /> OFFRE SPECIALE!
                 </div>
@@ -956,7 +979,7 @@ const sidebarOpen = ref(true);
       <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
         <div class="flex flex-col md:flex-row">
           <div class="w-full md:w-52 h-36 md:h-auto flex items-center justify-center shrink-0 relative overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=60" class="absolute inset-0 w-full h-full object-cover" />
+            <img :src="getHotelImage(selectedHotel?.id)" class="absolute inset-0 w-full h-full object-cover" />
           </div>
 
           <div class="flex-1 p-5">
