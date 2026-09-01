@@ -11,6 +11,12 @@ const currentView = ref('search'); // 'search' | 'results' | 'prebooking' | 'con
 //  CITY DATABASE (real names -> Netstorming codes)
 // ============================================================
 const allCities = [
+  { name: 'Donatello Hotel', code: 'DXB', country: 'Dubai', type: 'hotel' },
+  { name: 'Atlantis The Palm', code: 'DXB', country: 'Dubai', type: 'hotel' },
+  { name: 'Burj Al Arab', code: 'DXB', country: 'Dubai', type: 'hotel' },
+  { name: 'Ritz Paris', code: 'PAR', country: 'Paris', type: 'hotel' },
+  { name: 'The Peninsula', code: 'PAR', country: 'Paris', type: 'hotel' },
+  { name: 'Hilton Bosphorus', code: 'IST', country: 'Istanbul', type: 'hotel' },
   { name: 'Dubai', code: 'DXB', country: 'Emirats Arabes Unis' },
   { name: 'Abu Dhabi', code: 'AUH', country: 'Emirats Arabes Unis' },
   { name: 'Sharjah', code: 'SHJ', country: 'Emirats Arabes Unis' },
@@ -87,6 +93,11 @@ const selectCity = (city) => {
   destinationQuery.value = city.name + ', ' + city.country;
   selectedCityObj.value = city;
   form.value.city_code = (city.code === 'SHJ') ? 'DXB' : city.code;
+  if (city.type === 'hotel') {
+    filters.value.hotelName = city.name;
+  } else {
+    filters.value.hotelName = '';
+  }
   showCitySuggestions.value = false;
 };
 
@@ -506,7 +517,7 @@ const sidebarOpen = ref(true);
     <!-- SEARCH FORM VIEW -->
     <div v-if="currentView === 'search'" class="max-w-5xl mx-auto px-4 py-10">
       <div class="text-center mb-8">
-        <h1 class="text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+        <h1 class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">
           Reservation d'Hotel en Ligne
         </h1>
         <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Recherchez et reservez parmi des milliers d'hotels a travers le monde</p>
@@ -539,7 +550,10 @@ const sidebarOpen = ref(true);
                 @mousedown.prevent="selectCity(city)"
                 class="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-slate-700 flex items-center gap-3 cursor-pointer transition-colors border-b border-slate-100 dark:border-slate-700/50 last:border-0"
               >
-                <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[10px] font-black shrink-0">{{ city.code }}</span>
+                <span class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0">
+                    <Icon v-if="city.type === 'hotel'" name="i-heroicons-building-office-2" class="w-4 h-4" />
+                    <Icon v-else name="i-heroicons-map-pin" class="w-4 h-4" />
+                  </span>
                 <div>
                   <div class="text-sm font-semibold text-slate-800 dark:text-white">{{ city.name }}</div>
                   <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ city.country }}</div>
@@ -704,7 +718,7 @@ const sidebarOpen = ref(true);
           <span class="text-slate-300 dark:text-slate-600">|</span>
           <span>Adultes: <strong>{{ totalAdults }}</strong></span>
         </div>
-        <button @click="goBackToSearch" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold uppercase tracking-wider shadow-md shadow-blue-600/20 transition-all cursor-pointer">
+        <button @click="goBackToSearch" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider shadow-md shadow-blue-600/20 transition-all cursor-pointer">
           MODIFIER LA RECHERCHE
         </button>
       </div>
@@ -874,7 +888,7 @@ const sidebarOpen = ref(true);
               </div>
             </div>
 
-            <div v-show="expandedHotels[hotel.id]" class="border-t border-slate-200 dark:border-slate-800">
+            <div class="border-t border-slate-200 dark:border-slate-800">
               <div class="grid grid-cols-[1fr_200px_180px_140px_auto] gap-0 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                 <div class="px-4 py-3 flex items-center gap-1">Type de chambre <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
                 <div class="px-4 py-3">Traitement</div>
@@ -883,7 +897,7 @@ const sidebarOpen = ref(true);
                 <div class="px-4 py-3"></div>
               </div>
 
-              <div v-for="(arr, arrIdx) in hotel.arrangements" :key="arrIdx" class="grid grid-cols-[1fr_200px_180px_140px_auto] gap-0 items-center border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-blue-50/30 dark:hover:bg-slate-800/30 transition-colors">
+              <div v-for="(arr, arrIdx) in hotel.arrangements" :key="arrIdx" v-show="arrIdx < 2 || expandedHotels[hotel.id]" class="grid grid-cols-[1fr_200px_180px_140px_auto] gap-0 items-center border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-blue-50/30 dark:hover:bg-slate-800/30 transition-colors">
                 <div class="px-4 py-3">
                   <div class="text-sm font-bold text-slate-800 dark:text-white uppercase">{{ arr.room_type || 'Standard Room' }}</div>
                   <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -916,8 +930,8 @@ const sidebarOpen = ref(true);
               </div>
             </div>
 
-            <div v-if="hotel.promo" class="p-3 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 text-center border-t border-pink-200 dark:border-pink-900">
-              <button @click="toggleHotelRooms(hotel.id)" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-pink-500/30 cursor-pointer hover:from-pink-600 hover:to-rose-600 transition-all">
+            <div v-if="hotel.arrangements.length > 2" class="p-3 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 text-center border-t border-pink-200 dark:border-pink-900">
+              <button @click="toggleHotelRooms(hotel.id)" class="px-6 py-2.5 rounded-full bg-pink-500 hover:bg-pink-600 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-pink-500/30 cursor-pointer transition-all">
                 {{ expandedHotels[hotel.id] ? "MASQUER LES PROMOTIONS" : "DECOUVREZ TOUTES NOS PROMOTIONS!" }}
               </button>
             </div>
@@ -949,8 +963,8 @@ const sidebarOpen = ref(true);
 
       <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
         <div class="flex flex-col md:flex-row">
-          <div class="w-full md:w-52 h-36 md:h-auto bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center shrink-0">
-            <svg class="w-10 h-10 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          <div class="w-full md:w-52 h-36 md:h-auto flex items-center justify-center shrink-0 relative overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=60" class="absolute inset-0 w-full h-full object-cover" />
           </div>
 
           <div class="flex-1 p-5">
@@ -1147,6 +1161,9 @@ const sidebarOpen = ref(true);
     </div>
   </div>
 </template>
+
+
+
 
 
 
