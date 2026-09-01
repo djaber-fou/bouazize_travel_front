@@ -807,7 +807,7 @@ const sidebarOpen = ref(true);
                   <svg class="w-12 h-12 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
                 <div v-if="hotel.promo" class="absolute top-3 left-3 px-3 py-1.5 bg-blue-600 text-white text-[10px] font-black uppercase rounded-md shadow-lg flex items-center gap-1">
-                  <span>?</span> OFFRE SPECIALE!
+                  <Icon name="i-heroicons-sparkles" class="w-3.5 h-3.5" /> OFFRE SPECIALE!
                 </div>
               </div>
 
@@ -838,7 +838,7 @@ const sidebarOpen = ref(true);
                 </div>
 
                 <div class="flex gap-2 mt-3">
-                  <button class="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">DETAILS</button>
+                  <button @click="toggleHotelRooms(hotel.id)" class="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">{{ expandedHotels[hotel.id] ? "CACHER DETAILS" : "DETAILS" }}</button>
                   <button class="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">CARTE</button>
                 </div>
 
@@ -847,8 +847,19 @@ const sidebarOpen = ref(true);
                   <p><strong>Position:</strong> Pres du centre</p>
                 </div>
 
-                <div class="flex gap-1.5 mt-3">
-                  <span v-for="icon in ['P','O','+','?','?','*']" :key="icon" class="w-7 h-7 rounded bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">{{ icon }}</span>
+                <div class="flex gap-2 mt-3">
+                  <div class="w-7 h-7 rounded bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center" title="Wi-Fi">
+                    <Icon name="i-heroicons-wifi" class="w-4 h-4" />
+                  </div>
+                  <div class="w-7 h-7 rounded bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center" title="Piscine">
+                    <Icon name="i-heroicons-sun" class="w-4 h-4" />
+                  </div>
+                  <div class="w-7 h-7 rounded bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center" title="Restaurant">
+                    <Icon name="i-heroicons-cake" class="w-4 h-4" />
+                  </div>
+                  <div class="w-7 h-7 rounded bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center" title="Parking">
+                    <Icon name="i-heroicons-truck" class="w-4 h-4" />
+                  </div>
                 </div>
               </div>
 
@@ -863,7 +874,7 @@ const sidebarOpen = ref(true);
               </div>
             </div>
 
-            <div class="border-t border-slate-200 dark:border-slate-800">
+            <div v-show="expandedHotels[hotel.id]" class="border-t border-slate-200 dark:border-slate-800">
               <div class="grid grid-cols-[1fr_200px_180px_140px_auto] gap-0 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                 <div class="px-4 py-3 flex items-center gap-1">Type de chambre <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
                 <div class="px-4 py-3">Traitement</div>
@@ -906,8 +917,8 @@ const sidebarOpen = ref(true);
             </div>
 
             <div v-if="hotel.promo" class="p-3 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 text-center border-t border-pink-200 dark:border-pink-900">
-              <button class="px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-pink-500/30 cursor-pointer hover:from-pink-600 hover:to-rose-600 transition-all">
-                DECOUVREZ TOUTES NOS PROMOTIONS!
+              <button @click="toggleHotelRooms(hotel.id)" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-pink-500/30 cursor-pointer hover:from-pink-600 hover:to-rose-600 transition-all">
+                {{ expandedHotels[hotel.id] ? "MASQUER LES PROMOTIONS" : "DECOUVREZ TOUTES NOS PROMOTIONS!" }}
               </button>
             </div>
           </div>
@@ -1136,4 +1147,10 @@ const sidebarOpen = ref(true);
     </div>
   </div>
 </template>
+
+
+
+
+
+
 
