@@ -40,7 +40,7 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
         url: url,
         data: Data,
         headers: reqHeaders,
-        timeout: 15000,
+        timeout: 90000, // Increased timeout to 90 seconds for large Netstorming queries
         ...restConfigOpts
     }).then(response=>{
         console.log(response)
@@ -145,3 +145,4 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
     // })
     // return responseData.value
 }
+
