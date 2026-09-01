@@ -503,7 +503,7 @@ const cancellationCounts = computed(() => {
 });
 
 const priceRange = computed(() => {
-  if (!results.value || results.value.length === 0) return { min: 0, max: 0 };
+  if (!results.value || results.value.length === 0) return { min: 0, max: 99999999 };
   let min = Infinity, max = 0;
   results.value.forEach(h => {
     const p = getMinPrice(h);
@@ -1176,6 +1176,7 @@ const sidebarOpen = ref(true);
     </div>
   </div>
 </template>
+
 
 
 
