@@ -16,7 +16,7 @@
             </div>
         </template>
         <template #body>
-            <div v-if="!openCashModal" class="grid lg:grid-cols-12 grid-cols-1 gap-8 lg:gap-12 px-4 sm:px-6 md:px-12 lg:px-16 py-8 max-w-7xl mx-auto items-start">
+            <div class="grid lg:grid-cols-12 grid-cols-1 gap-8 lg:gap-12 px-4 sm:px-6 md:px-12 lg:px-16 py-8 max-w-7xl mx-auto items-start">
                 <!-- Left: Sticky Offer Details & Live Price Summary -->
                 <div class="lg:col-span-5 lg:sticky lg:top-4 self-start flex flex-col gap-6 items-center md:items-start bg-gray-50/70 dark:bg-slate-900 p-6 md:p-8 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
                     <img :src="offer?.image || offer?.country_flag" class="w-full aspect-[4/3] object-cover rounded-none shadow-lg hover:shadow-xl transition-shadow duration-500"/>
@@ -76,9 +76,27 @@
                         <p class="text-gray-500">Configurez votre séjour et sélectionnez le type de chambre souhaité.</p>
                     </div>
 
-                    <div v-if="!authorization?.token" class="p-4 bg-orange-50 border border-orange-200 text-orange-800 rounded-none w-full font-medium text-sm flex items-center gap-3 shadow-sm">
-                        <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-orange-500 flex-shrink-0" />
-                        Vous devez vous connecter pour uploader vos documents et réserver.
+                    <!-- Guest Contact Form (shown only for non-logged-in users) -->
+                    <div v-if="!authorization?.token" class="flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
+                        <div class="font-bold text-secondary text-lg flex items-center gap-2 border-b border-gray-100 dark:border-slate-800 pb-3">
+                            <UIcon name="i-heroicons-user-circle" class="text-primary w-5 h-5"/>
+                            <span>Vos Coordonnées</span>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Pas de compte ? Aucun problème ! Remplissez simplement vos informations ci-dessous pour réserver.</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Nom complet *</label>
+                                <input v-model="clientOrder.guest_name" type="text" required placeholder="Ex: Mohammed Bouazize" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-none px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Email *</label>
+                                <input v-model="clientOrder.guest_email" type="email" required placeholder="Ex: email@gmail.com" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-none px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Téléphone *</label>
+                                <input v-model="clientOrder.guest_phone" type="tel" required placeholder="Ex: 0550 00 00 00" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-none px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all" />
+                            </div>
+                        </div>
                     </div>
 
                     
@@ -354,7 +372,7 @@
                                     <div class="text-xs font-medium text-gray-500">Fichiers sélectionnés (Cliquez pour en ajouter d'autres)</div>
                                 </div>
                             </div>
-                            <input type="file" ref="fileInput" @change="onFileChange" class="hidden" :multiple="maxFiles > 1" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.zip,.rar"/>
+                            <input type="file" id="order-document-files" name="document_files" ref="fileInput" @change="onFileChange" class="hidden" :multiple="maxFiles > 1" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.zip,.rar" aria-label="Sélectionner les documents requis"/>
 
                             <!-- Removable Files List Chips -->
                             <div v-if="clientOrder.file.length > 0" class="flex flex-wrap gap-2 pt-2">
@@ -389,22 +407,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div v-else class="flex flex-col items-center justify-center h-[70vh] gap-6 text-center">
-                <UIcon name="i-heroicons-check-circle" class="w-24 h-24 text-green-500" />
-                <h2 class="text-3xl font-bold text-primary">Commande Confirmée</h2>
-                <p class="text-xl text-gray-700 dark:text-gray-300 max-w-2xl">
-                    Votre commande a été créée avec succès. Veuillez vous rendre à notre agence pour effectuer le paiement en espèces et valider votre réservation.
-                </p>
-                <div class="bg-gray-50 dark:bg-slate-800 p-8 rounded-xl border border-gray-200 dark:border-slate-700 flex flex-col items-center gap-4 mt-4">
-                    <UIcon name="i-heroicons-map-pin" class="w-12 h-12 text-primary" />
-                    <span class="font-bold text-2xl">Bouazize Travel</span>
-                    <span class="text-lg text-gray-600 dark:text-gray-400">
-                        123 Rue de l'Agence, Alger, Algérie
-                    </span>
-                </div>
-                <UButton @click="closeCashModal" color="primary" class="font-bold px-12 py-4 text-lg mt-8 rounded-none shadow-lg" label="Compris, fermer" />
             </div>
         </template>
     </UModal>
@@ -462,10 +464,12 @@ const clientOrder = ref({
     babies_count: 0,
     children_count: 0,
     file: [],
-    payment_method: 'ccp'
+    payment_method: 'ccp',
+    guest_name: '',
+    guest_email: '',
+    guest_phone: ''
 })
 
-const openCashModal = ref(false)
 const authStore = useAuthStore()
 const role = computed(() => authStore.User?.role)
 const isBusiness = computed(() => ['business', 'Business', 'Entreprise', 'entreprise'].includes(role.value))
@@ -690,12 +694,6 @@ const removeFile = (idx) => {
 }
 
 const handleUploadClick = () => {
-    if (!authorization?.token) {
-        toast.add({ title: "Vous devez vous connecter pour réserver", color: 'red' })
-        emit('close')
-        navigateTo('/auth/login')
-        return
-    }
     if (fileInput.value) {
         fileInput.value.click()
     }
@@ -749,14 +747,21 @@ const getOffer = async()=>{
     })
 }
 
+const isGuest = computed(() => !authorization?.token)
+
 const submitOrder = async ()=>{
-    if (!authorization?.token) {
-        toast.add({
-            title: "Vous devez vous connecter pour réserver", 
-            color: 'red',
-        })
-        emit('close')
-        return navigateTo('/auth/login')
+    // Validate guest fields if not logged in
+    if (isGuest.value) {
+        if (!clientOrder.value.guest_name || !clientOrder.value.guest_email || !clientOrder.value.guest_phone) {
+            toast.add({
+                title: "Veuillez remplir vos coordonnées (nom, email, téléphone)",
+                color: 'red',
+                progress: false,
+                close: true,
+                ui: { root: '!bg-rose-600 !text-white', title: 'text-white font-medium', close: 'text-white' }
+            })
+            return
+        }
     }
 
     if(clientOrder.value.file.length === maxFiles.value){
@@ -777,6 +782,13 @@ const submitOrder = async ()=>{
             formData.append('children_count', clientOrder.value.children_count || 0)
         }
 
+        // Append guest contact info for non-logged-in users
+        if (isGuest.value) {
+            formData.append('guest_name', clientOrder.value.guest_name)
+            formData.append('guest_email', clientOrder.value.guest_email)
+            formData.append('guest_phone', clientOrder.value.guest_phone)
+        }
+
         clientOrder.value.file.forEach(file=>{
             formData.append('file[]', file)
         })
@@ -793,26 +805,40 @@ const submitOrder = async ()=>{
             }
         }
         
-        const url = isBusiness.value ? 'business/order': 'individual/order'
-        sendApi(`/client/${props.service}/offers/${props.id}/${url}`, formData, 'POST', configOpts).then((response)=>{
+        // Guest uses unprotected routes, logged-in users use /client/ prefixed routes
+        const orderType = isBusiness.value ? 'business/order' : 'individual/order'
+        const basePath = isGuest.value
+            ? `/${props.service}/offers/${props.id}/${orderType}`
+            : `/client/${props.service}/offers/${props.id}/${orderType}`
+
+        sendApi(basePath, formData, 'POST', configOpts).then((response)=>{
             if (response) {
                 const orderId = response.data?.order_id
                 const amount = grandTotalPrice.value
+                const paymentMethod = clientOrder.value.payment_method
                 
-                if (orderId) {
+                if (orderId && !isGuest.value) {
                     sendApi(`/client/${props.service}/orders/${orderId}/sync`, null, 'POST').catch(()=>{});
+                } else if (orderId && isGuest.value) {
+                    sendApi(`/${props.service}/orders/${orderId}/sync`, null, 'POST').catch(()=>{});
                 }
                 
                 reset()
                 emit('close')
                 
-                if (clientOrder.value.payment_method === 'ccp') {
-                    router.push(`/payment/confirm?order_id=${orderId}&type=${props.service}&amount=${amount}`)
-                } else if (clientOrder.value.payment_method === 'cash') {
-                    openCashModal.value = true
-                } else {
+                if (paymentMethod === 'credit') {
                     toast.add({ title: "Commande créée avec succès (Crédit/Facture)", color: 'green' })
                     router.push('/client/orders')
+                } else if (paymentMethod === 'cash') {
+                    toast.add({ title: "Réservation enregistrée avec succès ! Rendez-vous à l'agence pour le règlement.", color: 'green', duration: 8000 })
+                    if (isGuest.value) {
+                        router.push('/')
+                    } else {
+                        router.push('/client/orders')
+                    }
+                } else {
+                    toast.add({ title: "Réservation enregistrée ! Redirection vers la page de paiement électronique...", color: 'green' })
+                    router.push(`/payment/confirm?order_id=${orderId}&type=${props.service}&amount=${amount}`)
                 }
             }
             loading.value = false
