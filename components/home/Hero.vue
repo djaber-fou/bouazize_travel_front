@@ -5,20 +5,20 @@
             ref="heroSwiper" 
             navigation="true" 
             pagination="true" 
-            class="w-full min-h-[75vh]"
+            class="w-full h-auto md:min-h-[75vh]"
         >
             
             <!-- Slide 1: Static Hero -->
             <swiper-slide class="h-auto">
-                <div class="relative h-full min-h-[75vh] md:min-h-[85vh] flex items-center bg-gray-50 dark:bg-slate-950 overflow-hidden py-20 lg:py-0">
+                <div class="relative w-full h-[60vh] md:h-full md:min-h-[75vh] lg:min-h-[85vh] flex items-center bg-gray-50 dark:bg-slate-950 overflow-hidden py-6 lg:py-0">
                     <!-- Decorative background blur -->
                     <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
                     <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
 
                     <div class="container mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-16 items-center relative z-10">
                         <!-- Text Content -->
-                        <div class="flex flex-col justify-center gap-8">
-                            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold text-secondary dark:text-white leading-[1.1] tracking-tight uppercase">
+                        <div class="flex flex-col justify-center gap-2 md:gap-8">
+                            <h1 class="text-2xl sm:text-4xl md:text-6xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-extrabold text-secondary dark:text-white leading-tight md:leading-[1.1] tracking-tight uppercase">
                                 Des expériences
                                 <span class="inline-block whitespace-nowrap">
                                     <span class="text-primary italic font-serif relative inline-block">
@@ -31,43 +31,43 @@
                                 </span> <br class="hidden xl:block"/>
                                 des destinations de <span class="text-secondary dark:text-white relative z-10">rêve</span>.
                             </h1>
-                            <p class="text-lg text-gray-600 dark:text-slate-300 max-w-lg leading-relaxed font-light">
+                            <p class="text-xs sm:text-sm md:text-lg text-gray-600 dark:text-slate-300 max-w-lg leading-snug md:leading-relaxed font-light">
                                 Découvrez le monde avec Bouazize Travel. Nous organisons vos voyages sur mesure avec passion, sécurité et confort. L'excellence est notre standard depuis plus de 10 ans.
                             </p>
                             
                             <!-- Buttons -->
-                            <div class="flex flex-wrap items-center gap-4 pt-2">
+                            <div class="flex flex-wrap items-center gap-2 pt-1 md:gap-4 md:pt-2">
                                 <nuxt-link to="/services">
-                                    <button class="bg-primary hover:bg-primary-hover text-white px-8 py-4 font-bold uppercase tracking-widest text-sm transition-all duration-300 flex items-center gap-3 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 rounded-xl">
+                                    <button class="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 md:px-8 md:py-4 font-bold uppercase tracking-widest text-xs md:text-sm transition-all duration-300 flex items-center gap-3 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 rounded-xl">
                                         Nos Services
                                         <Icon name="i-heroicons-arrow-right" class="w-5 h-5"/>
                                     </button>
                                 </nuxt-link>
-                                <button class="bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary text-secondary dark:text-white px-8 py-4 font-bold uppercase tracking-widest text-sm transition-all duration-300 flex items-center gap-3 rounded-xl hover:-translate-y-1" @click="scrollDown">
+                                <button class="bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary text-secondary dark:text-white px-3 py-1.5 md:px-8 md:py-4 font-bold uppercase tracking-widest text-xs md:text-sm transition-all duration-300 flex items-center gap-3 rounded-xl hover:-translate-y-1" @click="scrollDown">
                                     Découvrir
                                     <Icon name="i-heroicons-arrow-down" class="w-5 h-5 text-primary"/>
                                 </button>
                             </div>
 
                             <!-- Analytics / Stats -->
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-10 mt-6 border-t border-gray-200 dark:border-slate-800">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 pb-8 md:pb-0 mt-6 border-t border-gray-200 dark:border-slate-800">
                                 <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
-                                    <h3 class="text-3xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.years }}+</h3>
-                                    <p class="text-xs md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Années <br class="hidden sm:block"/>d'expérience</p>
+                                    <h3 class="text-xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.years }}+</h3>
+                                    <p class="text-[10px] leading-tight md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Années <br class="hidden sm:block"/>d'expérience</p>
                                 </div>
                                 <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
-                                    <h3 class="text-3xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.clients }}+</h3>
-                                    <p class="text-xs md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Clients <br class="hidden sm:block"/>satisfaits</p>
+                                    <h3 class="text-xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.clients }}+</h3>
+                                    <p class="text-[10px] leading-tight md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Clients <br class="hidden sm:block"/>satisfaits</p>
                                 </div>
                                 <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
-                                    <h3 class="text-3xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.destinations }}+</h3>
-                                    <p class="text-xs md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Destinations <br class="hidden sm:block"/>globales</p>
+                                    <h3 class="text-xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.destinations }}+</h3>
+                                    <p class="text-[10px] leading-tight md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Destinations <br class="hidden sm:block"/>globales</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Professional Photo Collage with Flight Path -->
-                        <div class="relative w-full h-[350px] sm:h-[450px] lg:h-[600px] flex items-center justify-center mt-10 lg:mt-0">
+                        <div class="relative w-full h-[250px] sm:h-[400px] lg:h-[600px] hidden lg:flex items-center justify-center mt-10 lg:mt-0">
                             
                             <!-- Animated Flight Path -->
                             <svg class="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -119,7 +119,7 @@
 
             <!-- Dynamic Banners Slides -->
             <swiper-slide v-for="banner in banners" :key="banner.id" class="h-auto">
-                <div class="relative h-full min-h-[75vh] md:min-h-[85vh] w-full flex items-start md:items-center justify-center pt-24 md:pt-0 bg-secondary text-white overflow-hidden">
+                <div class="relative w-full h-[60vh] md:h-full md:min-h-[75vh] lg:min-h-[85vh] flex items-center justify-center bg-secondary text-white overflow-hidden">
                     <!-- Background Image -->
                     <div v-if="banner.image_url" class="absolute inset-0 z-0">
                         <!-- Increased opacity and lighter overlay to make image visible -->
@@ -131,10 +131,10 @@
                     <div class="relative z-10 container mx-auto px-6 py-8 md:py-10 flex flex-col gap-6 w-full"
                          :class="getAlignmentClasses(banner.alignment)">
                         <div class="max-w-3xl">
-                            <h2 v-if="banner.title" class="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-wide text-white uppercase leading-tight">
+                            <h2 v-if="banner.title" class="text-2xl md:text-5xl lg:text-6xl font-extrabold mb-2 md:mb-4 tracking-wide text-white uppercase leading-tight">
                                 {{ banner.title }}
                             </h2>
-                            <p v-if="banner.information" class="text-lg md:text-xl text-gray-300 font-light mt-4">
+                            <p v-if="banner.information" class="hidden md:block text-lg md:text-xl text-gray-300 font-light mt-4">
                                 {{ banner.information }}
                             </p>
                         </div>
@@ -142,8 +142,8 @@
                         <div v-if="banner.button_text && banner.button_link" class="mt-6">
                             <UButton
                                 :to="banner.button_link"
-                                size="xl"
-                                class="bg-primary hover:bg-primary-hover text-secondary font-bold uppercase tracking-wider px-10 py-4 rounded-none transition-colors duration-300 shadow-xl"
+                                size="md"
+                                class="bg-primary hover:bg-primary-hover text-secondary font-bold uppercase tracking-wider px-6 py-2 md:px-10 md:py-4 rounded-none transition-colors duration-300 shadow-xl"
                             >
                                 {{ banner.button_text }}
                             </UButton>
@@ -156,7 +156,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+
+const getFullImageUrl = (path) => {
+    if(!path) return '';
+    if(path.startsWith('http')) return path;
+    const baseUrl = import.meta.env.VITE_BASE_URL || '';
+    return baseUrl.replace('/api', '') + (path.startsWith('/') ? path : '/' + path);
+}
 
 const getAlignmentClasses = (alignment) => {
     switch(alignment) {
@@ -178,35 +185,23 @@ const scrollDown = () => {
     });
 }
 
-const config = useRuntimeConfig()
-const banners = ref([])
+const { data: bannersRes } = await useAsyncData('hero_banners', () => $fetch(import.meta.env.VITE_BASE_URL + '/banner/active', { headers: { 'Accept': 'application/json' } }), { getCachedData(key) { const app = useNuxtApp(); return app.payload.data[key] || app.static.data[key]; }, lazy: import.meta.client })
+const banners = computed(() => bannersRes.value?.data || [])
+
+const { data: statsRes } = await useAsyncData('hero_stats', () => $fetch(import.meta.env.VITE_BASE_URL + '/stats', { headers: { 'Accept': 'application/json' } }), { getCachedData(key) { const app = useNuxtApp(); return app.payload.data[key] || app.static.data[key]; }, lazy: import.meta.client })
+const stats = computed(() => statsRes.value?.data || {})
+
 const heroSwiper = ref(null)
 
-const stats = ref({
-    years: '10',
-    clients: '50k',
-    destinations: '100'
-})
-
-const getFullImageUrl = (url) => {
-  if (!url) return null;
-  if (url.startsWith('http')) return url;
-  
-  const baseUrl = import.meta.env.VITE_BASE_URL || 'http://127.0.0.1:8000/api';
-  const rootUrl = baseUrl.replace('/api', '');
-  
-  const path = url.startsWith('/') ? url : '/' + url;
-  const finalPath = path.startsWith('/storage') ? path : '/storage' + path;
-  
-  return rootUrl + finalPath;
-}
-
-// Re-initialize swiper configuration whenever heroSwiper ref changes
-useSwiper(heroSwiper, {
+const swiperOptions = ref({
+    slidesPerView: 1,
     loop: true,
-    speed: 600,
+    effect: 'fade',
+    fadeEffect: {
+        crossFade: true
+    },
     autoplay: {
-        delay: 2500,
+        delay: 5000,
         disableOnInteraction: false,
     },
     pagination: {
@@ -215,39 +210,15 @@ useSwiper(heroSwiper, {
     navigation: true
 })
 
-const fetchBanners = async () => {
-    try {
-        const res = await sendApi('/banner/active', null, 'GET')
-        if (res?.data && res.data.length > 0) {
-            banners.value = res.data
-            
-            // Force Swiper to recognize the new slides and restart autoplay
-            setTimeout(() => {
-                if (heroSwiper.value && heroSwiper.value.swiper) {
-                    heroSwiper.value.swiper.update()
-                    heroSwiper.value.swiper.autoplay.start()
-                }
-            }, 100)
-        }
-    } catch (error) {
-        console.error('Failed to load banners', error)
-    }
-}
-
-const fetchStats = async () => {
-    try {
-        const res = await sendApi('/stats', null, 'GET')
-        if (res?.data) {
-            stats.value = res.data
-        }
-    } catch (error) {
-        console.error('Failed to load stats', error)
-    }
-}
-
 onMounted(() => {
-    fetchBanners()
-    fetchStats()
+    if (banners.value && banners.value.length > 0) {
+        setTimeout(() => {
+            if (heroSwiper.value && heroSwiper.value.swiper) {
+                heroSwiper.value.swiper.update()
+                heroSwiper.value.swiper.autoplay.start()
+            }
+        }, 100)
+    }
 })
 </script>
 
