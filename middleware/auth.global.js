@@ -22,8 +22,9 @@ export default defineNuxtRouteMiddleware((to, from) => {
         '/s3t4t5i6n'
     ];
 
-    // Client/User protected pages (require login, any role except admin, or admin is fine too depending on business logic, but typically admin doesn't use client pages)
-    const isClientPage = to.path.startsWith('/client') || to.path.startsWith('/payment') || to.path === '/profile';
+    // Client/User protected pages (require login)
+    // Note: /payment is public so guest users can complete payment confirmation without an account
+    const isClientPage = to.path.startsWith('/client') || to.path === '/profile';
     const isAdminPage = adminHashes.includes(to.path);
     const isAuthPage = to.path.startsWith('/auth');
 

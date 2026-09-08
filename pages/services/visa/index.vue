@@ -19,7 +19,7 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full mt-6">
             <div class="relative group cursor-pointer overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500" v-for="(country, index) in countries" :key="index">
-                <nuxt-link :to="`visa/${country.id}`">
+                <nuxt-link :to="`/services/visa/${country.id}`">
                     <img :src="country.landmark ?? '/images/illustrations/landmark.png'" class="aspect-[3/4] w-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"/>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-5">
                         <div class="flex items-center gap-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">

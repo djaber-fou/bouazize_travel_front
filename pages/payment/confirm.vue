@@ -45,6 +45,22 @@
             {{ error }}
           </div>
           
+          <!-- Success State for Guest (or completed payment) -->
+          <div v-else-if="paymentSubmittedSuccess" class="py-8 text-center flex flex-col items-center gap-4">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center">
+              <Icon name="heroicons:check-circle" class="w-10 h-10" />
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Paiement transmis avec succès !</h2>
+            <p class="text-gray-600 dark:text-slate-300 max-w-md text-sm leading-relaxed">
+              Votre preuve de paiement a été soumise avec succès. L'agence Bouazize Travel traitera votre réservation sous peu.
+            </p>
+            <div class="pt-4 flex gap-3">
+              <nuxt-link to="/" class="px-6 py-2.5 bg-primary text-white font-bold text-sm uppercase tracking-wider hover:bg-primary-hover transition-colors">
+                Retour à l'accueil
+              </nuxt-link>
+            </div>
+          </div>
+
           <!-- Payment Info & Form -->
           <template v-else-if="ccpSettings">
             
@@ -132,11 +148,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '#imports'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
+const token = computed(() => authStore.Authorization?.token)
 
 const orderId = route.query.order_id
 const orderType = route.query.type
@@ -145,6 +164,7 @@ const amount = route.query.amount
 const pending = ref(true)
 const error = ref(null)
 const ccpSettings = ref(null)
+const paymentSubmittedSuccess = ref(false)
 
 const isSubmitting = ref(false)
 const fileSelected = ref(null)
@@ -156,13 +176,14 @@ const form = ref({
 
 onMounted(async () => {
   if (!orderId || !orderType) {
-    error.value = "Informations de commande manquantes. Veuillez retourner à vos commandes."
+    error.value = "Informations de commande manquantes. Veuillez vérifier le lien ou contacter l'agence."
     pending.value = false
     return
   }
 
   try {
-    const res = await sendApi('/client/ccp/settings', null, 'GET')
+    const endpoint = token.value ? '/client/ccp/settings' : '/ccp/settings'
+    const res = await sendApi(endpoint, null, 'GET')
     if (res?.data) {
       ccpSettings.value = res.data
     } else {
@@ -197,9 +218,15 @@ const submitPayment = async () => {
   formData.append('proof_file', fileSelected.value)
 
   try {
-    await sendApi('/client/ccp/submit', formData, 'POST')
-    // Redirect to orders page with success message
-    router.push('/client/orders?payment_submitted=true')
+    const endpoint = token.value ? '/client/ccp/submit' : '/ccp/submit'
+    await sendApi(endpoint, formData, 'POST')
+    if (token.value) {
+      // Redirect to client orders page for logged in users
+      router.push('/client/orders?payment_submitted=true')
+    } else {
+      // For guests: stay on page and show success state
+      paymentSubmittedSuccess.value = true
+    }
   } catch (err) {
     // sendApi already shows a toast for errors
   } finally {

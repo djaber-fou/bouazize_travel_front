@@ -1,5 +1,5 @@
 <template>
-    <header class="z-[100] w-full sticky top-0 bg-white dark:bg-slate-900/90 border-b border-gray-100 dark:border-slate-800 transition-all duration-300 shadow-sm" :class="{'py-3': y > 20, 'py-4': y <= 20}">
+    <header class="z-[100] w-full sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 py-3.5 shadow-sm">
         <div class="w-full px-6 md:px-12">
             <nav class="flex justify-between items-center">
                 <nuxt-link to="/" class="flex gap-3 items-center z-[101]">
@@ -170,9 +170,6 @@
 </template>
 
 <script setup>
-import { useWindowScroll } from '@vueuse/core'
-
-const { y } = useWindowScroll()
 const authStore = useAuthStore()
 const user = computed(() => authStore.User)
 const token = computed(() => authStore.Authorization?.token)
@@ -271,7 +268,6 @@ watch(showMenu, (val) => {
     opacity: 0;
     transform: translateX(-50%) translateY(-4px) scale(0.97);
 }
-</style>
 
 .user-dropdown-enter-active {
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -287,3 +283,4 @@ watch(showMenu, (val) => {
     opacity: 0;
     transform: translateY(-4px) scale(0.97);
 }
+</style>

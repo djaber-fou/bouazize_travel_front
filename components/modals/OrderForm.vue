@@ -662,7 +662,11 @@ watch(disableCredit, (newVal) => {
 
 const closeCashModal = () => {
     openCashModal.value = false
-    router.push('/client/orders')
+    if (isGuest.value) {
+        router.push('/')
+    } else {
+        router.push('/client/orders')
+    }
 }
 
 const guaranteeValue = (value)=>{
