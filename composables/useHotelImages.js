@@ -209,22 +209,11 @@ function getRegionPool(name, city, country) {
 // ============================================================
 
 /**
- * Returns a gallery array for a hotel.
- * If the hotel has real gallery data (from API), return it.
- * Otherwise return a single-element array with the cover photo.
+ * Returns a SINGLE-ELEMENT gallery for a hotel.
+ * Always ONE cover photo — the best available real or curated image.
+ * (Netstorming multi-photos are often generic stock shots, so we ignore them)
  */
 export function resolveHotelGallery(hotel) {
-  if (!hotel) return [regionalPools.algeria[0]];
-
-  // If hotel already has verified photos array with valid distinct URLs from API
-  if (Array.isArray(hotel.gallery) && hotel.gallery.length >= 2) {
-    return hotel.gallery;
-  }
-  if (Array.isArray(hotel.photos) && hotel.photos.length >= 2) {
-    return hotel.photos;
-  }
-
-  // Return single cover photo as gallery
   return [resolveHotelImage(hotel)];
 }
 

@@ -242,7 +242,46 @@ export const staticWorldwideLocations = [
   { name: 'Cancun', code: 'CUN', country: 'Mexique', type: 'city', keywords: ['cancun', 'cun', 'mexique', 'riviera maya'] },
   { name: 'Rio de Janeiro', code: 'RIO', country: 'Brésil', type: 'city', keywords: ['rio', 'rio de janeiro', 'bresil', 'copacabana'] },
   { name: 'Sydney', code: 'SYD', country: 'Australie', type: 'city', keywords: ['sydney', 'syd', 'australie', 'opera'] },
-  { name: 'Melbourne', code: 'MEL', country: 'Australie', type: 'city', keywords: ['melbourne', 'mel', 'australie'] }
+  { name: 'Melbourne', code: 'MEL', country: 'Australie', type: 'city', keywords: ['melbourne', 'mel', 'australie'] },
+
+  // =========================================================================
+  // EXTRA: COUNTRY-LEVEL ENTRIES — typing "Oman" shows Muscat, not random results
+  // =========================================================================
+  { name: 'Oman', code: 'MCT', country: 'Oman', type: 'country', keywords: ['oman', 'sultanat', 'mascate', 'muscat', 'mct', 'salalah', 'golf'] },
+  { name: 'Mascate — Oman', code: 'MCT', country: 'Oman', type: 'city', keywords: ['mascate', 'muscat', 'mct', 'oman', 'sultanat'] },
+  { name: 'Salalah — Oman', code: 'SLL', country: 'Oman', type: 'city', keywords: ['salalah', 'sll', 'oman', 'dhofar'] },
+  { name: 'Émirats Arabes Unis', code: 'DXB', country: 'Émirats Arabes Unis', type: 'country', keywords: ['emirats', 'eau', 'uae', 'dubai', 'abu dhabi', 'sharjah'] },
+  { name: 'Qatar', code: 'DOH', country: 'Qatar', type: 'country', keywords: ['qatar', 'doha', 'doh', 'lusail', 'golf'] },
+  { name: 'Arabie Saoudite', code: 'JED', country: 'Arabie Saoudite', type: 'country', keywords: ['arabie', 'saoudite', 'saudi', 'riyadh', 'jeddah', 'mecca', 'medine', 'neom'] },
+  { name: 'Koweït', code: 'KWI', country: 'Koweït', type: 'country', keywords: ['koweit', 'kuwait', 'kwi', 'golf'] },
+  { name: 'Bahreïn', code: 'BAH', country: 'Bahreïn', type: 'country', keywords: ['bahrein', 'bahrain', 'bah', 'manama', 'golf'] },
+  { name: 'Maroc', code: 'CAS', country: 'Maroc', type: 'country', keywords: ['maroc', 'morocco', 'casablanca', 'rabat', 'marrakech', 'fes', 'tanger'] },
+  { name: 'Tunisie', code: 'TUN', country: 'Tunisie', type: 'country', keywords: ['tunisie', 'tunisia', 'tunis', 'sousse', 'monastir', 'hammamet', 'djerba'] },
+  { name: 'Égypte', code: 'CAI', country: 'Égypte', type: 'country', keywords: ['egypte', 'egypt', 'le caire', 'cairo', 'hurghada', 'charm el cheikh', 'louxor', 'alexandrie'] },
+  { name: 'Turquie', code: 'IST', country: 'Turquie', type: 'country', keywords: ['turquie', 'turkey', 'istanbul', 'ankara', 'antalya', 'bodrum', 'cappadoce'] },
+  { name: 'France', code: 'PAR', country: 'France', type: 'country', keywords: ['france', 'paris', 'nice', 'marseille', 'lyon', 'bordeaux', 'strasbourg'] },
+  { name: 'Espagne', code: 'MAD', country: 'Espagne', type: 'country', keywords: ['espagne', 'spain', 'madrid', 'barcelone', 'seville', 'valence', 'malaga'] },
+  { name: 'Italie', code: 'ROM', country: 'Italie', type: 'country', keywords: ['italie', 'italy', 'rome', 'milan', 'venise', 'florence', 'naples'] },
+  { name: 'Grèce', code: 'ATH', country: 'Grèce', type: 'country', keywords: ['grece', 'greece', 'athenes', 'santorin', 'mykonos', 'crete', 'rhodes'] },
+  { name: 'Portugal', code: 'LIS', country: 'Portugal', type: 'country', keywords: ['portugal', 'lisbonne', 'porto', 'algarve', 'madere'] },
+  { name: 'Royaume-Uni', code: 'LON', country: 'Royaume-Uni', type: 'country', keywords: ['royaume uni', 'angleterre', 'london', 'londres', 'uk', 'manchester', 'edinburgh'] },
+  { name: 'Algérie', code: 'ALG', country: 'Algérie', type: 'country', keywords: ['algerie', 'algeria', 'alger', 'oran', 'constantine', 'annaba'] },
+  { name: 'Thaïlande', code: 'BKK', country: 'Thaïlande', type: 'country', keywords: ['thailande', 'thailand', 'bangkok', 'phuket', 'pattaya', 'chiang mai', 'koh samui'] },
+  { name: 'Indonésie — Bali', code: 'DPS', country: 'Indonésie', type: 'country', keywords: ['indonesie', 'bali', 'dps', 'ubud', 'seminyak', 'kuta'] },
+  { name: 'Maldives', code: 'MLE', country: 'Maldives', type: 'country', keywords: ['maldives', 'male', 'mle', 'atoll', 'resort', 'bungalow'] },
+  { name: 'Jordanie', code: 'AMM', country: 'Jordanie', type: 'country', keywords: ['jordanie', 'jordan', 'amman', 'petra', 'aqaba', 'wadi rum'] },
+  { name: 'Amman — Jordanie', code: 'AMM', country: 'Jordanie', type: 'city', keywords: ['amman', 'amm', 'jordanie', 'petra'] },
+  { name: 'Aqaba — Jordanie', code: 'AQJ', country: 'Jordanie', type: 'city', keywords: ['aqaba', 'aqj', 'jordanie', 'mer rouge'] },
+  { name: 'Allemagne', code: 'BER', country: 'Allemagne', type: 'country', keywords: ['allemagne', 'germany', 'berlin', 'munich', 'francfort', 'hambourg', 'cologne'] },
+  { name: 'Pays-Bas', code: 'AMS', country: 'Pays-Bas', type: 'country', keywords: ['pays bas', 'netherlands', 'amsterdam', 'rotterdam', 'la haye'] },
+  { name: 'Suisse', code: 'ZRH', country: 'Suisse', type: 'country', keywords: ['suisse', 'switzerland', 'zurich', 'geneve', 'berne', 'lausanne', 'interlaken'] },
+  { name: 'Autriche', code: 'VIE', country: 'Autriche', type: 'country', keywords: ['autriche', 'austria', 'vienne', 'innsbruck', 'salzburg'] },
+  { name: 'Chypre', code: 'LCA', country: 'Chypre', type: 'country', keywords: ['chypre', 'cyprus', 'larnaca', 'limassol', 'nicosie', 'paphos'] },
+  { name: 'Larnaca — Chypre', code: 'LCA', country: 'Chypre', type: 'city', keywords: ['larnaca', 'lca', 'chypre', 'limassol'] },
+  { name: 'Géorgie', code: 'TBS', country: 'Géorgie', type: 'country', keywords: ['georgie', 'georgia', 'tbilissi', 'tbilisi', 'batumi', 'kazbegi'] },
+  { name: 'Azerbaïdjan', code: 'GYD', country: 'Azerbaïdjan', type: 'country', keywords: ['azerbaidjan', 'azerbaijan', 'bakou', 'baku', 'gyd'] },
+  { name: 'Inde', code: 'DEL', country: 'Inde', type: 'country', keywords: ['inde', 'india', 'delhi', 'mumbai', 'goa', 'agra', 'taj mahal', 'kerala'] },
+  { name: 'Japon', code: 'TYO', country: 'Japon', type: 'country', keywords: ['japon', 'japan', 'tokyo', 'osaka', 'kyoto', 'hiroshima'] }
 ];
 
 // In-memory cache for worldwide remote geocoding results
@@ -250,6 +289,7 @@ const remotePlacesCache = new Map();
 
 /**
  * Fast synchronous search in the local curated dataset (0ms response)
+ * Scoring: exact name match (100) > name starts with (80) > country match (60) > name contains (40) > keyword match (20)
  */
 export function searchLocalLocations(query, limit = 20) {
   if (!query || !query.trim()) {
@@ -263,14 +303,44 @@ export function searchLocalLocations(query, limit = 20) {
     return staticWorldwideLocations.slice(0, limit);
   }
 
-  const matches = staticWorldwideLocations.filter(item => {
-    const searchTarget = normalizeLocationText(
-      `${item.name} ${item.code} ${item.country} ${(item.keywords || []).join(' ')}`
-    );
-    return tokens.every(t => searchTarget.includes(t));
-  });
+  const scored = [];
 
-  return matches.slice(0, limit);
+  for (const item of staticWorldwideLocations) {
+    const normName = normalizeLocationText(item.name);
+    const normCountry = normalizeLocationText(item.country);
+    const normCode = normalizeLocationText(item.code);
+    const normKeywords = (item.keywords || []).map(normalizeLocationText).join(' ');
+
+    let score = 0;
+
+    // Exact name match
+    if (normName === normalizedQuery) { score = 100; }
+    // Name starts with query
+    else if (normName.startsWith(normalizedQuery)) { score = 80; }
+    // Country is the query (e.g. typing "Oman" → shows Muscat/Oman cities)
+    else if (normCountry === normalizedQuery) { score = 75; }
+    // Country starts with query
+    else if (normCountry.startsWith(normalizedQuery)) { score = 70; }
+    // Name contains all tokens
+    else if (tokens.every(t => normName.includes(t))) { score = 60; }
+    // Country contains query
+    else if (normCountry.includes(normalizedQuery)) { score = 50; }
+    // Code matches
+    else if (normCode === normalizedQuery || normCode.startsWith(normalizedQuery)) { score = 45; }
+    // Any keyword matches all tokens
+    else if (tokens.every(t => normKeywords.includes(t))) { score = 20; }
+
+    if (score > 0) {
+      // Boost cities over hotels for country-level searches
+      if (item.type === 'city' && normCountry.includes(normalizedQuery)) score += 10;
+      scored.push({ item, score });
+    }
+  }
+
+  // Sort by score descending, then alphabetically by name
+  scored.sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name));
+
+  return scored.slice(0, limit).map(s => s.item);
 }
 
 /**

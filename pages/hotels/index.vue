@@ -2,60 +2,65 @@
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import PaymentMethodSelector from '~/components/payment/PaymentMethodSelector.vue';
-import { sendApi } from '@/composables/api';
-import { resolveHotelGallery, resolveHotelImage, onHotelImageError } from '@/composables/useHotelImages';
+import { sendApi, fixEncodingDeep } from '@/composables/api';
+import { resolveHotelImage, onHotelImageError } from '@/composables/useHotelImages';
 import { searchWorldwidePlaces, searchLocalLocations, staticWorldwideLocations } from '@/composables/useWorldwideLocations';
+import { useHotelPricing } from '@/composables/useHotelPricing';
 
 const toast = useToast();
 const authStore = useAuthStore();
 const router = useRouter();
 
+// Admin markup from server (comes back in every /hotels/search response)
+const adminMarkupFromApi = ref(null);
+
+// ============================================================
+//  PRICING ENGINE — role-aware, server-driven
+//  Client/Admin:  displayPrice = wholesale + admin_margin
+//  Business:      netPrice = wholesale (what they pay)
+//                 clientPrice = wholesale + business_margin
+// ============================================================
+const pricing = useHotelPricing(adminMarkupFromApi);
+const isBusiness = pricing.isBusiness;
+const isBusinessUser = isBusiness; // backward compat alias
+
+/**
+ * Main price to show per arrangement.
+ * - Business: shows net (wholesale) as primary displayed price in cards
+ *   so they know what they pay. clientPrice shown separately.
+ * - Everyone else: wholesale + admin margin
+ */
+const calculateClientPrice = (wholesalePrice) => {
+  const p = pricing.getPricing(wholesalePrice);
+  if (p.isBusiness) return p.netPrice;       // business pays net
+  return p.displayPrice;                      // client sees admin-marked price
+};
+
+/** Price the current user ACTUALLY PAYS at checkout */
+const getPaymentPrice = (wholesalePrice) => pricing.getPaymentPrice(wholesalePrice);
+
+/** Margin the business would earn if they charge their client clientPrice */
+const calculateAgencyMargin = (wholesalePrice) => {
+  const p = pricing.getPricing(wholesalePrice);
+  if (p.isBusiness) return p.marginAmount;
+  return p.displayPrice - Number(wholesalePrice);
+};
+
+/** Full pricing object for detailed display in cards/modals */
+const getFullPricing = (wholesalePrice) => pricing.getPricing(wholesalePrice);
+
 const disableCredit = computed(() => {
-  if (!isBusinessUser.value) return true;
+  if (!isBusiness.value) return true;
   const balance = authStore.User?.account_balance || authStore.User?.accountBalance;
   if (!balance) return true;
   const authorized = Number(balance.account_balance || 0);
   const consumed = Number(balance.consumed_amount || 0);
   const debts = Number(balance.debts || 0);
   const availableCredit = authorized - (debts + consumed);
-  const currentPrice = calculateClientPrice(selectedArrangement.value?.price || 0);
-  return availableCredit < currentPrice;
+  // Business pays net price
+  const netPrice = pricing.getPricing(selectedArrangement.value?.price || 0).netPrice || 0;
+  return availableCredit < netPrice;
 });
-
-// ============================================================
-//  BUSINESS ACCOUNT MARKUP ENGINE
-// ============================================================
-const isBusinessUser = computed(() => {
-  const u = authStore.User;
-  return u?.role === 'business' || u?.type === 'business';
-});
-
-const businessMarkup = computed(() => {
-  const u = authStore.User;
-  let val = Number(u?.markup_hotel || 0);
-  const type = u?.markup_type_hotel || 'percentage';
-  // If percentage is stored as decimal fraction (e.g. 0.15 for 15%), normalize to percentage points
-  if (type === 'percentage' && val > 0 && val <= 1) {
-    val = Number((val * 100).toFixed(2));
-  }
-  return { val, type };
-});
-
-const calculateClientPrice = (netWholesalePrice) => {
-  const net = Number(netWholesalePrice) || 0;
-  if (!isBusinessUser.value || !businessMarkup.value.val) {
-    return net;
-  }
-  if (businessMarkup.value.type === 'percentage') {
-    return Math.round(net * (1 + businessMarkup.value.val / 100));
-  }
-  return Math.round(net + businessMarkup.value.val);
-};
-
-const calculateAgencyMargin = (netWholesalePrice) => {
-  const net = Number(netWholesalePrice) || 0;
-  return calculateClientPrice(net) - net;
-};
 
 // ============================================================
 //  CLIENT FAVORITES SYSTEM (Persistent Array & Instant Modal)
@@ -421,7 +426,14 @@ const filteredCities = computed(() => {
 });
 
 const selectCity = (city) => {
-  destinationQuery.value = city.country ? `${city.name}, ${city.country}` : city.name;
+  // For country-type entries: show just the country name, not "Country, Country"
+  if (city.type === 'country') {
+    destinationQuery.value = city.name;
+    form.value.destination = city.name;
+  } else {
+    destinationQuery.value = city.country ? `${city.name}, ${city.country}` : city.name;
+    form.value.destination = destinationQuery.value;
+  }
   selectedCityObj.value = city;
   form.value.city_code = (city.code === 'SHJ') ? 'DXB' : (city.code || 'ALG');
   if (city.type === 'hotel') {
@@ -752,13 +764,18 @@ const searchHotels = async () => {
     }, 'POST');
 
     if (response && (response.status === 'success' || response.success === true)) {
-      const hotelList = (response.data || []).map(h => {
+      // Store admin markup from server so the pricing engine applies it correctly
+      if (response.admin_markup) {
+        adminMarkupFromApi.value = response.admin_markup;
+      }
+      const rawList = (response.data || []).map(h => {
         if (Array.isArray(h.arrangements)) {
           h.arrangements.sort((a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0));
         }
         return h;
       });
-      results.value = hotelList;
+      // Fix latin1-over-UTF8 encoding from Netstorming (e.g. "Ã©" → "é")
+      results.value = fixEncodingDeep(rawList);
       rawLogs.value = response.logs;
       searchNumber.value = response.search_number || '';
       currentView.value = 'results';
@@ -1029,7 +1046,11 @@ const executePrebookAndBook = async () => {
   bookingStep.value = 'prebooking';
 
   try {
-    const totalPrice = calculateClientPrice(selectedArrangement.value?.price);
+    const wholesalePrice = selectedArrangement.value?.price || 0;
+    const fullP = getFullPricing(wholesalePrice);
+    // Business pays NET (wholesale). Client/Admin pays display price (admin-marked).
+    const paymentPrice = fullP.paymentPrice;
+    const clientDisplayPrice = fullP.isBusiness ? fullP.clientPrice : fullP.displayPrice;
     const payload = {
       hotel_id: selectedHotel.value.id || selectedHotel.value.code,
       agreement_id: selectedArrangement.value.id || '1',
@@ -1046,7 +1067,9 @@ const executePrebookAndBook = async () => {
       hotel_name: selectedHotel.value?.name || 'Hôtel',
       hotel_image: getHotelImage(selectedHotel.value),
       city: selectedHotel.value?.city || selectedHotel.value?.address || 'Alger',
-      total_price: totalPrice
+      total_price: paymentPrice,     // what this user actually PAYS
+      net_price: wholesalePrice,     // always the wholesale price for records
+      margin_amount: fullP.isBusiness ? fullP.marginAmount : (clientDisplayPrice - wholesalePrice)
     };
 
     const prebookRes = await sendApi('/hotels/prebook', payload, 'POST');
@@ -1062,15 +1085,18 @@ const executePrebookAndBook = async () => {
       bookingStep.value = 'success';
       bookingResponse.value = bookRes;
 
-      const orderId = bookRes.data?.order_id || bookRes.data?.id;
+      const orderId = bookRes.data?.order_id || bookRes.data?.id || bookRes.order_id;
 
       if (bookingForm.value.payment_method === 'credit') {
-        toast.add({ title: 'Réservation confirmée avec succès (Crédit Agence B2B)', color: 'green' });
+        // B2B credit — instant payment, show confirmation
+        toast.add({ title: '✅ Réservation confirmée via crédit agence B2B', color: 'green' });
         currentView.value = 'confirmation';
         nextTick(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
       } else {
-        toast.add({ title: 'Réservation enregistrée en option ! Redirection vers le paiement électronique...', color: 'green' });
-        router.push(`/payment/confirm?order_id=${orderId}&type=hotel&amount=${totalPrice}`);
+        // CCP / Virement — must pay first, redirect immediately to payment page
+        // DO NOT show confirmation until payment is done
+        toast.add({ title: '📋 Réservation enregistrée en option. Redirection vers le paiement...', color: 'amber', timeout: 3000 });
+        router.push(`/payment/confirm?order_id=${orderId}&type=hotel&amount=${paymentPrice}&ref=${bookRes.data?.reference || ''}`);
       }
     } else {
       bookingStep.value = 'error';
@@ -1540,19 +1566,34 @@ onMounted(() => {
               placeholder="Destination, Wilaya, Commune ou Hôtel (ex: El Aurassi, Alger, Oran, Hilton...)"
               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
             />
-            <div v-if="showCitySuggestions && citySuggestions.length > 0" class="absolute z-50 w-full mt-1 max-h-72 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl shadow-slate-300/40 dark:shadow-black/40">
+            <div v-if="showCitySuggestions && citySuggestions.length > 0" class="absolute z-50 w-full mt-1 max-h-80 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl shadow-slate-300/40 dark:shadow-black/40">
               <button
                 v-for="(city, cIdx) in citySuggestions" :key="city.code + '_' + cIdx"
                 @mousedown.prevent="selectCity(city)"
                 class="w-full text-left px-4 py-2.5 hover:bg-primary/10 flex items-center gap-3 cursor-pointer transition-colors border-b border-slate-100 dark:border-slate-700/50 last:border-0"
               >
-                <span class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 shrink-0">
-                    <Icon v-if="city.type === 'hotel'" name="i-heroicons-building-office-2" class="w-4 h-4" />
-                    <Icon v-else name="i-heroicons-map-pin" class="w-4 h-4" />
-                  </span>
-                <div>
-                  <div class="text-sm font-semibold text-slate-800 dark:text-white">{{ city.name }}</div>
-                  <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ city.country }}</div>
+                <span
+                  class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-black"
+                  :class="city.type === 'hotel' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400'
+                        : city.type === 'country' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'"
+                >
+                  <Icon v-if="city.type === 'hotel'" name="i-heroicons-building-office-2" class="w-4 h-4" />
+                  <Icon v-else-if="city.type === 'country'" name="i-heroicons-globe-europe-africa" class="w-4 h-4" />
+                  <Icon v-else name="i-heroicons-map-pin" class="w-4 h-4" />
+                </span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-slate-800 dark:text-white truncate">{{ city.name }}</span>
+                    <span
+                      v-if="city.type"
+                      class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md shrink-0"
+                      :class="city.type === 'hotel' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400'
+                            : city.type === 'country' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400'
+                            : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'"
+                    >{{ city.type === 'hotel' ? 'Hôtel' : city.type === 'country' ? 'Pays' : 'Ville' }}</span>
+                  </div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ city.country }}{{ city.code && city.type !== 'country' ? ' · ' + city.code : '' }}</div>
                 </div>
               </button>
             </div>
@@ -2145,11 +2186,20 @@ onMounted(() => {
                   </div>
                 </div>
                 <div class="px-4 py-3 text-right">
-                  <div class="text-base font-black text-slate-900 dark:text-white">{{ formatPrice(calculateClientPrice(arr.price)) }}</div>
-                  <div class="text-[11px] font-bold text-slate-500">{{ arr.currency || 'DZD' }}</div>
-                  <div v-if="isBusinessUser && businessMarkup.val > 0" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5 whitespace-nowrap">
-                    Net: {{ formatPrice(arr.price) }} | +{{ formatPrice(calculateAgencyMargin(arr.price)) }}
-                  </div>
+                  <!-- Business user: show NET (what they pay) + client price -->
+                  <template v-if="isBusiness">
+                    <div class="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 tracking-wider">Prix net</div>
+                    <div class="text-base font-black text-slate-900 dark:text-white">{{ pricing.formatPrice(arr.price) }}</div>
+                    <div class="text-[11px] font-bold text-slate-400">{{ arr.currency || 'DZD' }}</div>
+                    <div v-if="getFullPricing(arr.price).clientPrice > arr.price" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5 whitespace-nowrap">
+                      Client: {{ pricing.formatPrice(getFullPricing(arr.price).clientPrice) }} (+{{ pricing.formatPrice(getFullPricing(arr.price).marginAmount) }})
+                    </div>
+                  </template>
+                  <!-- Client / Admin: show admin-marked price -->
+                  <template v-else>
+                    <div class="text-base font-black text-slate-900 dark:text-white">{{ pricing.formatPrice(calculateClientPrice(arr.price)) }}</div>
+                    <div class="text-[11px] font-bold text-slate-500">{{ arr.currency || 'DZD' }}</div>
+                  </template>
                 </div>
                 <div class="px-4 py-3">
                   <button @click="openBookingModal(hotel, arr)" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold uppercase tracking-wider shadow-md shadow-primary/20 cursor-pointer transition-all whitespace-nowrap">
@@ -2196,14 +2246,23 @@ onMounted(() => {
 
                   <div class="flex items-center justify-between gap-3 pt-1">
                     <div>
-                      <div class="text-[10px] uppercase font-bold text-slate-400">Total séjour</div>
-                      <div class="text-base font-black text-slate-900 dark:text-white leading-none">
-                        {{ formatPrice(calculateClientPrice(arr.price)) }}
-                        <span class="text-xs font-bold text-primary">{{ arr.currency || 'DZD' }}</span>
-                      </div>
-                      <div v-if="isBusinessUser && businessMarkup.val > 0" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
-                        Net: {{ formatPrice(arr.price) }} | +{{ formatPrice(calculateAgencyMargin(arr.price)) }}
-                      </div>
+                      <template v-if="isBusiness">
+                        <div class="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400">Prix net (vous payez)</div>
+                        <div class="text-base font-black text-slate-900 dark:text-white leading-none">
+                          {{ pricing.formatPrice(arr.price) }}
+                          <span class="text-xs font-bold text-primary">{{ arr.currency || 'DZD' }}</span>
+                        </div>
+                        <div v-if="getFullPricing(arr.price).clientPrice > arr.price" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
+                          Client: {{ pricing.formatPrice(getFullPricing(arr.price).clientPrice) }}
+                        </div>
+                      </template>
+                      <template v-else>
+                        <div class="text-[10px] uppercase font-bold text-slate-400">Total séjour</div>
+                        <div class="text-base font-black text-slate-900 dark:text-white leading-none">
+                          {{ pricing.formatPrice(calculateClientPrice(arr.price)) }}
+                          <span class="text-xs font-bold text-primary">{{ arr.currency || 'DZD' }}</span>
+                        </div>
+                      </template>
                     </div>
 
                     <button
@@ -2431,10 +2490,22 @@ onMounted(() => {
         <button
           @click="executePrebookAndBook"
           :disabled="bookingLoading"
-          class="w-full sm:w-auto justify-center px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-green-600/20 transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2"
+          class="w-full sm:w-auto justify-center px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider shadow-lg transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2"
+          :class="bookingForm.payment_method === 'credit'
+            ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-600/20'
+            : 'bg-primary hover:bg-primary-hover text-white shadow-primary/20'"
         >
           <svg v-if="bookingLoading" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
-          {{ bookingStep === 'prebooking' ? 'Evaluation en cours...' : (bookingStep === 'confirming' ? 'Confirmation finale...' : 'CONFIRMATION') }}
+          <template v-if="!bookingLoading">
+            <svg v-if="bookingForm.payment_method !== 'credit'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          </template>
+          {{
+            bookingStep === 'prebooking' ? 'Évaluation en cours...'
+            : bookingStep === 'confirming' ? 'Traitement...'
+            : bookingForm.payment_method === 'credit' ? 'CONFIRMER LA RÉSERVATION (B2B)'
+            : 'CONTINUER VERS LE PAIEMENT'
+          }}
         </button>
         <button @click="goBackToResults" class="w-full sm:w-auto justify-center px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-red-600/20 transition-all cursor-pointer">
           ANNULER
@@ -3688,4 +3759,134 @@ onMounted(() => {
       </div>
     </div>
   </Teleport>
+
 </template>
+
+<style scoped>
+/* ===== GLOBAL MOBILE BASE ===== */
+* { box-sizing: border-box; }
+
+/* ===== SEARCH FORM ===== */
+@media (max-width: 640px) {
+  /* Search form: force full width, comfortable padding */
+  .max-w-5xl { padding-left: 1rem; padding-right: 1rem; }
+
+  /* Destination + geocoding row: stack vertically on mobile */
+  .grid.grid-cols-1.md\:grid-cols-\[1fr_auto_auto\] {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem;
+  }
+
+  /* Date grid: 2 columns on small, full on tiny */
+  .grid.grid-cols-2.md\:grid-cols-4 {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Search button full width on mobile */
+  .md\:min-w-\[280px\] { min-width: 100% !important; }
+}
+
+/* ===== HOTEL CARDS ===== */
+@media (max-width: 768px) {
+  /* Image: shorter height on mobile */
+  .w-full.md\:w-56.h-48.md\:h-auto {
+    height: 180px !important;
+  }
+
+  /* Hotel name: don't overflow */
+  h3 { word-break: break-word; }
+
+  /* Arrangement desktop grid: hidden on mobile, mobile cards shown */
+  .hidden.md\:grid {
+    display: none !important;
+  }
+}
+
+/* ===== STICKY SUMMARY BAR ===== */
+@media (max-width: 480px) {
+  /* Hide date range on smallest screens, keep nights/rooms */
+  .sticky > div > span:first-child {
+    font-size: 0.65rem;
+    line-height: 1.2;
+  }
+}
+
+/* ===== RESULTS LAYOUT ===== */
+@media (max-width: 1024px) {
+  /* Full width for results when sidebar is hidden */
+  .flex.gap-6 > main {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ===== PREBOOKING FORM ===== */
+@media (max-width: 768px) {
+  /* Passenger grid: single column on mobile */
+  .grid.grid-cols-2.md\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem;
+  }
+
+  /* B2B Agency form: full width */
+  .grid.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Form section cards: better padding */
+  .p-5 { padding: 1rem !important; }
+  .p-6 { padding: 1rem !important; }
+}
+
+/* ===== CONFIRMATION PAGE ===== */
+@media (max-width: 640px) {
+  /* Stack confirmation details 1 column */
+  .grid.grid-cols-1.md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reference header: wrap cleanly */
+  .flex.items-center.justify-between.gap-2 {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+/* ===== MOBILE FILTER DRAWER ===== */
+.mobile-filter-drawer {
+  touch-action: pan-y;
+}
+
+/* ===== BOOKING ACTION BUTTONS ===== */
+@media (max-width: 640px) {
+  .flex.flex-col.sm\:flex-row.gap-3 > button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ===== ARRANGEMENT TABLE ===== */
+@media (max-width: 900px) {
+  /* Allow arrangement desktop grid to scroll horizontally if needed */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ===== PAGE HEADER ===== */
+@media (max-width: 640px) {
+  /* Hero/header: compact on mobile */
+  h1.text-3xl { font-size: 1.5rem !important; line-height: 1.2 !important; }
+  h2.text-2xl { font-size: 1.25rem !important; }
+}
+
+/* ===== MODAL & GALLERY ===== */
+@media (max-width: 640px) {
+  /* Gallery modal: full width */
+  .fixed.inset-0 > .bg-black\/90 { padding: 0 !important; }
+}
+
+/* ===== PREVENT HORIZONTAL SCROLL ===== */
+.max-w-\[1440px\] { overflow-x: hidden; }
+</style>

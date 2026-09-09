@@ -86,40 +86,67 @@
                     <DarkModeToggle />
 
                     <!-- User Menu Dropdown -->
-                    <div v-if="token" class="relative">
+                    <div v-if="token" ref="userMenuRef" class="relative">
                         <button 
-                            class="flex items-center gap-2 font-semibold text-secondary dark:text-slate-200 hover:text-primary dark:hover:text-primary transition-colors py-2 px-1"
-                            @mouseenter="showUserMenu = true"
-                            @mouseleave="startUserMenuHideTimer"
+                            @click="toggleUserMenu"
+                            type="button"
+                            class="flex items-center gap-2.5 font-semibold text-secondary dark:text-slate-200 hover:text-primary dark:hover:text-primary transition-all py-1.5 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                            :class="showUserMenu ? 'bg-slate-100 dark:bg-slate-800 text-primary' : ''"
                         >
-                            <span>{{ user?.name }}</span>
+                            <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs border border-primary/20 shrink-0">
+                                {{ userInitial }}
+                            </div>
+                            <span class="text-sm truncate max-w-[120px]">{{ user?.name || 'Mon Compte' }}</span>
                             <Icon 
                                 name="i-heroicons-chevron-down-20-solid" 
-                                class="w-4 h-4 transition-transform duration-300"
-                                :class="showUserMenu ? 'rotate-180 text-primary' : ''"
+                                class="w-4 h-4 transition-transform duration-300 shrink-0"
+                                :class="showUserMenu ? 'rotate-180 text-primary' : 'text-slate-400'"
                             />
                         </button>
                         <Transition name="user-dropdown">
                             <div 
                                 v-if="showUserMenu"
-                                class="absolute right-0 top-full pt-3 w-56 z-50"
-                                @mouseenter="cancelUserMenuHideTimer"
-                                @mouseleave="startUserMenuHideTimer"
+                                class="absolute right-0 top-full pt-2 w-60 z-50"
                             >
                                 <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden">
+                                    <!-- User Header Summary -->
+                                    <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40">
+                                        <p class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ user?.name }}</p>
+                                        <p class="text-[11px] text-slate-400 dark:text-slate-500 truncate">{{ user?.email }}</p>
+                                        <div class="mt-1.5">
+                                            <span 
+                                                class="inline-block px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider"
+                                                :class="user?.role === 'admin' ? 'bg-primary/20 text-primary border border-primary/30' : (user?.role === 'business' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700')"
+                                            >
+                                                {{ user?.role === 'admin' ? 'Administrateur' : (user?.role === 'business' ? 'Partenaire B2B' : 'Client') }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Links -->
                                     <div class="p-2 flex flex-col gap-0.5">
-                                        <component 
-                                            :is="item?.link ? `nuxt-link` : `button`"
-                                            v-for="(item, index) in menuItems" 
-                                            :key="index" 
-                                            :to="item?.link" 
-                                            @click="() => { if(item?.action) item.action(); showUserMenu = false; }" 
-                                            class="dropdown-item text-left"
-                                            :class="item?.class"
-                                        >
-                                            <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4" />
-                                            {{ item.text }}
-                                        </component>
+                                        <template v-for="(item, index) in menuItems" :key="index">
+                                            <NuxtLink
+                                                v-if="item?.link"
+                                                :to="item.link"
+                                                @click="showUserMenu = false"
+                                                class="dropdown-item text-left"
+                                                :class="item?.class"
+                                            >
+                                                <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4 shrink-0" />
+                                                <span class="truncate">{{ item.text }}</span>
+                                            </NuxtLink>
+                                            <button
+                                                v-else
+                                                type="button"
+                                                @click="() => { if(item?.action) item.action(); showUserMenu = false; }"
+                                                class="dropdown-item text-left"
+                                                :class="item?.class"
+                                            >
+                                                <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4 shrink-0" />
+                                                <span class="truncate">{{ item.text }}</span>
+                                            </button>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -127,7 +154,7 @@
                     </div>
                     
                     <nuxt-link v-else to="/auth/login">
-                        <button class="bg-primary hover:bg-primary-hover text-white px-6 py-2.5 font-bold uppercase tracking-wider text-sm transition-colors duration-300">
+                        <button class="bg-primary hover:bg-primary-hover text-white px-6 py-2.5 font-bold uppercase tracking-wider text-sm transition-colors duration-300 rounded-xl shadow-sm">
                             Connexion
                         </button>
                     </nuxt-link>
@@ -152,9 +179,26 @@
                 
                 <div v-if="token" class="w-full flex flex-col items-center space-y-4 pt-8 border-t border-white/20">
                     <p class="text-primary text-lg mb-2">Bonjour, {{ user?.name }}</p>
-                    <component :is="item?.link ? `nuxt-link` : `button`" v-for="(item, index) in menuItems" :key="index" :to="item?.link" @click="() => { if(item?.action) item.action(); showMenu=false; }" class="text-xl text-gray-300 hover:text-white transition-colors" :class="item?.class">
-                        {{ item.text }}
-                    </component>
+                    <template v-for="(item, index) in menuItems" :key="index">
+                        <NuxtLink
+                            v-if="item?.link"
+                            :to="item.link"
+                            @click="showMenu = false"
+                            class="text-xl text-gray-300 hover:text-white transition-colors"
+                            :class="item?.class"
+                        >
+                            {{ item.text }}
+                        </NuxtLink>
+                        <button
+                            v-else
+                            type="button"
+                            @click="() => { if(item?.action) item.action(); showMenu = false; }"
+                            class="text-xl text-gray-300 hover:text-white transition-colors"
+                            :class="item?.class"
+                        >
+                            {{ item.text }}
+                        </button>
+                    </template>
                 </div>
                 
                 <div v-else class="pt-8 w-full border-t border-white/20 flex justify-center">
@@ -175,6 +219,10 @@ const user = computed(() => authStore.User)
 const token = computed(() => authStore.Authorization?.token)
 const showMenu = ref(false)
 
+const userInitial = computed(() => {
+    return user.value?.name ? user.value.name.charAt(0).toUpperCase() : 'U'
+})
+
 // Services dropdown — controlled with timer to give user time to move mouse to submenu
 const showServices = ref(false)
 let servicesHideTimer = null
@@ -191,21 +239,41 @@ const cancelServicesHideTimer = () => {
     }
 }
 
-// User menu dropdown
+// User menu dropdown (Click + Click-Outside toggle)
 const showUserMenu = ref(false)
-let userMenuHideTimer = null
+const userMenuRef = ref(null)
 
-const startUserMenuHideTimer = () => {
-    userMenuHideTimer = setTimeout(() => {
-        showUserMenu.value = false
-    }, 200)
+const toggleUserMenu = (event) => {
+    if (event) event.stopPropagation()
+    showUserMenu.value = !showUserMenu.value
 }
-const cancelUserMenuHideTimer = () => {
-    if (userMenuHideTimer) {
-        clearTimeout(userMenuHideTimer)
-        userMenuHideTimer = null
+
+const handleClickOutside = (event) => {
+    if (userMenuRef.value && !userMenuRef.value.contains(event.target)) {
+        showUserMenu.value = false
     }
 }
+
+const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+        showUserMenu.value = false
+        showServices.value = false
+    }
+}
+
+onMounted(() => {
+    if (process.client) {
+        window.addEventListener('click', handleClickOutside)
+        window.addEventListener('keydown', handleKeyDown)
+    }
+})
+
+onUnmounted(() => {
+    if (process.client) {
+        window.removeEventListener('click', handleClickOutside)
+        window.removeEventListener('keydown', handleKeyDown)
+    }
+})
 
 const logout = async() => {
     showUserMenu.value = false

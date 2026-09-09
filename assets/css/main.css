@@ -226,3 +226,113 @@ body, header, aside, main, div, button, input, textarea, select {
     background-color: var(--color-primary-60);
     border-radius: 10px;
 }
+
+/* ================================================================
+   GLOBAL RESPONSIVE & MOBILE RULES
+   ================================================================ */
+
+/* Prevent horizontal overflow on ALL pages */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+* { box-sizing: border-box; }
+
+/* Better touch targets — buttons/links min 44px */
+@media (max-width: 768px) {
+    button, a.btn, [role="button"] {
+        min-height: 36px;
+    }
+
+    input, select, textarea {
+        font-size: 16px !important; /* Prevents iOS auto-zoom */
+    }
+
+    /* Navigation: ensure logo doesn't overflow */
+    .header .logo-text { font-size: 14px; }
+
+    /* Tables: make them scrollable */
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Modal dialogs: full width on mobile */
+    [class*="modal"], [class*="dialog"] {
+        max-width: 100vw !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+}
+
+/* Very small screens (< 400px) */
+@media (max-width: 400px) {
+    h1 { font-size: 1.4rem !important; }
+    h2 { font-size: 1.2rem !important; }
+
+    /* Stacked badges/tags */
+    .flex.items-center.gap-2 {
+        flex-wrap: wrap;
+    }
+
+    /* Admin forms: single column */
+    .grid.grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+    .grid.grid-cols-4 {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+/* Tablet portrait fixes */
+@media (min-width: 641px) and (max-width: 1023px) {
+    /* 2-col grids on tablet */
+    .grid.grid-cols-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .grid.grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* === ADMIN DASHBOARD RESPONSIVE === */
+@media (max-width: 768px) {
+    /* Admin sidebar: collapse on mobile */
+    .admin-sidebar { transform: translateX(-100%); }
+    .admin-sidebar.open { transform: translateX(0); }
+
+    /* Admin main content: no left margin when sidebar collapsed */
+    .admin-main { margin-left: 0 !important; }
+
+    /* Admin stat cards: 2 columns */
+    .admin-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* === PROFILE PAGE === */
+@media (max-width: 768px) {
+    .profile-grid { grid-template-columns: 1fr !important; }
+    .profile-sidebar { width: 100% !important; }
+}
+
+/* === SEARCH FORM GLOBAL === */
+@media (max-width: 640px) {
+    .search-form-grid { grid-template-columns: 1fr !important; }
+}
+
+/* === CARD GRIDS GLOBAL === */
+@media (max-width: 640px) {
+    /* Single column card grids on mobile */
+    .cards-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Touch scroll helpers */
+.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+}

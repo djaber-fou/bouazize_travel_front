@@ -248,13 +248,18 @@ const navigationGroups = [
                     { label: 'Offres', icon: 'i-heroicons-tag', to: '/v0o9y8a7o' },
                     { label: 'Commandes', icon: 'i-heroicons-shopping-bag', to: '/v1o2y3a4o' }
                 ]
+            },
+            {
+                label: 'Hôtellerie MyGO',
+                icon: 'i-heroicons-building-office-2',
+                to: '/admin/hotels/mygo'
             }
         ]
     }
 ]
 
 const isRouteActive = (toPath) => {
-    return route.path === toPath
+    return route.path === toPath || (toPath !== '/' && route.path.startsWith(toPath))
 }
 
 const isChildActive = (children) => {

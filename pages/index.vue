@@ -1,7 +1,7 @@
 <template>
     <Hero/>
-    <Services/>
     <Hotels />
+    <Services/>
     <VoyageOrganiseDestinations />
     <OmraOffers />
 </template>

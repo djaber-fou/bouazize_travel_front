@@ -1,29 +1,37 @@
 <template>        
-    <div class="w-full flex flex-col items-center text-start">
-        <UForm :schema="schema" :state="state" @submit="submitRegister" class="flex flex-col gap-4">
-            <UFormField label="Nom complet" name="name">
-                <UInput placeholder="Nom complet" v-model="state.name" class="lg:w-100 md:w-80 w-60"/>
+    <div class="w-full flex flex-col text-start">
+        <!-- Header -->
+        <div class="mb-6 text-center">
+            <h2 class="text-2xl font-black text-secondary dark:text-white tracking-tight">Créer un compte</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Rejoignez Bouazize Travel dès aujourd'hui</p>
+        </div>
+
+        <UForm :schema="schema" :state="state" @submit="submitRegister" class="flex flex-col gap-3.5 w-full">
+            <UFormField label="Nom complet" name="name" class="w-full">
+                <UInput placeholder="Nom complet" v-model="state.name" class="w-full" icon="i-heroicons-user" size="lg"/>
             </UFormField>
 
-            <UFormField label="Nom d'utilisateur" name="username">
-                <UInput placeholder="Nom d'utilisateur" v-model="state.username" class="lg:w-100 md:w-80 w-60"/>
+            <UFormField label="Nom d'utilisateur" name="username" class="w-full">
+                <UInput placeholder="Nom d'utilisateur" v-model="state.username" class="w-full" icon="i-heroicons-at-symbol" size="lg"/>
             </UFormField>
 
-            <UFormField label="Numéro de téléphone" name="phone">
-                <UInput placeholder="05XXXXXXXX" v-model="state.phone" class="lg:w-100 md:w-80 w-60"/>
+            <UFormField label="Numéro de téléphone" name="phone" class="w-full">
+                <UInput placeholder="05XXXXXXXX" v-model="state.phone" class="w-full" icon="i-heroicons-phone" size="lg"/>
             </UFormField>
 
-            <UFormField label="Email" name="email">
-                <UInput placeholder="exemple@gmail.com" v-model="state.email" class="lg:w-100 md:w-80 w-60"/>
+            <UFormField label="Email" name="email" class="w-full">
+                <UInput placeholder="exemple@gmail.com" v-model="state.email" class="w-full" icon="i-heroicons-envelope" size="lg"/>
             </UFormField>
 
-            <UFormField label="Mot de passe" name="password">
+            <UFormField label="Mot de passe" name="password" class="w-full">
                 <UInput
                     v-model="state.password"
                     placeholder="••••••••••••"
                     :type="showPassword ? 'text' : 'password'"
                     :ui="{ trailing: 'pe-1' }"
-                    class="lg:w-100 md:w-80 w-60"
+                    class="w-full"
+                    icon="i-heroicons-lock-closed"
+                    size="lg"
                 >
                     <template #trailing>
                     <UButton
@@ -31,24 +39,21 @@
                         variant="link"
                         size="sm"
                         :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-                        :aria-label="showPassword ? 'Hide password' : 'Show password'"
-                        :aria-pressed="showPassword"
-                        aria-controls="password"
                         @click="showPassword = !showPassword"
                     />
                     </template>
                 </UInput>
-
             </UFormField>
 
-            <UFormField label="Confirmé le mot de passe" name="password_confirmation">
+            <UFormField label="Confirmer le mot de passe" name="password_confirmation" class="w-full">
                 <UInput
                     v-model="state.password_confirmation"
                     placeholder="••••••••••••"
                     :type="showConfirmPassword ? 'text' : 'password'"
                     :ui="{ trailing: 'pe-1' }"
-                    class="lg:w-100 md:w-80 w-60"
-                    name="password_confirmation"
+                    class="w-full"
+                    icon="i-heroicons-lock-closed"
+                    size="lg"
                 >
                     <template #trailing>
                     <UButton
@@ -56,63 +61,67 @@
                         variant="link"
                         size="sm"
                         :icon="showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-                        :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'"
-                        :aria-pressed="showConfirmPassword"
-                        aria-controls="password"
                         @click="showConfirmPassword = !showConfirmPassword"
                     />
                     </template>
                 </UInput>
             </UFormField>
 
-            <UFormField label="Type" name="state">
-                <USelect placeholder="Sélectionner un type" v-model="state.role" :items="types" class="lg:w-100 md:w-80 w-60" />
+            <UFormField label="Type de compte" name="state" class="w-full">
+                <USelect placeholder="Sélectionner un type" v-model="state.role" :items="types" class="w-full" size="lg" />
             </UFormField>
 
-            <UFormField v-if="state.role === 'business'" label="Document" name="state">
-                <div class="flex items-center justify-center lg:w-100 md:w-80 w-60">
-                    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-30 border-2 border-gray-300 border-dashed rounded-none cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg class="w-8 h-8 mb-4 text-primary dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                            </svg>
-                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Télécharger votre fichier</span></p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">(NIF , NIS , Agrément , Registre de Commerce)</p>
+            <UFormField v-if="state.role === 'business'" label="Document" name="state" class="w-full">
+                <div class="flex items-center justify-center w-full">
+                    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-28 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <div class="flex flex-col items-center justify-center py-4 px-2 text-center">
+                            <UIcon name="i-heroicons-cloud-arrow-up" class="w-7 h-7 mb-2 text-primary" />
+                            <p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Télécharger votre document</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">(NIF, NIS, Agrément, Registre de Commerce)</p>
                         </div>
                         <UInput id="dropzone-file" type="file" class="hidden" @change="handleFile"/>
                     </label>
                 </div> 
             </UFormField>
             
-            <div class="flex gap-3 items-center">
-                <UButton 
-                :loading="loading"
-                label="Inscrivez vous" 
-                type="submit"
-                color="primary"
-                class="font-bold cursor-pointer w-fit"
-                />
-                <p @click="showLogin" class="cursor-pointer text-sm font-thin text-primary">
-                    Vous avez un compte ?
-                </p>
+            <div class="flex flex-col gap-3 pt-2">
+                <button 
+                    :disabled="loading"
+                    type="submit"
+                    class="w-full h-11 sm:h-12 bg-primary hover:bg-primary-hover text-secondary font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all duration-200 shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                    <UIcon v-if="!loading" name="i-heroicons-user-plus" class="w-5 h-5 text-secondary" />
+                    <svg v-else class="animate-spin h-5 w-5 text-secondary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+                    <span>{{ loading ? 'Création en cours...' : 'Créer mon compte' }}</span>
+                </button>
+
+                <div class="text-center pt-1">
+                    <button 
+                        type="button"
+                        @click="showLogin" 
+                        class="cursor-pointer text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1 transition-colors"
+                    >
+                        <UIcon name="i-heroicons-arrow-left" class="w-3.5 h-3.5" />
+                        <span>Vous avez déjà un compte ? Se connecter</span>
+                    </button>
+                </div>
             </div>
         </UForm>
     </div>
 </template>
 
 <script setup>
-// import { FormError, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
-// import { getProducts } from '~/services/products'
 import { useAuthStore } from '#imports';
 
 const authStore = useAuthStore()
 const loading = ref(false)
+const toast = useToast()
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
-const handleFile = (event)=>{
+const handleFile = (event) => {
     state.file = event.target.files[0]
 }
 
@@ -120,8 +129,8 @@ const types = ref([
     {label:"Individuel", value:"individual"},
     {label:"Entreprise", value:"business"}
 ])
-const emit = defineEmits(['getComponent'])
-const showLogin = ()=>{
+const emit = defineEmits(['getComponent', 'requireVerification'])
+const showLogin = () => {
     emit('getComponent','login');
 }
 const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
@@ -147,7 +156,7 @@ const schema = z.object({
     password_confirmation: z.string({
         required_error: 'La confirmation est obligatoire',
     }),
-}).refine((data)=>data.password === data.password_confirmation,{
+}).refine((data) => data.password === data.password_confirmation,{
     message: "Les mots de passe ne correspondent pas",
     path: ['password_confirmation'],
 })
@@ -160,41 +169,43 @@ const state = reactive({
     password: undefined,
     password_confirmation: undefined,
     role: undefined,
-    file:undefined,
+    file: undefined,
 })
 
-const validate = ()=>{
-    const errors = []
-    if (!state.email) errors.push({ name: 'email', message: 'Le champ email est obligatoire' })
-    if (!state.password) errors.push({ name: 'password', message: 'Le champ mot de passe est obligatoire' })
-    return errors
-}
-
-const toast = useToast()
 const submitRegister = async () => {
     loading.value = true
     const formdata = new FormData();
-    formdata.append('name',state.name)
-    formdata.append('username',state.username)
-    formdata.append('phone',state.phone)
-    formdata.append('email',state.email)
-    formdata.append('password',state.password)
-    formdata.append('password_confirmation',state.password_confirmation)
-    formdata.append('role',state.role)
-    if(state.role === "business"){
-        formdata.append('file',state.file)
+    formdata.append('name', state.name)
+    formdata.append('username', state.username)
+    formdata.append('phone', state.phone)
+    formdata.append('email', state.email)
+    formdata.append('password', state.password)
+    formdata.append('password_confirmation', state.password_confirmation)
+    formdata.append('role', state.role)
+    if(state.role === "business" && state.file){
+        formdata.append('file', state.file)
     }
-    // console.log(formdata.get('file'))
-    try{
-        const response = await authStore.register(formdata)
-        loading.value = false
-    }catch(err){
+    try {
+        const result = await authStore.register(formdata)
+        
+        // Check if email verification is required
+        if (result?.requiresVerification) {
+            emit('requireVerification', result.email)
+            toast.add({ 
+                title: result.message || 'Veuillez confirmer votre e-mail', 
+                color: 'green', 
+                timeout: 5000 
+            })
+            return
+        }
+    } catch(err) {
+        const msg = err?.data?.message || err?.response?.data?.message || "Erreur lors de l'inscription"
+        toast.add({ title: msg, color: 'red', timeout: 5000 })
+    } finally {
         loading.value = false
     }
 }
-
 </script>
 
 <style lang="scss" scoped>
-
 </style>

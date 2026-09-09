@@ -1,62 +1,84 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-slate-950 py-12">
-    <div class="container mx-auto px-4 max-w-3xl">
+  <div class="min-h-screen bg-gray-50 dark:bg-slate-950 py-8 px-4">
+    <div class="container mx-auto max-w-2xl">
       <!-- Progress Steps -->
       <div class="mb-8">
-        <div class="flex items-center justify-center space-x-4">
+        <div class="flex items-center justify-center gap-2 sm:gap-4">
           <div class="flex items-center text-primary">
-            <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">1</div>
-            <span class="ml-2 font-medium hidden sm:block">Réservation</span>
+            <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">✓</div>
+            <span class="ml-2 font-medium text-sm hidden sm:block">Réservation</span>
           </div>
-          <div class="w-12 h-1 bg-primary"></div>
+          <div class="w-8 sm:w-12 h-1 bg-primary rounded"></div>
           <div class="flex items-center text-primary">
-            <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold">2</div>
-            <span class="ml-2 font-medium hidden sm:block">Paiement</span>
+            <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">2</div>
+            <span class="ml-2 font-medium text-sm hidden sm:block">Paiement</span>
           </div>
-          <div class="w-12 h-1 bg-gray-300 dark:bg-slate-700"></div>
+          <div class="w-8 sm:w-12 h-1 bg-gray-300 dark:bg-slate-700 rounded"></div>
           <div class="flex items-center text-gray-400 dark:text-slate-500">
-            <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-slate-700 text-white flex items-center justify-center font-bold">3</div>
-            <span class="ml-2 font-medium hidden sm:block">Confirmation</span>
+            <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-slate-700 text-white flex items-center justify-center font-bold text-sm">3</div>
+            <span class="ml-2 font-medium text-sm hidden sm:block">Confirmation</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Pending Status Banner -->
+      <div class="mb-5 flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl">
+        <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 text-amber-600 rounded-full flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+          <p class="font-bold text-amber-800 dark:text-amber-200 text-sm">Réservation en option — En attente de paiement</p>
+          <p class="text-amber-600 dark:text-amber-400 text-xs mt-0.5">
+            Votre réservation est enregistrée mais <strong>non confirmée</strong> jusqu'au paiement.
+            <template v-if="bookingRef"> Référence : <strong>{{ bookingRef }}</strong></template>
+          </p>
         </div>
       </div>
 
       <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-slate-800">
         <!-- Header -->
-        <div class="bg-primary p-6 text-white text-center">
-          <h1 class="text-2xl font-bold mb-2">Paiement par BaridiMob / CCP</h1>
-          <p class="text-primary-100">Veuillez effectuer le paiement pour confirmer votre commande.</p>
+        <div class="bg-gradient-to-r from-[#0A0B25] to-[#151740] p-5 sm:p-6 text-white text-center border-b-2 border-primary">
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <svg class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <h1 class="text-xl sm:text-2xl font-bold">Paiement par BaridiMob / CCP</h1>
+          </div>
+          <p class="text-white/70 text-sm">Effectuez le paiement puis soumettez votre preuve ci-dessous</p>
+          <div v-if="amount" class="mt-3 inline-flex items-center gap-2 bg-primary/20 border border-primary/30 px-4 py-2 rounded-xl">
+            <span class="text-white/70 text-sm">Montant :</span>
+            <span class="text-2xl font-black text-primary">{{ formatPrice(amount) }}</span>
+            <span class="text-white/70 text-sm font-bold">DZD</span>
+          </div>
         </div>
 
-        <div class="p-6 md:p-8 space-y-8">
-          <!-- Order Summary (Optional info based on query params) -->
-          <div v-if="amount" class="bg-gray-50 dark:bg-slate-800 p-4 rounded-xl border border-gray-200 dark:border-slate-700 flex justify-between items-center">
-            <span class="text-gray-600 dark:text-slate-400 font-medium">Montant à payer :</span>
-            <span class="text-2xl font-bold text-gray-900 dark:text-white">{{ formatPrice(amount) }} DZD</span>
-          </div>
-
+        <div class="p-5 sm:p-8 space-y-6">
           <!-- Loading State -->
           <div v-if="pending" class="flex justify-center py-12">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
           
           <!-- Error State -->
-          <div v-else-if="error" class="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-xl text-center">
+          <div v-else-if="error" class="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-xl text-center text-sm">
             {{ error }}
           </div>
           
-          <!-- Success State for Guest (or completed payment) -->
+          <!-- Success State -->
           <div v-else-if="paymentSubmittedSuccess" class="py-8 text-center flex flex-col items-center gap-4">
-            <div class="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center">
-              <Icon name="heroicons:check-circle" class="w-10 h-10" />
+            <div class="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center">
+              <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
             </div>
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Paiement transmis avec succès !</h2>
             <p class="text-gray-600 dark:text-slate-300 max-w-md text-sm leading-relaxed">
-              Votre preuve de paiement a été soumise avec succès. L'agence Bouazize Travel traitera votre réservation sous peu.
+              Votre preuve de paiement a été soumise. L'agence Bouazize Travel va traiter et confirmer votre réservation sous peu.
             </p>
-            <div class="pt-4 flex gap-3">
-              <nuxt-link to="/" class="px-6 py-2.5 bg-primary text-white font-bold text-sm uppercase tracking-wider hover:bg-primary-hover transition-colors">
-                Retour à l'accueil
+            <div v-if="bookingRef" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm font-mono font-bold text-slate-700 dark:text-slate-200">
+              Réf: {{ bookingRef }}
+            </div>
+            <div class="pt-2 flex flex-col sm:flex-row gap-3">
+              <nuxt-link to="/client/orders" class="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-colors text-center">
+                Mes Commandes
+              </nuxt-link>
+              <nuxt-link to="/" class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm uppercase tracking-wider rounded-xl transition-colors text-center">
+                Accueil
               </nuxt-link>
             </div>
           </div>
@@ -160,6 +182,7 @@ const token = computed(() => authStore.Authorization?.token)
 const orderId = route.query.order_id
 const orderType = route.query.type
 const amount = route.query.amount
+const bookingRef = route.query.ref || null
 
 const pending = ref(true)
 const error = ref(null)

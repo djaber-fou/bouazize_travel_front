@@ -1377,7 +1377,7 @@ definePageMeta({
   layout: 'admin'
 })
 
-import { sendApi } from '@/composables/api'
+import { sendApi, fixEncoding, fixEncodingDeep } from '@/composables/api'
 import { resolveHotelGallery, resolveHotelImage, onHotelImageError } from '@/composables/useHotelImages'
 import { searchWorldwidePlaces, searchLocalLocations, staticWorldwideLocations } from '@/composables/useWorldwideLocations'
 
@@ -1708,8 +1708,27 @@ const saveMarkupSettings = () => {
 
 const calculateClientPrice = (wholesalePrice) => {
   if (!wholesalePrice) return 0
-  const markup = (markupSettings.value.percent || 0) / 100
-  return Math.round(wholesalePrice * (1 + markup))
+  const net = Number(wholesalePrice)
+  const u = authStore.User
+  
+  // Prefer server-saved margin from profile (markup_hotel / markup_type_hotel)
+  let serverVal = Number(u?.markup_hotel || 0)
+  const serverType = u?.markup_type_hotel || 'percentage'
+  // Server stores decimals (0.08 = 8%), normalize to whole number for percentage
+  if (serverType === 'percentage' && serverVal > 0 && serverVal <= 1) {
+    serverVal = serverVal * 100
+  }
+
+  if (serverVal > 0) {
+    if (serverType === 'percentage') {
+      return Math.round(net * (1 + serverVal / 100))
+    }
+    return Math.round(net + serverVal)
+  }
+
+  // Fallback: use local markupSettings if no server margin set
+  const localMarkup = (markupSettings.value.percent || 0) / 100
+  return Math.round(net * (1 + localMarkup))
 }
 
 const formatPrice = (val) => {
@@ -1919,8 +1938,9 @@ const executeSearch = async () => {
       geocoding_km: searchForm.value.geocoding_km || undefined
     }
     const res = await sendApi('/hotels/search', payload, 'POST')
-    const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : [])
-    hotels.value = list
+    const rawList = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : [])
+    // Fix latin1-over-UTF8 encoding from Netstorming (e.g. "Ã©" → "é")
+    hotels.value = fixEncodingDeep(rawList)
     if (res?.logs) {
       lastXmlRequest.value = res.logs.request
       lastXmlResponse.value = res.logs.response

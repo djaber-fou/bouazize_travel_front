@@ -47,14 +47,89 @@
                 </nuxt-link>
 
                 <!-- Admin Profile Menu -->
-                <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-                    <div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm border border-primary/20 shadow-2xs">
-                        {{ userInitial }}
-                    </div>
-                    <div class="hidden lg:flex flex-col text-left">
-                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{{ authStore.User?.name || 'Admin' }}</span>
-                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Administrateur</span>
-                    </div>
+                <div ref="adminMenuRef" class="relative pl-2 border-l border-slate-200 dark:border-slate-800">
+                    <button 
+                        @click="toggleAdminMenu"
+                        type="button"
+                        class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                        :class="showAdminMenu ? 'bg-slate-100 dark:bg-slate-800 ring-2 ring-primary/30' : ''"
+                    >
+                        <div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm border border-primary/20 shadow-2xs shrink-0">
+                            {{ userInitial }}
+                        </div>
+                        <div class="hidden lg:flex flex-col text-left">
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">{{ authStore.User?.name || 'Admin' }}</span>
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Administrateur</span>
+                        </div>
+                        <UIcon 
+                            name="i-heroicons-chevron-down-20-solid" 
+                            class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0"
+                            :class="showAdminMenu ? 'rotate-180 text-primary' : ''"
+                        />
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <Transition name="admin-dropdown">
+                        <div 
+                            v-if="showAdminMenu"
+                            class="absolute right-0 top-full pt-2 w-64 z-50"
+                        >
+                            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden">
+                                <!-- Profile Header -->
+                                <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40">
+                                    <p class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ authStore.User?.name || 'Administrateur' }}</p>
+                                    <p class="text-[11px] text-slate-400 dark:text-slate-500 truncate">{{ authStore.User?.email }}</p>
+                                    <div class="mt-2">
+                                        <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-md bg-primary/20 text-primary border border-primary/30 uppercase tracking-wider">
+                                            Administrateur
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Actions List -->
+                                <div class="p-2 flex flex-col gap-0.5">
+                                    <nuxt-link 
+                                        to="/profile" 
+                                        @click="showAdminMenu = false"
+                                        class="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-primary/10 hover:text-primary rounded-xl transition-colors cursor-pointer"
+                                    >
+                                        <UIcon name="i-heroicons-user" class="w-4 h-4 text-primary" />
+                                        <span>Mon profil</span>
+                                    </nuxt-link>
+
+                                    <nuxt-link 
+                                        to="/admin/hotels/mygo" 
+                                        @click="showAdminMenu = false"
+                                        class="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-primary/10 hover:text-primary rounded-xl transition-colors cursor-pointer"
+                                    >
+                                        <UIcon name="i-heroicons-building-office-2" class="w-4 h-4 text-primary" />
+                                        <span>Passerelle MyGO</span>
+                                    </nuxt-link>
+
+                                    <nuxt-link 
+                                        to="/" 
+                                        target="_blank"
+                                        @click="showAdminMenu = false"
+                                        class="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                                    >
+                                        <UIcon name="i-heroicons-arrow-top-right-on-square" class="w-4 h-4 text-slate-400" />
+                                        <span>Voir le site public</span>
+                                    </nuxt-link>
+
+                                    <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+                                    <button 
+                                        @click="logoutAdmin"
+                                        type="button"
+                                        class="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors cursor-pointer w-full text-left"
+                                    >
+                                        <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4 text-red-500" />
+                                        <span>Déconnexion</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </Transition>
                 </div>
             </div>
         </header>
@@ -100,6 +175,27 @@ const userInitial = computed(() => {
     return authStore.User?.name ? authStore.User.name.charAt(0).toUpperCase() : 'A';
 });
 
+// Admin Profile Dropdown State
+const showAdminMenu = ref(false);
+const adminMenuRef = ref(null);
+
+const toggleAdminMenu = (event) => {
+    if (event) event.stopPropagation();
+    showAdminMenu.value = !showAdminMenu.value;
+};
+
+const handleAdminClickOutside = (event) => {
+    if (adminMenuRef.value && !adminMenuRef.value.contains(event.target)) {
+        showAdminMenu.value = false;
+    }
+};
+
+const handleAdminKeyDown = (event) => {
+    if (event.key === 'Escape') {
+        showAdminMenu.value = false;
+    }
+};
+
 // Map routes to human readable titles for header breadcrumb
 const currentPageTitle = computed(() => {
     const path = route.path;
@@ -116,6 +212,7 @@ const currentPageTitle = computed(() => {
     if (path.includes('/v1o2y3a4o')) return 'Voyage Organisé - Commandes';
     if (path.includes('/s3t4t5i6n')) return 'Paramètres CCP';
     if (path.includes('/c2c3p4p5')) return 'Paiements CCP';
+    if (path.includes('/hotels') || path.includes('/mygo')) return 'Hôtellerie MyGO';
     return 'Tableau de bord';
 });
 
@@ -124,6 +221,7 @@ let timeoutId;
 const INACTIVITY_LIMIT = 5 * 60 * 1000; 
 
 const logoutAdmin = () => {
+    showAdminMenu.value = false;
     authStore.logout();
 };
 
@@ -139,6 +237,8 @@ onMounted(() => {
     window.addEventListener('keydown', resetTimer);
     window.addEventListener('scroll', resetTimer);
     window.addEventListener('touchstart', resetTimer);
+    window.addEventListener('click', handleAdminClickOutside);
+    window.addEventListener('keydown', handleAdminKeyDown);
 });
 
 onUnmounted(() => {
@@ -148,8 +248,25 @@ onUnmounted(() => {
     window.removeEventListener('keydown', resetTimer);
     window.removeEventListener('scroll', resetTimer);
     window.removeEventListener('touchstart', resetTimer);
+    window.removeEventListener('click', handleAdminClickOutside);
+    window.removeEventListener('keydown', handleAdminKeyDown);
 });
 </script>
 
 <style scoped>
+/* Dropdown animation */
+.admin-dropdown-enter-active {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.admin-dropdown-leave-active {
+    transition: all 0.15s ease-in;
+}
+.admin-dropdown-enter-from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+}
+.admin-dropdown-leave-to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+}
 </style>
