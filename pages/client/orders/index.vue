@@ -574,7 +574,7 @@
           <div class="font-bold text-secondary">
             <div>{{ order?.user?.name }}</div>
           </div>
-          <UBadge class="w-fit font-bold" variant="subtle" :color="offerStatus.color" :label="offerStatus.label" />
+          <UBadge class="w-fit font-bold" variant="subtle" :color="offerStatus?.color || 'primary'" :label="offerStatus?.label || 'En attente'" />
         </div>
       </template>
       <template #body>
@@ -957,7 +957,7 @@ const open = ref(false)
 const openAccept = ref(false)
 const openInvoice = ref(false)
 const offerGuarantee = ref({})
-const offerStatus = ref({})
+const offerStatus = ref({ color: 'primary', label: 'En attente' })
 const uploadedFile = ref({
   url: null,
   file: null
@@ -1144,12 +1144,20 @@ const getOrder = async (id) => {
       with: 'Totale',
       without: 'Sans',
       half: 'Demi'
-    }[response.data.visa.guarantee]
-    offerStatus.value = {
+    }[response.data.visa?.guarantee] || 'Sans'
+    const statusMap = {
       accepted: { color: 'success', label: 'Accepté' },
+      confirmed: { color: 'success', label: 'Confirmé' },
+      paid: { color: 'success', label: 'Payé' },
+      completed: { color: 'success', label: 'Terminé' },
       rejected: { color: 'error', label: 'Rejeté' },
+      cancelled: { color: 'error', label: 'Annulé' },
       pending: { color: 'primary', label: 'En attente' },
-    }[response.data.status]
+      pending_payment: { color: 'warning', label: 'Attente Paiement' },
+      unpaid: { color: 'warning', label: 'Non Payé' },
+      option: { color: 'info', label: 'En Option' },
+    }
+    offerStatus.value = statusMap[response.data.status] || { color: 'primary', label: response.data.status || 'En attente' }
     loading.value = false
   })
 }

@@ -7,7 +7,7 @@
       
       <div class="relative z-10">
         <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 border-2 border-primary/60 flex items-center justify-center text-primary shadow-xl shadow-black/40 shrink-0">
+          <div class="w-14 h-14 rounded-2xl bg-primary/20 border-2 border-primary/60 flex items-center justify-center text-primary shadow-xl shadow-black/40 shrink-0">
             <UIcon name="i-heroicons-globe-americas" class="w-8 h-8 text-primary" />
           </div>
           <div>
@@ -1410,6 +1410,7 @@ const prebookHolderEmail = ref('contact@bouazizetravel.com')
 const prebookHolderPhone = ref('+213 550 00 00 00')
 const prebookHolderName = ref('Agence Bouazize Travel')
 const prebookPaymentMethod = ref('credit')
+const prebookingStartTime = ref(0)
 
 // Tabs navigation
 const tabs = [
@@ -1835,6 +1836,7 @@ const openPrebookModal = (hotel, arr = null) => {
   prebookHolderEmail.value = authStore.User?.email || 'contact@bouazizetravel.com'
   prebookHolderPhone.value = authStore.User?.phone || '+213 550 00 00 00'
   prebookHolderName.value = 'Agence Bouazize Travel'
+  prebookingStartTime.value = Date.now()
   isPrebookOpen.value = true
 }
 

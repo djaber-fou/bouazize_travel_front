@@ -48,7 +48,7 @@
                             {{ order?.user?.name }}
                         </div>
                     </div>
-                    <UBadge class="w-fit font-bold" variant="subtle" :color="offerStatus.color" :label="offerStatus.label"/>
+                    <UBadge class="w-fit font-bold" variant="subtle" :color="offerStatus?.color || 'primary'" :label="offerStatus?.label || 'En attente'"/>
                 </div>
             </template>
             <template #body>
@@ -379,7 +379,7 @@ const openAccept = ref(false)
 const openInvoice = ref(false)
 const orderInvoice = ref({})
 const offerGuarantee = ref({})
-const offerStatus = ref({})
+const offerStatus = ref({ color: 'primary', label: 'En attente' })
 const uploadedFile = ref({
     url:null,
     file:null
@@ -438,36 +438,35 @@ const columns = [
         accessorKey: 'status',
         header: 'Statut',
         cell: ({ row }) => {
-            const color = {
-                accepted: 'success',
-                rejected: 'error',
-                pending:'warning'
-            }[row.getValue('status')]
-
-            const status = {
-                accepted: 'Accepté',
-                rejected: 'Rejeté',
-                pending:'En attente'
-            }[row.getValue('status')]
-
-            return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color }, status)
+            const val = row.getValue('status')
+            const statusMap = {
+                accepted: { color: 'success', label: 'Accepté' },
+                confirmed: { color: 'success', label: 'Confirmé' },
+                paid: { color: 'success', label: 'Payé' },
+                completed: { color: 'success', label: 'Terminé' },
+                rejected: { color: 'error', label: 'Rejeté' },
+                cancelled: { color: 'error', label: 'Annulé' },
+                pending: { color: 'warning', label: 'En attente' },
+                option: { color: 'info', label: 'En Option' },
+            }
+            const meta = statusMap[val] || { color: 'neutral', label: val || 'En attente' }
+            return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: meta.color }, () => meta.label)
         }
     },
     {
         accessorKey: 'paiment_status',
         header: 'Paiement',
         cell: ({ row }) => {
-            const color = {
-                paid: 'success',
-                unpaid: 'error',
-            }[row.getValue('paiment_status')]
-
-            const status = {
-                paid: 'Payé',
-                unpaid: 'Non payé',
-            }[row.getValue('paiment_status')]
-
-            return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color }, status)
+            const val = row.getValue('paiment_status')
+            const paymentMap = {
+                paid: { color: 'success', label: 'Payé' },
+                half_paid: { color: 'warning', label: 'Partiel' },
+                pending_payment: { color: 'warning', label: 'Attente' },
+                unpaid: { color: 'error', label: 'Non payé' },
+                rejected: { color: 'error', label: 'Refusé' },
+            }
+            const meta = paymentMap[val] || { color: 'neutral', label: val || 'Non payé' }
+            return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: meta.color }, () => meta.label)
         }
     },
     {
@@ -577,14 +576,21 @@ const getOrder = async (id)=>{
         offerGuarantee.value = {
             with: 'Totale',
             without: 'Sans',
-            half:'Demi'
-        }[response.data.Omra.guarantee]
-        offerStatus.value = {
-            accepted: {color:'success',label:'Accepté'},
-            rejected: {color:'error',label:'Rejeté'},
-            pending: {color:'primary',label:'En attente'},
-        }[response.data.status]
-        console.log(response.data.status)
+            half: 'Demi'
+        }[response.data.Omra?.guarantee] || 'Sans'
+        const statusMap = {
+            accepted: { color: 'success', label: 'Accepté' },
+            confirmed: { color: 'success', label: 'Confirmé' },
+            paid: { color: 'success', label: 'Payé' },
+            completed: { color: 'success', label: 'Terminé' },
+            rejected: { color: 'error', label: 'Rejeté' },
+            cancelled: { color: 'error', label: 'Annulé' },
+            pending: { color: 'primary', label: 'En attente' },
+            pending_payment: { color: 'warning', label: 'Attente Paiement' },
+            unpaid: { color: 'warning', label: 'Non Payé' },
+            option: { color: 'info', label: 'En Option' },
+        }
+        offerStatus.value = statusMap[response.data.status] || { color: 'primary', label: response.data.status || 'En attente' }
         loading.value = false
     })
 }

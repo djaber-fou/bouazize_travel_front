@@ -6,16 +6,63 @@
         <span>Mode de Paiement Sécurisé</span>
       </h3>
       <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
-        Validation Admin Requise
+        Paiement Certifié
       </span>
     </div>
     
     <div class="grid gap-4" :class="gridColsClass">
-      <!-- E-Payment Option (BaridiMob / CCP / CIB / Edahabia) -->
+      <!-- CIB & Edahabia Online Instant Payment Option -->
+      <label 
+        v-if="showCib"
+        for="payment-method-cib"
+        class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all"
+        :class="modelValue === 'cib' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10 shadow-md' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
+      >
+        <input 
+          id="payment-method-cib"
+          type="radio" 
+          name="payment_method" 
+          value="cib" 
+          class="sr-only"
+          :checked="modelValue === 'cib'"
+          @change="$emit('update:modelValue', 'cib')"
+        >
+        <span class="flex flex-1 pr-8">
+          <span class="flex flex-col">
+            <span class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
+              <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold tracking-wider uppercase">
+                Instantané
+              </span>
+              <span>Carte CIB / Edahabia</span>
+            </span>
+            <span class="mt-1.5 text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
+              Paiement en ligne immédiat et sécurisé via SATIM & Algérie Poste. Confirmation de réservation et délivrance du voucher instantanées.
+            </span>
+            <span class="mt-2 flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400">
+                <Icon name="heroicons:bolt" class="w-4 h-4" />
+                Vérification Automatique 24h/7j
+              </span>
+              <span class="text-slate-300 dark:text-slate-600">•</span>
+              <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                <Icon name="heroicons:shield-check" class="w-3.5 h-3.5 text-primary" />
+                3D-Secure
+              </span>
+            </span>
+          </span>
+        </span>
+        <Icon 
+          v-if="modelValue === 'cib'" 
+          name="heroicons:check-circle-solid" 
+          class="h-6 w-6 text-primary absolute top-5 right-5" 
+        />
+      </label>
+
+      <!-- E-Payment Option (BaridiMob / CCP) -->
       <label 
         for="payment-method-ccp"
         class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all"
-        :class="modelValue === 'ccp' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
+        :class="modelValue === 'ccp' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10 shadow-md' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
       >
         <input 
           id="payment-method-ccp"
@@ -30,14 +77,14 @@
           <span class="flex flex-col">
             <span class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
               <Icon name="heroicons:device-phone-mobile" class="w-5 h-5 text-primary" />
-              Paiement Électronique (BaridiMob / CCP)
+              Virement CCP / BaridiMob
             </span>
             <span class="mt-1.5 text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
-              Virement direct en ligne avec reçu de transaction. Confirmation officielle de la réservation et délivrance du voucher dès vérification par l'administration.
+              Virement direct vers le compte CCP de l'agence avec justificatif. Confirmation officielle dès vérification par l'équipe administrative.
             </span>
-            <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400">
-              <Icon name="heroicons:shield-check" class="w-4 h-4" />
-              100% Sécurisé & Certifié
+            <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <Icon name="heroicons:document-arrow-up" class="w-4 h-4 text-slate-400" />
+              Reçu de transaction requis
             </span>
           </span>
         </span>
@@ -53,7 +100,7 @@
         v-if="showCash"
         for="payment-method-cash"
         class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all"
-        :class="modelValue === 'cash' ? 'border-amber-500 ring-2 ring-amber-500/30 bg-amber-50/60 dark:bg-amber-950/20' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
+        :class="modelValue === 'cash' ? 'border-amber-500 ring-2 ring-amber-500/30 bg-amber-50/60 dark:bg-amber-950/20 shadow-md' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
       >
         <input 
           id="payment-method-cash"
@@ -71,11 +118,11 @@
               Espèces / En Agence
             </span>
             <span class="mt-1.5 text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
-              Paiement en espèces directement au bureau de l'agence Bouazize Travel. Présentez-vous avec votre numéro de réservation.
+              Règlement au comptoir de l'agence Bouazize Travel. Présentez-vous avec votre référence de réservation.
             </span>
             <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
               <Icon name="heroicons:building-storefront" class="w-4 h-4" />
-              Règlement sur place à l'agence
+              Règlement sur place
             </span>
           </span>
         </span>
@@ -93,7 +140,7 @@
         class="relative flex rounded-2xl border p-5 shadow-sm focus:outline-none transition-all"
         :class="[
           disableCredit ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800' : 'cursor-pointer',
-          !disableCredit && modelValue === 'credit' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10' : '',
+          !disableCredit && modelValue === 'credit' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10 shadow-md' : '',
           !disableCredit && modelValue !== 'credit' ? 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600' : ''
         ]"
       >
@@ -148,15 +195,18 @@ const props = defineProps({
   showCash: {
     type: Boolean,
     default: true
+  },
+  showCib: {
+    type: Boolean,
+    default: true
   }
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 const gridColsClass = computed(() => {
-  const visibleCount = 1 + (props.showCash ? 1 : 0) + (props.showCredit ? 1 : 0);
-  if (visibleCount >= 3) return 'sm:grid-cols-3';
-  if (visibleCount === 2) return 'sm:grid-cols-2';
+  const visibleCount = (props.showCib ? 1 : 0) + 1 + (props.showCash ? 1 : 0) + (props.showCredit ? 1 : 0);
+  if (visibleCount >= 2) return 'sm:grid-cols-2';
   return 'grid-cols-1';
 });
 </script>

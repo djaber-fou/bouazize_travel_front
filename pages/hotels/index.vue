@@ -965,6 +965,7 @@ const selectedArrangement = ref(null);
 const bookingStep = ref('form');
 const bookingLoading = ref(false);
 const bookingError = ref(null);
+const prebookingStartTime = ref(0);
 const bookingResponse = ref(null);
 const copiedRef = ref(false);
 
@@ -1037,6 +1038,7 @@ const openBookingModal = (hotel, arrangement) => {
   }
 
   currentView.value = 'prebooking';
+  prebookingStartTime.value = Date.now();
   nextTick(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
 };
 
@@ -2170,6 +2172,9 @@ onMounted(() => {
                   <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     1 x Double [ {{ arr.rooms && arr.rooms[0] ? arr.rooms[0].occupancy || 2 : 2 }} Adultes ]
                   </div>
+                  <div v-if="arr.availability_confirmed === false" class="text-[10px] text-orange-600 dark:text-orange-400 font-bold mt-1 bg-orange-50 dark:bg-orange-900/30 px-2 py-0.5 rounded border border-orange-200 dark:border-orange-800 inline-block">
+                    Disponibilité indicative (Lit d'appoint)
+                  </div>
                   <button class="mt-1.5 text-[11px] text-primary font-semibold border border-primary/30 rounded-md px-2 py-0.5 hover:bg-primary/10 cursor-pointer transition-colors">
                     OFFRES SPECIALES - REMARQUES
                   </button>
@@ -2225,6 +2230,9 @@ onMounted(() => {
                         <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         <span>1 x Double [ {{ arr.rooms && arr.rooms[0] ? arr.rooms[0].occupancy || 2 : 2 }} Adultes ]</span>
                       </p>
+                      <div v-if="arr.availability_confirmed === false" class="text-[10px] text-orange-600 dark:text-orange-400 font-bold mt-1 bg-orange-50 dark:bg-orange-900/30 px-2 py-0.5 rounded border border-orange-200 dark:border-orange-800 inline-block">
+                        Disponibilité indicative (Lit d'appoint)
+                      </div>
                     </div>
                     <span
                       class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider shrink-0"
@@ -2360,7 +2368,8 @@ onMounted(() => {
                 </div>
                 <div>
                   <span class="font-bold text-slate-500 dark:text-slate-500 block">Disponibilitée:</span>
-                  <span class="text-green-600 dark:text-green-400 font-bold">Immediate</span>
+                  <span v-if="selectedArrangement?.availability_confirmed === false" class="text-orange-600 dark:text-orange-400 font-bold">Indicative (sur demande)</span>
+                  <span v-else class="text-green-600 dark:text-green-400 font-bold">Immediate</span>
                 </div>
               </div>
             </div>
@@ -2530,7 +2539,7 @@ onMounted(() => {
       </div>
 
       <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/30 overflow-hidden">
-        <div class="bg-gradient-to-r from-[#0A0B25] to-[#151740] px-6 py-4 flex items-center justify-between border-b-2 border-primary">
+        <div class="bg-slate-900 px-6 py-4 flex items-center justify-between border-b-2 border-primary">
           <h2 class="text-white font-black text-lg uppercase tracking-wider">Details de la reservation</h2>
           <div class="flex items-center gap-2">
             <span class="text-primary text-xs font-bold uppercase">Reference :</span>

@@ -1,5 +1,5 @@
 <template>
-    <div id="hotels-section" class="px-4 sm:px-6 md:px-12 py-16 md:py-24 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
+    <div id="hotels-section" class="px-4 sm:px-6 md:px-12 py-16 md:py-24 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto">
             <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
