@@ -26,10 +26,10 @@
 <script setup>
 
 const services = ref([
+    {name:"HÔTELS", image:"/images/services/hotels.jpg", link:"/services/hotels"},
     {name:"VISA", image:"/images/services/visa.jpg", link:"/services/visa"},
     {name:"OMRA", image:"/images/services/omra.webp", link:"/services/omra"},
     {name:"VOYAGE ORGANISÉ", image:"/images/services/voyage_organise.jpg", link:"/services/voyage_organise"},
-    {name:"HÔTELLERIE", image:"/images/services/hotels.jpg", link:"/hotels"},
 ])
 
 onMounted(()=>{

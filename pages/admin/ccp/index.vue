@@ -128,6 +128,47 @@
               </div>
             </UCard>
             
+            <!-- Associated Order Card -->
+            <UCard v-if="selectedPayment.order_details">
+              <template #header>
+                <div class="flex items-center justify-between">
+                  <h3 class="font-bold text-lg text-secondary dark:text-white flex items-center gap-2">
+                    <UIcon v-if="selectedPayment.order_type === 'hotel'" name="i-heroicons-building-office-2" class="w-5 h-5 text-primary" />
+                    <UIcon v-else name="i-heroicons-clipboard-document-check" class="w-5 h-5 text-primary" />
+                    <span>{{ selectedPayment.order_type === 'hotel' ? 'Réservation Hôtelière Liée' : 'Détails de la Commande Liée' }}</span>
+                  </h3>
+                  <UButton
+                    v-if="selectedPayment.order_type === 'hotel'"
+                    size="xs"
+                    color="primary"
+                    variant="soft"
+                    icon="i-heroicons-arrow-top-right-on-square"
+                    to="/admin/hotels"
+                  >
+                    Gestion Hôtels
+                  </UButton>
+                </div>
+              </template>
+              <div class="space-y-2.5 text-xs">
+                <div v-if="selectedPayment.order_details.holder_name" class="flex justify-between">
+                  <span class="text-gray-500">{{ selectedPayment.order_type === 'hotel' ? 'Établissement' : 'Offre' }} :</span>
+                  <span class="font-bold text-gray-900 dark:text-white">{{ selectedPayment.order_details.holder_name }}</span>
+                </div>
+                <div v-if="selectedPayment.order_details.city" class="flex justify-between">
+                  <span class="text-gray-500">Ville / Destination :</span>
+                  <span class="font-semibold text-primary uppercase">{{ selectedPayment.order_details.city }}</span>
+                </div>
+                <div v-if="selectedPayment.order_details.reference" class="flex justify-between">
+                  <span class="text-gray-500">Réf. Netstorming :</span>
+                  <span class="font-mono font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">{{ selectedPayment.order_details.reference }}</span>
+                </div>
+                <div v-if="selectedPayment.order_details.checkin" class="flex justify-between">
+                  <span class="text-gray-500">Période du séjour :</span>
+                  <span class="font-medium text-gray-900 dark:text-white">{{ selectedPayment.order_details.checkin }} ➔ {{ selectedPayment.order_details.checkout }}</span>
+                </div>
+              </div>
+            </UCard>
+            
             <!-- Actions in modal -->
             <div v-if="selectedPayment.status === 'pending'" class="flex gap-4">
               <UButton color="red" variant="soft" size="lg" icon="i-heroicons-x-mark" class="flex-1" @click="openRejectModal(selectedPayment)">Rejeter</UButton>
@@ -186,6 +227,7 @@ const toast = useToast()
 
 const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
+const UIcon = resolveComponent('UIcon')
 
 const payments = ref([])
 const pending = ref(true)
@@ -212,6 +254,7 @@ const statusOptions = [
 
 const typeOptions = [
   { label: 'Tous les services', value: 'all' },
+  { label: 'Hôtels (Netstorming)', value: 'hotel' },
   { label: 'Visa', value: 'visa' },
   { label: 'Omra', value: 'omra' },
   { label: 'Voyage Organisé', value: 'voyage_organise' }
@@ -228,8 +271,28 @@ const columns = [
   },
   {
     accessorKey: 'order_type',
-    header: 'Service',
-    cell: ({ row }) => h('span', { class: 'capitalize font-medium text-gray-700 dark:text-slate-300' }, row.original.order_type?.replace('_', ' ') || '-')
+    header: 'Service & Dossier',
+    cell: ({ row }) => {
+      const isHotel = row.original.order_type === 'hotel'
+      const typeLabel = {
+        hotel: 'Hôtel (Netstorming)',
+        visa: 'Visa',
+        omra: 'Omra',
+        voyage_organise: 'Voyage Organisé'
+      }[row.original.order_type] || row.original.order_type
+
+      const icon = isHotel ? 'i-heroicons-building-office-2' : 'i-heroicons-clipboard-document-check'
+
+      return h('div', undefined, [
+        h('div', { class: 'flex items-center gap-1.5' }, [
+          h(UIcon, { name: icon, class: isHotel ? 'w-4 h-4 text-primary shrink-0' : 'w-4 h-4 text-gray-500 shrink-0' }),
+          h('span', { class: 'font-bold text-gray-800 dark:text-slate-200 text-xs' }, typeLabel),
+          h('span', { class: 'font-mono text-xs text-gray-400' }, `#${row.original.order_id}`)
+        ]),
+        row.original.order_title ? h('p', { class: 'text-xs text-gray-600 dark:text-gray-300 truncate max-w-[200px] mt-0.5 font-medium' }, row.original.order_title) : null,
+        row.original.order_reference ? h('span', { class: 'inline-block text-[10px] font-mono font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded mt-0.5' }, row.original.order_reference) : null
+      ])
+    }
   },
   {
     accessorKey: 'amount',

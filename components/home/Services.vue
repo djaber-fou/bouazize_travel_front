@@ -21,7 +21,9 @@
                             
                             <!-- Content -->
                             <div class="absolute inset-x-0 bottom-0 p-6 flex flex-col items-center text-center">
-                                <UAvatar :src="country.flag" size="md" :ui="{image:'object-cover border-2 border-white'}" class="mb-3 shadow-md"/>
+                                <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md mb-3 shrink-0 bg-white/20 flex items-center justify-center">
+                                    <img :src="country.flag" :alt="country.country" class="w-full h-full object-cover" />
+                                </div>
                                 <h3 class="text-xl font-bold text-white uppercase tracking-wider">{{ country.country }}</h3>
                                 <div class="w-0 h-0.5 bg-primary mt-3 group-hover:w-12 transition-all duration-300"></div>
                             </div>
@@ -44,8 +46,6 @@
 </template>
 
 <script setup>
-import { NuxtImg, UAvatar } from '#components';
-
 const containerRef = ref(null)
 const swiper = useSwiper(containerRef, {
   effect: 'creative',

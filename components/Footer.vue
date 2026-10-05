@@ -90,10 +90,10 @@
 import { ref, onMounted } from 'vue'
 
 const services = ref([
+    {link:"/services/hotels", text:"Réservation d'Hôtels"},
     {link:"/services/visa", text:"Visa & Démarches"},
-    {link:"/services/voyage_organise", text:"Voyages Organisés"},
     {link:"/services/omra", text:"Nos Offres Omra"},
-    {link:"#", text:"Hôtellerie (Bientôt)"},
+    {link:"/services/voyage_organise", text:"Voyages Organisés"},
 ]);
 
 const about = ref([

@@ -73,8 +73,6 @@
 </template>
 
 <script setup>
-import { NuxtImg } from '#components';
-
 definePageMeta({
     layout:'second'
 })

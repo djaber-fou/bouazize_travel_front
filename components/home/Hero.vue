@@ -10,7 +10,7 @@
             
             <!-- Slide 1: Static Hero -->
             <swiper-slide class="h-auto">
-                <div class="relative w-full h-[60vh] md:h-full md:min-h-[75vh] lg:min-h-[85vh] flex items-center bg-gray-50 dark:bg-slate-950 overflow-hidden py-6 lg:py-0">
+                <div class="relative w-full min-h-[65vh] md:min-h-[80vh] lg:min-h-[88vh] flex items-center bg-gray-50 dark:bg-slate-950 overflow-hidden pt-6 sm:pt-10 pb-32 sm:pb-36 md:pb-40 lg:pb-48">
                     <!-- Decorative background blur -->
                     <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
                     <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
@@ -50,7 +50,7 @@
                             </div>
 
                             <!-- Analytics / Stats -->
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 pb-8 md:pb-0 mt-6 border-t border-gray-200 dark:border-slate-800">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 sm:pt-8 pb-3 sm:pb-4 mt-6 border-t border-gray-200 dark:border-slate-800">
                                 <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
                                     <h3 class="text-xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.years }}+</h3>
                                     <p class="text-[10px] leading-tight md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Années <br class="hidden sm:block"/>d'expérience</p>
@@ -119,7 +119,7 @@
 
             <!-- Dynamic Banners Slides -->
             <swiper-slide v-for="banner in banners" :key="banner.id" class="h-auto">
-                <div class="relative w-full h-[60vh] md:h-full md:min-h-[75vh] lg:min-h-[85vh] flex items-center justify-center bg-secondary text-white overflow-hidden">
+                <div class="relative w-full min-h-[65vh] md:min-h-[80vh] lg:min-h-[88vh] flex items-center justify-center bg-secondary text-white overflow-hidden pt-6 sm:pt-10 pb-32 sm:pb-36 md:pb-40 lg:pb-48">
                     <!-- Background Image -->
                     <div v-if="banner.image_url" class="absolute inset-0 z-0">
                         <!-- Increased opacity and lighter overlay to make image visible -->
@@ -152,12 +152,307 @@
                 </div>
             </swiper-slide>
         </swiper-container>
+
+        <!-- ─── Floating Quick Hotel Search Widget ───────────────────────────── -->
+        <div class="relative z-30 container mx-auto px-4 sm:px-6 lg:px-12 -mt-[104px] sm:-mt-[112px] md:-mt-[190px] pb-10">
+            <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl p-5 sm:p-7 shadow-2xl border border-slate-200/80 dark:border-slate-800/90 relative overflow-visible transition-all duration-300">
+                
+                <!-- Ambient decorative glow -->
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Top Row: Title Badge + Quick Destination Chips -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold border border-primary/20">
+                            <UIcon name="i-heroicons-building-office-2" class="w-4 h-4" />
+                        </span>
+                        <div>
+                            <h3 class="text-sm md:text-base font-extrabold text-secondary dark:text-white uppercase tracking-wider">
+                                Réservez Votre Hôtel
+                            </h3>
+                            <p class="text-[11px] text-slate-400 font-medium">
+                                Moteur Netstorming en direct · {{ destinationsTotalLabel }} destinations dans le monde
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Destination Chips -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
+                        <span class="text-[11px] font-semibold text-slate-400 whitespace-nowrap mr-1 hidden sm:inline">Top Villes :</span>
+                        <button
+                            v-for="chip in popularChips"
+                            :key="chip.code"
+                            type="button"
+                            class="px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center border cursor-pointer"
+                            :class="destinationCode === chip.code
+                                ? 'bg-primary text-white border-primary shadow-xs'
+                                : 'bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-primary'"
+                            @click="selectQuickChip(chip)"
+                        >
+                            <span>{{ chip.name }}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Inputs Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
+                    
+                    <!-- Destination (with live autocomplete dropdown) -->
+                    <div class="relative sm:col-span-2 lg:col-span-4 flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+                            <UIcon name="i-heroicons-map-pin" class="w-4 h-4 text-primary" />
+                            <span>Destination</span>
+                        </label>
+                        <UInput
+                            v-model="destinationInput"
+                            placeholder="Quelle ville ou pays ?"
+                            icon="i-heroicons-magnifying-glass"
+                            size="lg"
+                            class="w-full !h-12"
+                            :ui="{ root: '!h-12', base: '!h-12 text-sm' }"
+                            @input="onDestinationInput"
+                            @focus="onDestinationFocus"
+                        />
+
+                        <!-- Autocomplete Suggestions Dropdown -->
+                        <div
+                            v-if="showSuggestions && (hotelStore.destinationSuggestions.length || destinationInput.length >= 2)"
+                            class="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
+                        >
+                            <div
+                                v-for="dest in hotelStore.destinationSuggestions"
+                                :key="dest.code || dest.ns_code"
+                                class="px-4 py-2.5 hover:bg-primary/10 transition-colors cursor-pointer flex items-center justify-between"
+                                @click="chooseDestination(dest)"
+                            >
+                                <div class="flex items-center gap-2.5">
+                                    <UIcon name="i-heroicons-building-office" class="w-4 h-4 text-primary shrink-0" />
+                                    <div>
+                                        <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">{{ dest.name }}</p>
+                                        <p class="text-[11px] text-slate-400">{{ dest.country_name || dest.country_code }}</p>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] font-mono font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                                    {{ dest.hotel_count > 1 ? Number(dest.hotel_count).toLocaleString() + ' hôtels' : (dest.code || dest.ns_code) }}
+                                </span>
+                            </div>
+                            <div v-if="!hotelStore.destinationSuggestions.length" class="p-3 text-center text-xs text-slate-400">
+                                Recherche en cours...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Check-in Date -->
+                    <div class="lg:col-span-2 flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+                            <UIcon name="i-heroicons-calendar" class="w-4 h-4 text-primary" />
+                            <span>Arrivée</span>
+                        </label>
+                        <UInput
+                            type="date"
+                            v-model="checkIn"
+                            size="lg"
+                            :min="minDate"
+                            class="w-full !h-12 font-medium"
+                            :ui="{ root: '!h-12', base: '!h-12 font-medium text-sm' }"
+                        />
+                    </div>
+
+                    <!-- Check-out Date -->
+                    <div class="lg:col-span-2 flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+                            <UIcon name="i-heroicons-calendar-days" class="w-4 h-4 text-primary" />
+                            <span>Départ</span>
+                        </label>
+                        <UInput
+                            type="date"
+                            v-model="checkOut"
+                            size="lg"
+                            :min="checkIn || minDate"
+                            class="w-full !h-12 font-medium"
+                            :ui="{ root: '!h-12', base: '!h-12 font-medium text-sm' }"
+                        />
+                    </div>
+
+                    <!-- Guests (Adults & Children) -->
+                    <div class="lg:col-span-2 flex flex-col gap-1.5">
+                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+                            <UIcon name="i-heroicons-users" class="w-4 h-4 text-primary" />
+                            <span>Voyageurs</span>
+                        </label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <UInput
+                                type="number"
+                                v-model.number="adults"
+                                min="1"
+                                max="8"
+                                placeholder="Adultes"
+                                size="lg"
+                                class="!h-12 text-center font-bold"
+                                :ui="{ root: '!h-12', base: '!h-12 text-center font-bold text-sm' }"
+                            />
+                            <UInput
+                                type="number"
+                                v-model.number="children"
+                                min="0"
+                                max="6"
+                                placeholder="Enfants"
+                                size="lg"
+                                class="!h-12 text-center font-bold"
+                                :ui="{ root: '!h-12', base: '!h-12 text-center font-bold text-sm' }"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Search CTA Button -->
+                    <div class="sm:col-span-2 lg:col-span-2">
+                        <UButton
+                            block
+                            size="lg"
+                            color="primary"
+                            icon="i-heroicons-magnifying-glass"
+                            class="!h-12 font-black text-sm uppercase tracking-wider shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all flex items-center justify-center"
+                            :ui="{ base: '!h-12' }"
+                            :loading="isNavigating"
+                            @click="triggerHotelSearch"
+                        >
+                            Rechercher
+                        </UButton>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from '#imports'
+import { useHotelStore } from '~/stores/hotel'
+import { getHotelStats, warmupDestination } from '~/services/hotel'
 
+const router = useRouter()
+const toast = useToast()
+const hotelStore = useHotelStore()
+
+const destinationsTotal = ref(0)
+const destinationsTotalLabel = computed(() =>
+    destinationsTotal.value ? Number(destinationsTotal.value).toLocaleString('fr-FR') : '…'
+)
+onMounted(async () => {
+    try {
+        const res = await getHotelStats()
+        destinationsTotal.value = res?.data?.destinations_count || 0
+    } catch { /* keep placeholder */ }
+})
+
+// ─── HOTEL QUICK SEARCH STATE ────────────────────────────────────────────────
+const isNavigating = ref(false)
+const destinationInput = ref('')
+const destinationCode = ref('')
+const destinationName = ref('')
+const showSuggestions = ref(false)
+
+const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
+const defaultIn = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+const defaultOut = new Date(Date.now() + 12 * 86400000).toISOString().split('T')[0]
+
+const minDate = ref(tomorrow)
+const checkIn = ref(defaultIn)
+const checkOut = ref(defaultOut)
+const adults = ref(2)
+const children = ref(0)
+
+const popularChips = [
+    { name: 'La Mecque', code: 'MAC1' },
+    { name: 'Médine', code: 'MAD2' },
+    { name: 'Istanbul', code: 'IST' },
+    { name: 'Tunis', code: 'TUN' },
+    { name: 'Dubaï', code: 'DXB' },
+    { name: 'Paris', code: 'PAR' },
+]
+
+let destDebounce = null
+function onDestinationInput() {
+    destinationCode.value = ''
+    destinationName.value = ''
+    showSuggestions.value = true
+    clearTimeout(destDebounce)
+    destDebounce = setTimeout(() => {
+        if (destinationInput.value.length >= 2) {
+            hotelStore.fetchDestinations(destinationInput.value)
+        }
+    }, 300)
+}
+
+function onDestinationFocus() {
+    if (destinationInput.value.length >= 2 && hotelStore.destinationSuggestions.length) {
+        showSuggestions.value = true
+    }
+}
+
+function chooseDestination(dest) {
+    destinationInput.value = dest.name || dest.label || ''
+    destinationCode.value = dest.ns_code || dest.code
+    destinationName.value = dest.name || dest.label || ''
+    showSuggestions.value = false
+    // Pre-warm Netstorming cache for this destination so the first search is fast
+    if (destinationCode.value) {
+        warmupDestination(destinationCode.value, checkIn.value, checkOut.value, adults.value)
+    }
+}
+
+function selectQuickChip(chip) {
+    destinationInput.value = chip.name
+    destinationCode.value = chip.code
+    destinationName.value = chip.name
+    showSuggestions.value = false
+    // Pre-warm Netstorming cache for popular destinations
+    warmupDestination(chip.code, checkIn.value, checkOut.value, adults.value)
+}
+
+function triggerHotelSearch() {
+    if (!destinationCode.value) {
+        if (destinationInput.value && hotelStore.destinationSuggestions.length) {
+            chooseDestination(hotelStore.destinationSuggestions[0])
+        } else {
+            toast.add({
+                title: 'Destination requise',
+                description: 'Veuillez sélectionner ou taper une destination pour votre recherche.',
+                color: 'amber'
+            })
+            return
+        }
+    }
+
+    hotelStore.searchForm.destination_code = destinationCode.value
+    hotelStore.searchForm.destination_name = destinationName.value
+    hotelStore.searchForm.check_in = checkIn.value
+    hotelStore.searchForm.check_out = checkOut.value
+    hotelStore.searchForm.adults = adults.value
+    hotelStore.searchForm.children = children.value
+
+    hotelStore.clearSearchResults()
+    isNavigating.value = true
+
+    router.push({
+        path: '/services/hotels/results',
+        query: {
+            destination_code: destinationCode.value,
+            destination_name: destinationName.value,
+            check_in: checkIn.value,
+            check_out: checkOut.value,
+            adults: adults.value,
+            children: children.value,
+        }
+    }).finally(() => {
+        setTimeout(() => { isNavigating.value = false }, 1000)
+    })
+}
+
+// ─── HERO SLIDER & BANNERS ───────────────────────────────────────────────────
 const getFullImageUrl = (path) => {
     if(!path) return '';
     if(path.startsWith('http')) return path;
@@ -178,9 +473,9 @@ const getAlignmentClasses = (alignment) => {
 }
 
 const scrollDown = () => {
-    const section = document.getElementById('services-section') || document.getElementById('hero')
+    const section = document.getElementById('hotels-section') || document.getElementById('services-section') || document.getElementById('hero')
     window.scrollTo({
-        top: section.offsetHeight,
+        top: section.offsetTop || section.offsetHeight,
         behavior: "smooth"
     });
 }
@@ -211,6 +506,8 @@ const swiperOptions = ref({
 })
 
 onMounted(() => {
+    hotelStore.loadingSearch = false
+    isNavigating.value = false
     if (banners.value && banners.value.length > 0) {
         setTimeout(() => {
             if (heroSwiper.value && heroSwiper.value.swiper) {

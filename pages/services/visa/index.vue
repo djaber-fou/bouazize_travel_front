@@ -23,7 +23,9 @@
                     <img :src="country.landmark ?? '/images/illustrations/landmark.png'" class="aspect-[3/4] w-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"/>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-5">
                         <div class="flex items-center gap-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                            <UAvatar :src="country.flag" size="md" :ui="{image:'object-cover', rounded: 'rounded-none'}" class="ring-2 ring-white/50 shadow-xl"/>
+                            <div class="w-10 h-8 rounded-sm overflow-hidden ring-2 ring-white/50 shadow-xl shrink-0 bg-white/20">
+                                <img :src="country.flag" :alt="country.country" class="w-full h-full object-cover" />
+                            </div>
                             <div class="text-white text-2xl font-bold tracking-wide drop-shadow-md">
                                 {{ country.country }}
                             </div>

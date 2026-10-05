@@ -56,7 +56,10 @@
                     <div class="flex flex-col  gap-2">
                         <p class="text-secondary">VoyageOrganise:</p>
                         <div class="flex items-center gap-3">
-                            <UAvatar :src="order?.VoyageOrganise?.country?.flag" size="sm"/>
+                            <div class="w-6 h-6 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-100 flex items-center justify-center">
+                                <img v-if="order?.VoyageOrganise?.country?.flag" :src="order?.VoyageOrganise?.country?.flag" class="w-full h-full object-cover" />
+                                <UIcon v-else name="i-heroicons-globe-alt" class="w-4 h-4 text-gray-400" />
+                            </div>
                             <div>
                                 {{ order?.VoyageOrganise?.country?.name }}
                             </div>

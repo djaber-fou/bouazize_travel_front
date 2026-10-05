@@ -33,6 +33,18 @@ export function fixEncodingDeep(obj) {
 }
 
 export const sendApi = async (path, Data, Method, configOpts = {}) => {
+    // Gracefully handle fetch-style calls: sendApi('/url', { method: 'POST', body: ... })
+    if (Data && typeof Data === 'object' && !Array.isArray(Data) && !Method && (Data.method || Data.body !== undefined)) {
+        Method = Data.method || 'GET';
+        const { method: _m, body, ...extractedOpts } = Data;
+        Data = body !== undefined ? body : null;
+        configOpts = { ...extractedOpts, ...configOpts };
+    }
+
+    if (!Method) {
+        Method = Data ? 'POST' : 'GET';
+    }
+
     const authStore = useAuthStore();
     const token = authStore?.Authorization?.token;
     
@@ -52,7 +64,7 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
         url: url,
         data: Data,
         headers: reqHeaders,
-        timeout: 90000, // Increased timeout to 90 seconds for large Netstorming queries
+        timeout: 90000,
         ...restConfigOpts
     }).then(response=>{
         console.log(response)

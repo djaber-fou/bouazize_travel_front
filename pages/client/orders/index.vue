@@ -1,315 +1,394 @@
 <template>
   <div class="min-h-[calc(100vh-80px)] w-full space-y-6 py-8 pb-16 px-4 md:px-8 bg-slate-50/50 dark:bg-slate-900/50">
-    <!-- Header Section -->
+    
+    <!-- ─── Header Section ────────────────────────────────────────────────── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
       <div>
         <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
-          <span class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+          <span class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-xs">
             <UIcon name="i-heroicons-clipboard-document-list" class="w-6 h-6" />
           </span>
           Mes Dossiers & Commandes
         </h1>
         <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Suivez vos réservations d'hôtels en temps réel, téléchargez vos vouchers certifiés ou consultez vos demandes de visa.
+          Consultez et suivez l'état de vos réservations d'hôtels et demandes de visa en temps réel.
         </p>
       </div>
 
-      <!-- Navigation Tabs -->
-      <div class="w-full sm:w-auto grid grid-cols-2 sm:flex items-center p-1 bg-slate-200/80 dark:bg-slate-800 rounded-2xl border border-slate-300/60 dark:border-slate-700 shadow-inner">
-        <button
-          type="button"
-          @click="activeTab = 'hotels'"
-          class="flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer text-center"
-          :class="activeTab === 'hotels' ? 'bg-primary text-white shadow-md shadow-primary/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+      <div class="flex items-center gap-2">
+        <UButton
+          icon="i-heroicons-arrow-path"
+          variant="outline"
+          color="gray"
+          :loading="activeTab === 'hotels' ? hotelLoading : loading"
+          @click="activeTab === 'hotels' ? fetchHotelOrders(hotelPagination.current_page) : getOrders(pagination.pageIndex + 1)"
         >
-          <UIcon name="i-heroicons-building-office-2" class="w-4 h-4 shrink-0" />
-          <span>Hôtels</span>
-          <span v-if="hotelBookings.length" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-black" :class="activeTab === 'hotels' ? 'bg-white/20 text-white' : 'bg-primary/20 text-primary'">
-            {{ hotelBookings.length }}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          @click="activeTab = 'visas'"
-          class="flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer text-center"
-          :class="activeTab === 'visas' ? 'bg-primary text-white shadow-md shadow-primary/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
-        >
-          <UIcon name="i-heroicons-document-text" class="w-4 h-4 shrink-0" />
-          <span>Visas</span>
-          <span v-if="data.length" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-black" :class="activeTab === 'visas' ? 'bg-white/20 text-white' : 'bg-primary/20 text-primary'">
-            {{ data.length }}
-          </span>
-        </button>
+          Actualiser
+        </UButton>
       </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB 1: HOTEL RESERVATIONS & VOUCHERS       -->
-    <!-- ========================================== -->
-    <div v-if="activeTab === 'hotels'" class="space-y-6 animate-in fade-in duration-200">
-      <!-- KPI Stats Bar -->
+    <!-- ─── Service Tabs Switcher ─────────────────────────────────────────── -->
+    <div class="flex items-center gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar">
+      <!-- Hotels Tab -->
+      <button
+        type="button"
+        @click="switchTab('hotels')"
+        :class="[
+          'px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2.5 cursor-pointer whitespace-nowrap shadow-xs',
+          activeTab === 'hotels'
+            ? 'bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/20'
+            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200/80 dark:border-slate-700/50'
+        ]"
+      >
+        <UIcon name="i-heroicons-building-office-2" class="w-5 h-5" />
+        <span>Hôtels (Netstorming)</span>
+        <UBadge
+          v-if="hotelOrders.length > 0"
+          :color="activeTab === 'hotels' ? 'white' : 'primary'"
+          variant="subtle"
+          size="xs"
+          class="font-mono font-bold ml-1"
+        >
+          {{ hotelPagination.total || hotelOrders.length }}
+        </UBadge>
+      </button>
+
+      <!-- Visa Tab -->
+      <button
+        type="button"
+        @click="switchTab('visa')"
+        :class="[
+          'px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2.5 cursor-pointer whitespace-nowrap shadow-xs',
+          activeTab === 'visa'
+            ? 'bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/20'
+            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200/80 dark:border-slate-700/50'
+        ]"
+      >
+        <UIcon name="i-heroicons-identification" class="w-5 h-5" />
+        <span>Demandes de Visa</span>
+        <UBadge
+          v-if="data.length > 0"
+          :color="activeTab === 'visa' ? 'white' : 'primary'"
+          variant="subtle"
+          size="xs"
+          class="font-mono font-bold ml-1"
+        >
+          {{ pagination.totalItems || data.length }}
+        </UBadge>
+      </button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  TAB 1: HÔTELS NETSTORMING                                              -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div v-show="activeTab === 'hotels'" class="space-y-6 animate-in fade-in duration-200">
+      
+      <!-- KPI Stats Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div class="p-3 sm:p-4 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-xs">
-          <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Total Dossiers</div>
-          <div class="text-xl sm:text-2xl font-black text-slate-800 dark:text-white mt-1">{{ hotelBookings.length }}</div>
-        </div>
-        <div class="p-3 sm:p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 shadow-xs">
-          <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Confirmés</div>
-          <div class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
-            {{ hotelBookings.filter(b => b.status === 'confirmed').length }}
+        <!-- Total -->
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1.5">
+            <span class="text-xs font-semibold uppercase tracking-wider">Total Réservations</span>
+            <UIcon name="i-heroicons-building-office-2" class="w-5 h-5 text-primary" />
           </div>
+          <p class="text-2xl font-black text-slate-900 dark:text-white">{{ hotelStats.total }}</p>
+          <span class="text-[11px] text-slate-400">Toutes destinations</span>
         </div>
-        <div class="p-3 sm:p-4 rounded-2xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200/80 dark:border-sky-800/40 shadow-xs">
-          <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400">En Option</div>
-          <div class="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">
-            {{ hotelBookings.filter(b => b.status === 'option').length }}
+
+        <!-- Confirmées -->
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1.5">
+            <span class="text-xs font-semibold uppercase tracking-wider">Confirmées</span>
+            <UIcon name="i-heroicons-check-circle" class="w-5 h-5" />
           </div>
+          <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ hotelStats.confirmed }}</p>
+          <span class="text-[11px] text-slate-400">Prêtes pour séjour</span>
         </div>
-        <div class="p-3 sm:p-4 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-800/40 shadow-xs">
-          <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Annulés</div>
-          <div class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
-            {{ hotelBookings.filter(b => b.status === 'cancelled').length }}
+
+        <!-- En Attente / Non payé -->
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <div class="flex items-center justify-between text-amber-500 mb-1.5">
+            <span class="text-xs font-semibold uppercase tracking-wider">À Régler / Attente</span>
+            <UIcon name="i-heroicons-clock" class="w-5 h-5" />
           </div>
+          <p class="text-2xl font-black text-amber-500">{{ hotelStats.pending + hotelStats.unpaid }}</p>
+          <span class="text-[11px] text-slate-400">Paiement requis</span>
+        </div>
+
+        <!-- Annulées -->
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+          <div class="flex items-center justify-between text-rose-500 mb-1.5">
+            <span class="text-xs font-semibold uppercase tracking-wider">Annulées</span>
+            <UIcon name="i-heroicons-x-circle" class="w-5 h-5" />
+          </div>
+          <p class="text-2xl font-black text-rose-500">{{ hotelStats.cancelled }}</p>
+          <span class="text-[11px] text-slate-400">Dossiers clôturés</span>
         </div>
       </div>
 
-      <!-- Filters & Search Toolbar -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-        <div class="relative flex-1 max-w-md">
-          <UIcon name="i-heroicons-magnifying-glass" class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            v-model="hotelSearch"
-            placeholder="Rechercher par référence, hôtel, ville, passager..."
-            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-sm focus:outline-hidden focus:border-primary transition-colors text-slate-800 dark:text-slate-100"
+      <!-- Filters & Search Bar -->
+      <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <!-- Search Input -->
+          <div class="sm:col-span-2 lg:col-span-2">
+            <UInput
+              v-model="hotelSearch"
+              icon="i-heroicons-magnifying-glass"
+              placeholder="Rechercher par hôtel, ville, réf. Netstorming..."
+              class="w-full"
+              @update:model-value="debounceHotelFetch"
+            />
+          </div>
+
+          <!-- Status Filter -->
+          <USelect
+            v-model="hotelSelectedStatus"
+            :items="hotelStatusOptions"
+            value-key="value"
+            placeholder="Statut Réservation"
+            @change="fetchHotelOrders(1)"
+          />
+
+          <!-- Payment Filter -->
+          <USelect
+            v-model="hotelSelectedPayment"
+            :items="hotelPaymentOptions"
+            value-key="value"
+            placeholder="Statut Paiement"
+            @change="fetchHotelOrders(1)"
           />
         </div>
-
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-          <button
-            type="button"
-            v-for="st in [
-              { key: 'all', label: 'Tous' },
-              { key: 'confirmed', label: 'Confirmés' },
-              { key: 'option', label: 'En Option' },
-              { key: 'cancelled', label: 'Annulés' }
-            ]"
-            :key="st.key"
-            @click="hotelStatusFilter = st.key"
-            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
-            :class="hotelStatusFilter === st.key ? 'bg-primary text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
-          >
-            {{ st.label }}
-          </button>
-        </div>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="loadingHotels" class="p-12 text-center bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
-        <UIcon name="i-lucide-loader-circle" class="w-10 h-10 animate-spin text-primary mx-auto mb-3" />
-        <p class="text-sm font-bold text-slate-600 dark:text-slate-300">Chargement de vos dossiers hôteliers...</p>
-      </div>
+      <!-- Hotel Orders Table -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+                <th class="py-3.5 px-4">Dossier & Réf.</th>
+                <th class="py-3.5 px-4">Hôtel & Destination</th>
+                <th class="py-3.5 px-4">Séjour & Formule</th>
+                <th class="py-3.5 px-4">Voyageurs</th>
+                <th class="py-3.5 px-4">Montant Total</th>
+                <th class="py-3.5 px-4">Statut</th>
+                <th class="py-3.5 px-4">Paiement</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+              <!-- Loading -->
+              <tr v-if="hotelLoading && !hotelOrders.length">
+                <td colspan="8" class="py-12 text-center text-slate-400">
+                  <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin mx-auto text-primary mb-2" />
+                  Chargement de vos réservations d'hôtels...
+                </td>
+              </tr>
 
-      <!-- Empty State -->
-      <div v-else-if="filteredHotelBookings.length === 0" class="p-12 text-center bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xs">
-        <div class="w-16 h-16 rounded-3xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
-          <UIcon name="i-heroicons-building-office-2" class="w-8 h-8" />
-        </div>
-        <h3 class="text-lg font-black text-slate-800 dark:text-white">Aucune réservation trouvée</h3>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-          {{ hotelSearch ? 'Aucun dossier ne correspond à votre recherche.' : 'Vous n\'avez pas encore effectué de réservation d\'hôtel.' }}
-        </p>
-        <NuxtLink
-          to="/hotels"
-          class="mt-5 inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary hover:bg-primary-hover text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-primary/25 transition-colors cursor-pointer"
-        >
-          <UIcon name="i-heroicons-magnifying-glass" class="w-4 h-4" />
-          <span>Explorer nos Hôtels</span>
-        </NuxtLink>
-      </div>
+              <!-- Empty -->
+              <tr v-else-if="!hotelOrders.length">
+                <td colspan="8" class="py-16 text-center text-slate-400">
+                  <UIcon name="i-heroicons-building-office-2" class="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
+                  <p class="font-bold text-slate-700 dark:text-slate-200 text-base">Aucune réservation hôtelière trouvée</p>
+                  <p class="text-xs text-slate-400 mt-1 mb-4">Vous n'avez pas encore effectué de réservation d'hôtel.</p>
+                  <UButton to="/services/hotels" color="primary" icon="i-heroicons-magnifying-glass">
+                    Rechercher un Hôtel
+                  </UButton>
+                </td>
+              </tr>
 
-      <!-- Bookings List -->
-      <div v-else class="grid grid-cols-1 gap-4">
-        <div
-          v-for="b in filteredHotelBookings"
-          :key="b.id || b.reference"
-          class="bg-white dark:bg-slate-800/90 rounded-3xl border border-slate-200/90 dark:border-slate-700 p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-6"
-        >
-          <!-- Booking Main Info -->
-          <div class="flex items-start gap-4 flex-1">
-            <div class="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center shrink-0 text-primary">
-              <UIcon name="i-heroicons-building-office" class="w-7 h-7" />
-              <div class="text-[9px] font-black uppercase mt-0.5">{{ b.stars || 4 }}★</div>
-            </div>
+              <!-- Data Rows -->
+              <tr
+                v-for="order in hotelOrders"
+                :key="order.id"
+                class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+              >
+                <!-- Reference & ID -->
+                <td class="py-3.5 px-4">
+                  <div class="font-mono font-bold text-slate-900 dark:text-white">
+                    #HOTEL-{{ order.id }}
+                  </div>
+                  <div v-if="order.ns_booking_reference" class="flex items-center gap-1.5 mt-1">
+                    <span class="inline-flex items-center gap-1 text-[11px] font-mono bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md font-semibold">
+                      {{ order.ns_booking_reference }}
+                    </span>
+                    <button
+                      type="button"
+                      class="text-slate-400 hover:text-primary transition-colors"
+                      title="Copier référence"
+                      @click.stop="copyToClipboard(order.ns_booking_reference)"
+                    >
+                      <UIcon name="i-heroicons-clipboard-document" class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <span class="block text-[11px] text-slate-400 mt-0.5">
+                    {{ formatDateShort(order.created_at) }}
+                  </span>
+                </td>
 
-            <div class="space-y-1.5 flex-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <h3 class="text-base md:text-lg font-black text-slate-900 dark:text-white">
-                  {{ cleanText(b.hotel_name) }}
-                </h3>
-                <span
-                  class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5"
-                  :class="{
-                    'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800': b.status === 'confirmed',
-                    'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800': b.status === 'option',
-                    'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800': b.status === 'cancelled'
-                  }"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full" :class="{ 'bg-emerald-500 animate-pulse': b.status === 'confirmed', 'bg-sky-500': b.status === 'option', 'bg-rose-500': b.status === 'cancelled' }"></span>
-                  {{ b.status === 'confirmed' ? 'Confirmé' : (b.status === 'option' ? 'En Option' : 'Annulé') }}
-                </span>
+                <!-- Hotel & Destination -->
+                <td class="py-3.5 px-4 max-w-[220px]">
+                  <div class="font-bold text-slate-900 dark:text-white truncate" :title="order.hotel_name">
+                    {{ order.hotel_name || 'Hôtel' }}
+                  </div>
+                  <div class="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+                    <span class="text-primary font-semibold uppercase">{{ order.hotel_city || order.destination_name }}</span>
+                    <span v-if="order.hotel_category" class="text-amber-500 font-bold">· {{ order.hotel_category }}★</span>
+                  </div>
+                </td>
 
-                <!-- Payment Status Badge -->
-                <span
-                  v-if="b.paiment_status"
-                  class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 border"
-                  :class="{
-                    'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700': b.status === 'confirmed' && b.paiment_status === 'paid',
-                    'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-300 dark:border-blue-700': b.paiment_status === 'verification_pending',
-                    'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-300 dark:border-amber-700': b.paiment_status === 'pending_payment',
-                    'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border-rose-300 dark:border-rose-700': b.paiment_status === 'unpaid' || b.paiment_status === 'rejected',
-                    'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border-purple-300 dark:border-purple-700': b.paiment_status === 'half_paid'
-                  }"
-                >
-                  <UIcon name="i-heroicons-credit-card" class="w-3 h-3" />
-                  <span>{{ (b.status === 'confirmed' && b.paiment_status === 'paid') ? 'Confirmé & Payé' : (b.paiment_status === 'verification_pending' ? 'Vérification Admin' : (b.paiment_status === 'pending_payment' ? 'En attente paiement' : (b.paiment_status === 'rejected' ? 'Paiement Rejeté' : (b.paiment_status === 'half_paid' ? 'Acompte' : 'Non payé')))) }}</span>
-                </span>
-                <span
-                  v-if="b.payment_method"
-                  class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
-                >
-                  {{ b.payment_method === 'ccp' ? 'BaridiMob / CCP' : (b.payment_method === 'credit' ? 'Crédit Agence' : (b.payment_method === 'cash' ? 'Espèces / En Agence' : b.payment_method)) }}
-                </span>
-              </div>
+                <!-- Stay & Meal -->
+                <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">
+                  <div class="font-medium text-xs">
+                    {{ formatDateShort(order.check_in) }} → {{ formatDateShort(order.check_out) }}
+                  </div>
+                  <div class="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">{{ order.nights }} nuits</span>
+                    <span v-if="order.meal_basis_name" class="truncate max-w-[140px]" :title="order.meal_basis_name">· {{ order.meal_basis_name }}</span>
+                  </div>
+                </td>
 
-              <!-- Metadata pills -->
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                <span class="flex items-center gap-1">
-                  <UIcon name="i-heroicons-ticket" class="w-3.5 h-3.5 text-primary" />
-                  <span class="font-mono font-bold text-slate-700 dark:text-slate-300">{{ b.reference }}</span>
-                  <button
-                    type="button"
-                    @click="copyReference(b.reference)"
-                    title="Copier la référence"
-                    class="hover:text-primary transition-colors cursor-pointer"
+                <!-- Pax -->
+                <td class="py-3.5 px-4">
+                  <div class="font-semibold text-slate-800 dark:text-slate-200 text-xs">
+                    {{ order.adults }} Adulte(s)<span v-if="order.children">, {{ order.children }} Enfant(s)</span>
+                  </div>
+                  <div v-if="order.pax_details && order.pax_details[0]" class="text-[11px] text-slate-400 truncate max-w-[140px]">
+                    {{ order.pax_details[0].name }} {{ order.pax_details[0].surname }}
+                  </div>
+                </td>
+
+                <!-- Total Price -->
+                <td class="py-3.5 px-4">
+                  <div class="font-black text-primary text-sm whitespace-nowrap">
+                    {{ formatCurrency(order.final_price_dzd) }} DZD
+                  </div>
+                </td>
+
+                <!-- Booking Status -->
+                <td class="py-3.5 px-4">
+                  <UBadge
+                    :color="getStatusBadgeColor(order.status)"
+                    variant="subtle"
+                    size="sm"
+                    class="font-semibold capitalize"
                   >
-                    <UIcon name="i-heroicons-clipboard" class="w-3.5 h-3.5" />
-                  </button>
-                </span>
+                    {{ getStatusLabel(order.status) }}
+                  </UBadge>
+                </td>
 
-                <span class="flex items-center gap-1">
-                  <UIcon name="i-heroicons-map-pin" class="w-3.5 h-3.5 text-slate-400" />
-                  <span>{{ cleanText(b.city) || 'Destination' }}</span>
-                </span>
+                <!-- Payment Status -->
+                <td class="py-3.5 px-4">
+                  <UBadge
+                    :color="getPaymentBadgeColor(order.payment_status)"
+                    variant="subtle"
+                    size="sm"
+                    class="font-semibold capitalize"
+                  >
+                    {{ getPaymentLabel(order.payment_status) }}
+                  </UBadge>
+                </td>
 
-                <span class="flex items-center gap-1">
-                  <UIcon name="i-heroicons-calendar" class="w-3.5 h-3.5 text-slate-400" />
-                  <span>{{ b.checkin }} ➔ {{ b.checkout }} ({{ b.nights || 1 }} n.)</span>
-                </span>
+                <!-- Actions -->
+                <td class="py-3.5 px-4 text-right">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <!-- View Details -->
+                    <UButton
+                      size="xs"
+                      variant="soft"
+                      color="primary"
+                      icon="i-heroicons-eye"
+                      title="Voir détails de la réservation"
+                      @click="openHotelDrawer(order)"
+                    >
+                      Détails
+                    </UButton>
 
-                <span class="flex items-center gap-1">
-                  <UIcon name="i-heroicons-user" class="w-3.5 h-3.5 text-slate-400" />
-                  <span class="font-semibold text-slate-700 dark:text-slate-200">{{ cleanText(b.holder_name) }}</span>
-                </span>
-              </div>
+                    <!-- Pay via CCP if unpaid -->
+                    <UButton
+                      v-if="order.payment_status === 'unpaid'"
+                      size="xs"
+                      color="emerald"
+                      icon="i-heroicons-credit-card"
+                      title="Payer par CCP / BaridiMob"
+                      @click="openCcpPayment(order)"
+                    >
+                      Payer
+                    </UButton>
 
-              <div class="text-xs text-slate-400 flex items-center gap-2">
-                <span>Chambre : <strong class="text-slate-700 dark:text-slate-200">{{ cleanText(b.room_type) || 'Standard' }}</strong></span>
-                <span>•</span>
-                <span>Pension : <strong class="text-primary">{{ boardTypeLabel(b.board_type) }}</strong></span>
-                <span v-if="b.rooms_count && b.rooms_count > 1">• {{ b.rooms_count }} chambres</span>
-              </div>
-            </div>
+                    <!-- Print Voucher if confirmed -->
+                    <UButton
+                      v-if="order.status === 'confirmed'"
+                      size="xs"
+                      variant="outline"
+                      color="gray"
+                      icon="i-heroicons-printer"
+                      title="Imprimer le bon d'hôtel (Voucher)"
+                      @click="openVoucher(order)"
+                    />
+
+                    <!-- Official Invoice Button -->
+                    <UButton
+                      v-if="order.payment_status === 'paid' || order.status === 'confirmed'"
+                      size="xs"
+                      variant="outline"
+                      color="gray"
+                      icon="i-heroicons-document-text"
+                      title="Facture officielle"
+                      @click="openHotelInvoice(order)"
+                    />
+
+                    <!-- Cancel Button -->
+                    <UButton
+                      v-if="order.status !== 'cancelled' && order.status !== 'failed'"
+                      size="xs"
+                      variant="ghost"
+                      color="rose"
+                      icon="i-heroicons-x-mark"
+                      title="Annuler cette réservation"
+                      @click="promptCancelHotelOrder(order)"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Hotel Pagination -->
+        <div v-if="hotelPagination.last_page > 1" class="flex justify-between items-center px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+          <div>
+            Page {{ hotelPagination.current_page }} sur {{ hotelPagination.last_page }} ({{ hotelPagination.total }} réservations)
           </div>
-
-          <!-- Price and Actions -->
-          <div class="flex flex-col sm:flex-row md:flex-col items-start md:items-end justify-between gap-4 border-t md:border-t-0 pt-4 md:pt-0 border-slate-100 dark:border-slate-700/60">
-            <div class="text-left md:text-right">
-              <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Montant Dossier</div>
-              <div class="text-xl md:text-2xl font-black text-primary">
-                {{ formatPrice(b.total_price) }} <span class="text-sm font-bold">DZD</span>
-              </div>
-            </div>
-
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
-              <!-- Primary actions -->
-              <div class="flex items-center gap-2 w-full sm:w-auto">
-                <!-- CCP Payment Button if pending -->
-                <NuxtLink
-                  v-if="b.paiment_status === 'pending_payment'"
-                  :to="`/payment/confirm?order_id=${b.id || ''}&type=hotel&amount=${b.total_price || ''}`"
-                  class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-amber-500/20 transition-all cursor-pointer"
-                >
-                  <UIcon name="i-heroicons-credit-card" class="w-4 h-4" />
-                  <span>Payer par BaridiMob / CCP</span>
-                </NuxtLink>
-
-                <!-- If verification pending, show badge -->
-                <div
-                  v-else-if="b.paiment_status === 'verification_pending'"
-                  class="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold flex items-center justify-center gap-1.5"
-                >
-                  <UIcon name="i-heroicons-clock" class="w-4 h-4 animate-spin" />
-                  <span>Validation Admin en cours</span>
-                </div>
-
-                <!-- Official Voucher Button (Only when confirmed and paid) -->
-                <button
-                  v-if="b.status === 'confirmed' && b.paiment_status === 'paid'"
-                  type="button"
-                  @click="openVoucherModal(b)"
-                  class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-black uppercase tracking-wider shadow-md shadow-primary/20 transition-all cursor-pointer"
-                >
-                  <UIcon name="i-heroicons-document-arrow-down" class="w-4 h-4" />
-                  <span>Voucher Officiel</span>
-                </button>
-                <div
-                  v-else
-                  class="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5 cursor-not-allowed"
-                  :title="b.paiment_status === 'verification_pending' ? 'Paiement en cours de vérification par l\'administration' : 'Paiement et confirmation requis pour débloquer le voucher'"
-                >
-                  <UIcon name="i-heroicons-lock-closed" class="w-3.5 h-3.5" />
-                  <span>Voucher verrouillé</span>
-                </div>
-              </div>
-
-              <!-- Secondary quick actions -->
-              <div class="flex items-center justify-end gap-2 shrink-0">
-                <!-- Email Voucher Button (Only when confirmed and paid) -->
-                <button
-                  v-if="b.status === 'confirmed' && b.paiment_status === 'paid'"
-                  type="button"
-                  @click="promptEmailVoucher(b)"
-                  class="flex-1 sm:flex-none p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer flex items-center justify-center gap-1.5 text-xs font-bold"
-                  title="Renvoyer par email"
-                >
-                  <UIcon name="i-heroicons-envelope" class="w-4 h-4" />
-                  <span class="sm:hidden">Email</span>
-                </button>
-
-                <!-- Cancel Button (if not already cancelled) -->
-                <button
-                  v-if="b.status !== 'cancelled'"
-                  type="button"
-                  @click="promptCancelBooking(b)"
-                  class="flex-1 sm:flex-none p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer flex items-center justify-center gap-1.5 text-xs font-bold"
-                  title="Annuler ce dossier"
-                >
-                  <UIcon name="i-heroicons-x-mark" class="w-4 h-4" />
-                  <span class="sm:hidden">Annuler</span>
-                </button>
-              </div>
-            </div>
+          <div class="flex items-center gap-1.5">
+            <UButton
+              size="xs"
+              variant="outline"
+              color="gray"
+              :disabled="hotelPagination.current_page <= 1"
+              @click="fetchHotelOrders(hotelPagination.current_page - 1)"
+            >
+              Précédent
+            </UButton>
+            <UButton
+              size="xs"
+              variant="outline"
+              color="gray"
+              :disabled="hotelPagination.current_page >= hotelPagination.last_page"
+              @click="fetchHotelOrders(hotelPagination.current_page + 1)"
+            >
+              Suivant
+            </UButton>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB 2: VISA ORDERS (PRESERVED)             -->
-    <!-- ========================================== -->
-    <div v-if="activeTab === 'visas'" class="space-y-4 animate-in fade-in duration-200">
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  TAB 2: DEMANDES DE VISA (PRESERVED INTACT)                             -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div v-show="activeTab === 'visa'" class="space-y-4 animate-in fade-in duration-200">
       <div class="flex flex-col gap-5">
         <div>
           <UInput 
@@ -345,229 +424,380 @@
       </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- OFFICIAL VOUCHER MODAL                     -->
-    <!-- ========================================== -->
-    <div
-      v-if="isVoucherModalOpen && selectedVoucherBooking"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
-      @click.self="closeVoucherModal"
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  SLIDEOVER: HOTEL ORDER DETAILS & ACTIONS                               -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <USlideover
+      v-model:open="showHotelDetails"
+      :close="false"
+      :ui="{ content: 'sm:max-w-2xl max-w-full bg-white dark:bg-slate-900 shadow-2xl' }"
     >
-      <div id="official-voucher-printable" class="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-3xl shadow-2xl border-2 border-primary/40 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-        <!-- Voucher Header (Navy + Gold) -->
-        <div class="bg-[#0A0B25] text-white p-6 border-b-4 border-primary flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary font-black">
-              <UIcon name="i-heroicons-building-office-2" class="w-7 h-7" />
-            </div>
-            <div>
-              <h2 class="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2">
-                BOUAZIZE TRAVEL
-                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-primary text-[#0A0B25]">OFFICIEL</span>
-              </h2>
-              <p class="text-xs text-slate-300">Agence de Voyages & Tourisme - Licence Catégorie A</p>
-              <p class="text-[11px] text-primary/80 mt-0.5">Assistance 24/7 : contact@bouazizetravel.com | +213 (0) 23 45 67 89</p>
-            </div>
+      <template #content="{ close }">
+        <div v-if="selectedHotelOrder" class="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-100px)]">
+        
+        <!-- Header Hotel Badge -->
+        <div class="border-b border-slate-200 dark:border-slate-800 pb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-mono font-bold text-primary">#HOTEL-{{ selectedHotelOrder.id }}</span>
+            <UBadge :color="getStatusBadgeColor(selectedHotelOrder.status)" variant="subtle" size="sm" class="font-bold">
+              {{ getStatusLabel(selectedHotelOrder.status) }}
+            </UBadge>
           </div>
-
-          <div class="text-left sm:text-right">
-            <div class="text-[10px] uppercase tracking-widest text-primary font-black">BON D'ÉCHANGE HÔTELIER</div>
-            <div class="font-mono text-lg font-black text-white bg-white/10 px-3 py-1 rounded-xl border border-white/20 mt-1 inline-block">
-              {{ selectedVoucherBooking.reference }}
-            </div>
+          <h2 class="text-xl font-black text-slate-900 dark:text-white">
+            {{ selectedHotelOrder.hotel_name }}
+          </h2>
+          <div class="flex items-center gap-2 text-xs text-slate-500 mt-1">
+            <span class="font-semibold text-slate-700 dark:text-slate-300 uppercase">{{ selectedHotelOrder.hotel_city }}</span>
+            <span v-if="selectedHotelOrder.hotel_category" class="text-amber-500 font-bold">· {{ selectedHotelOrder.hotel_category }}★</span>
+            <span>· Réservé le {{ formatDateShort(selectedHotelOrder.created_at) }}</span>
           </div>
         </div>
 
-        <!-- Voucher Body -->
-        <div class="p-6 space-y-6 text-slate-800 dark:text-slate-200">
-          <!-- Status & Guarantee Bar -->
-          <div class="flex items-center justify-between p-3.5 bg-primary/10 dark:bg-primary/15 rounded-xl border border-primary/30">
+        <!-- Netstorming Live Status Box -->
+        <div class="p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 space-y-3">
+          <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <UIcon name="i-heroicons-shield-check" class="w-5 h-5 text-primary" />
-              <span class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
-                RÉSERVATION CONFIRMÉE & GARANTIE PAR BOUAZIZE TRAVEL
+              <UIcon name="i-heroicons-arrow-path-rounded-square" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <h4 class="text-xs font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider">
+                Suivi Direct Netstorming
+              </h4>
+            </div>
+            <UButton
+              size="xs"
+              color="primary"
+              variant="outline"
+              :loading="hotelTrackingLoading"
+              @click="trackHotelBooking(selectedHotelOrder)"
+            >
+              Vérifier en direct
+            </UButton>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span class="text-slate-400 block text-[10px]">Référence Netstorming:</span>
+              <span class="font-mono font-bold text-slate-800 dark:text-slate-200">
+                {{ selectedHotelOrder.ns_booking_reference || 'Non assigné' }}
               </span>
             </div>
-            <span class="text-xs font-mono font-bold text-primary">
-              Émis le {{ new Date().toLocaleDateString('fr-FR') }}
+            <div>
+              <span class="text-slate-400 block text-[10px]">Statut Fournisseur:</span>
+              <span class="font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400">
+                {{ selectedHotelOrder.ns_booking_status || selectedHotelOrder.status }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="hotelTrackingData" class="p-2.5 bg-white dark:bg-slate-900 rounded-lg text-xs border border-blue-100 dark:border-blue-900 text-slate-700 dark:text-slate-300">
+            <p class="font-bold text-blue-600 mb-1">Rapport de synchronisation en direct :</p>
+            <div class="space-y-1 text-[11px]">
+              <p><strong>Statut :</strong> {{ hotelTrackingData.ns_booking_status }}</p>
+              <p v-if="hotelTrackingData.supplier_reference"><strong>Réf. Fournisseur :</strong> {{ hotelTrackingData.supplier_reference }}</p>
+              <p v-if="hotelTrackingData.booked_at"><strong>Horodatage :</strong> {{ hotelTrackingData.booked_at }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stay Details -->
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-3">
+          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+            Informations du Séjour
+          </h4>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <span class="text-slate-400 block text-[11px]">Date d'arrivée (Check-in) :</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ formatDateShort(selectedHotelOrder.check_in) }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px]">Date de départ (Check-out) :</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ formatDateShort(selectedHotelOrder.check_out) }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px]">Durée :</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-200">{{ selectedHotelOrder.nights }} nuit(s)</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px]">Régime de repas :</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-200">{{ selectedHotelOrder.meal_basis_name || 'Standard' }}</span>
+            </div>
+            <div class="col-span-2">
+              <span class="text-slate-400 block text-[11px]">Type de chambre :</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-200">{{ selectedHotelOrder.room_basis_name || selectedHotelOrder.room_code }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Passengers Manifest -->
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-3">
+          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+            Liste des Voyageurs ({{ selectedHotelOrder.adults }} Adultes<span v-if="selectedHotelOrder.children">, {{ selectedHotelOrder.children }} Enfants</span>)
+          </h4>
+          <div v-if="selectedHotelOrder.pax_details && selectedHotelOrder.pax_details.length" class="space-y-2">
+            <div
+              v-for="(pax, idx) in selectedHotelOrder.pax_details"
+              :key="idx"
+              class="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-xs"
+            >
+              <div class="flex items-center gap-2">
+                <UIcon name="i-heroicons-user" class="w-4 h-4 text-primary" />
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ pax.title || '' }} {{ pax.name }} {{ pax.surname }}</span>
+              </div>
+              <UBadge size="xs" variant="subtle" color="gray" class="capitalize">
+                {{ pax.type || 'adulte' }}
+              </UBadge>
+            </div>
+          </div>
+          <p v-else class="text-xs text-slate-400 italic">Aucun détail passager spécifique enregistré.</p>
+        </div>
+
+        <!-- Pricing Breakdown -->
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-2.5">
+          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+            Règlement & Tarifs
+          </h4>
+          <div class="flex justify-between items-center text-xs text-slate-500">
+            <span>Statut du paiement :</span>
+            <UBadge :color="getPaymentBadgeColor(selectedHotelOrder.payment_status)" variant="subtle" size="xs">
+              {{ getPaymentLabel(selectedHotelOrder.payment_status) }}
+            </UBadge>
+          </div>
+          <div class="flex justify-between items-center text-xs text-slate-500">
+            <span>Condition d'annulation :</span>
+            <span class="font-semibold text-slate-700 dark:text-slate-300">
+              {{ selectedHotelOrder.cancellation_deadline ? `Gratuite jusqu'au ${formatDateShort(selectedHotelOrder.cancellation_deadline)}` : 'Selon conditions de l\'hôtel' }}
             </span>
           </div>
-
-          <!-- 2-Column Details -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Hotel & Stay Box -->
-            <div class="space-y-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-              <h3 class="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-700">
-                <UIcon name="i-heroicons-building-office" class="w-4 h-4" />
-                <span>Établissement & Séjour</span>
-              </h3>
-              <div>
-                <h4 class="font-black text-base text-slate-900 dark:text-white">
-                  {{ cleanText(selectedVoucherBooking.hotel_name) }}
-                </h4>
-                <div class="text-amber-500 text-xs font-bold mt-0.5">
-                  {{ '★'.repeat(selectedVoucherBooking.stars || 4) }}
-                </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  {{ cleanText(selectedVoucherBooking.address) || cleanText(selectedVoucherBooking.city) }}
-                </p>
-              </div>
-
-              <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/80 dark:border-slate-700/80">
-                <div>
-                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Arrivée (Check-in)</span>
-                  <span class="font-black text-slate-800 dark:text-slate-200">{{ selectedVoucherBooking.checkin }}</span>
-                </div>
-                <div>
-                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Départ (Check-out)</span>
-                  <span class="font-black text-slate-800 dark:text-slate-200">{{ selectedVoucherBooking.checkout }}</span>
-                </div>
-                <div>
-                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Durée</span>
-                  <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedVoucherBooking.nights || 1 }} Nuit(s)</span>
-                </div>
-                <div>
-                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Chambres</span>
-                  <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedVoucherBooking.rooms_count || 1 }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Room & Passenger Box -->
-            <div class="space-y-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-              <h3 class="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5 pb-2 border-b border-slate-200 dark:border-slate-700">
-                <UIcon name="i-heroicons-user-group" class="w-4 h-4" />
-                <span>Prestations & Titulaire</span>
-              </h3>
-              <div class="text-xs space-y-2">
-                <div>
-                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Catégorie de chambre</span>
-                  <span class="font-black text-slate-800 dark:text-slate-200 uppercase">{{ cleanText(selectedVoucherBooking.room_type) || 'Chambre Standard' }}</span>
-                </div>
-                <div>
-                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Traitement / Repas</span>
-                  <span class="font-bold text-primary">{{ boardTypeLabel(selectedVoucherBooking.board_type) }}</span>
-                </div>
-                <div>
-                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Titulaire du dossier</span>
-                  <span class="font-bold text-slate-800 dark:text-slate-200">{{ cleanText(selectedVoucherBooking.holder_name) }}</span>
-                </div>
-                <div v-if="selectedVoucherBooking.holder_phone || selectedVoucherBooking.holder_email" class="text-slate-500">
-                  {{ selectedVoucherBooking.holder_phone }} {{ selectedVoucherBooking.holder_email ? `| ${selectedVoucherBooking.holder_email}` : '' }}
-                </div>
-              </div>
-
-              <div class="pt-2 border-t border-slate-200/80 dark:border-slate-700/80">
-                <div class="text-[10px] text-slate-400 uppercase font-bold">Montant Total Enregistré</div>
-                <div v-if="!hideVoucherPrice" class="text-xl font-black text-primary">
-                  {{ formatPrice(selectedVoucherBooking.total_price) }} DZD
-                  <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 ml-2">(RÉGLÉ)</span>
-                </div>
-                <div v-else class="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                  PRESTATIONS RÉGLÉES — VOUCHER CLIENT
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- QR & Check-in Verification Box -->
-          <div class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-              <div class="w-14 h-14 bg-white p-1 rounded-xl shadow-xs shrink-0 flex items-center justify-center">
-                <svg class="w-12 h-12 text-slate-900" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 2h2v4h-2v-4zm-4-4h2v2h-2v-2zm4 0h2v2h-2v-2zm-2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-4 2h2v2h-2v-2z"/>
-                </svg>
-              </div>
-              <div>
-                <h4 class="text-xs font-black uppercase tracking-wide text-slate-800 dark:text-white">
-                  Contrôle Check-in Hôtel
-                </h4>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                  À présenter lors du check-in avec une pièce d'identité en cours de validité.
-                </p>
-                <div class="font-mono text-[10px] text-slate-400 mt-0.5">REF: {{ selectedVoucherBooking.reference }}</div>
-              </div>
-            </div>
-
-            <div class="text-right text-[11px] text-slate-400 sm:border-l sm:border-slate-200 dark:sm:border-slate-700 sm:pl-4">
-              <span class="font-bold text-slate-600 dark:text-slate-300">Bouazize Travel SARL</span><br/>
-              Licence Tourisme N° 16/0428<br/>
-              Alger / Oran, Algérie
-            </div>
+          <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+            <span class="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300">Total à payer :</span>
+            <span class="text-lg font-black text-primary">{{ formatCurrency(selectedHotelOrder.final_price_dzd) }} DZD</span>
           </div>
         </div>
 
-        <!-- Voucher Actions Footer -->
-        <div class="p-4 bg-slate-50 dark:bg-slate-800/90 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 print:hidden">
-          <div class="flex items-center gap-3">
-            <button
-              @click="closeVoucherModal"
-              type="button"
-              class="px-5 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-            >
-              Fermer
-            </button>
-            <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-400 cursor-pointer select-none">
-              <input type="checkbox" v-model="hideVoucherPrice" class="w-4 h-4 rounded text-primary accent-primary cursor-pointer" />
-              <span>Masquer le prix</span>
-            </label>
-          </div>
-          <div class="flex items-center gap-2">
-            <button
-              @click="promptEmailVoucher(selectedVoucherBooking)"
-              type="button"
-              class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-2"
-            >
-              <UIcon name="i-heroicons-envelope" class="w-4 h-4" />
-              <span>Envoyer par Email</span>
-            </button>
-            <button
-              @click="printVoucher"
-              type="button"
-              class="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-primary/25 transition-colors cursor-pointer flex items-center gap-2"
-            >
-              <UIcon name="i-heroicons-printer" class="w-4 h-4" />
-              <span>Imprimer / PDF</span>
-            </button>
-          </div>
+        <!-- Drawer Action Buttons -->
+        <div class="space-y-2.5 pt-2">
+          <!-- Pay via CCP button -->
+          <UButton
+            v-if="selectedHotelOrder.payment_status === 'unpaid'"
+            block
+            color="emerald"
+            icon="i-heroicons-credit-card"
+            class="font-bold"
+            @click="openCcpPayment(selectedHotelOrder)"
+          >
+            Payer par CCP / BaridiMob ({{ formatCurrency(selectedHotelOrder.final_price_dzd) }} DZD)
+          </UButton>
+
+          <!-- Print Voucher -->
+          <UButton
+            v-if="selectedHotelOrder.status === 'confirmed'"
+            block
+            variant="outline"
+            color="primary"
+            icon="i-heroicons-printer"
+            class="font-bold"
+            @click="openVoucher(selectedHotelOrder)"
+          >
+            Télécharger / Imprimer Bon d'Hôtel (Voucher)
+          </UButton>
+
+          <!-- Official Relevé de compte -->
+          <UButton
+            v-if="selectedHotelOrder.payment_status === 'paid' || selectedHotelOrder.status === 'confirmed'"
+            block
+            variant="outline"
+            color="gray"
+            icon="i-heroicons-document-text"
+            class="font-bold"
+            @click="openHotelInvoice(selectedHotelOrder)"
+          >
+            Télécharger / Imprimer Relevé de compte
+          </UButton>
+
+          <!-- Official Email Confirmation -->
+          <UButton
+            block
+            variant="outline"
+            color="emerald"
+            icon="i-heroicons-envelope"
+            class="font-bold"
+            @click="openEmail(selectedHotelOrder)"
+          >
+            Aperçu Email de Confirmation
+          </UButton>
+
+          <!-- Cancel Reservation -->
+          <UButton
+            v-if="selectedHotelOrder.status !== 'cancelled' && selectedHotelOrder.status !== 'failed'"
+            block
+            variant="soft"
+            color="rose"
+            icon="i-heroicons-trash"
+            class="font-bold"
+            @click="promptCancelHotelOrder(selectedHotelOrder)"
+          >
+            Demander l'Annulation de la Réservation
+          </UButton>
         </div>
       </div>
-    </div>
+      </template>
+    </USlideover>
 
-    <!-- Email Voucher Modal -->
-    <UModal v-model:open="isEmailModalOpen" title="Renvoyer le Voucher par Email">
-      <template #body>
-        <div class="space-y-4">
-          <p class="text-xs text-slate-500">
-            Le voucher certifié de la réservation <strong class="text-primary">{{ emailTargetBooking?.reference }}</strong> sera envoyé à l'adresse ci-dessous.
-          </p>
-          <UFormField label="Adresse Email du Destinataire" name="email">
-            <UInput v-model="emailRecipient" placeholder="nom@exemple.com" icon="i-heroicons-envelope" class="w-full" />
-          </UFormField>
-          <div class="flex justify-end gap-2 pt-2">
-            <UButton color="neutral" variant="ghost" label="Annuler" @click="isEmailModalOpen = false" />
-            <UButton color="primary" :loading="sendingEmail" label="Envoyer le Voucher" @click="confirmSendEmail" />
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  MODALS: OFFICIAL HOTEL VOUCHER, RELEVÉ DE COMPTE & EMAIL             -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <HotelVoucherModal
+      v-model:open="showVoucherModal"
+      v-model="showVoucherModal"
+      :order="voucherOrder"
+      :user="user"
+    />
+
+    <HotelInvoiceModal
+      v-model:open="showInvoiceModal"
+      v-model="showInvoiceModal"
+      :order="invoiceOrder"
+      :user="user"
+    />
+
+    <HotelEmailModal
+      v-model:open="showEmailModal"
+      v-model="showEmailModal"
+      :order="emailOrder"
+    />
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  MODAL: CCP / BARIDIMOB PAYMENT                                        -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <UModal
+      v-model:open="showCcpModal"
+      :close="false"
+      :ui="{ content: 'sm:max-w-lg max-h-[92vh] overflow-y-auto bg-white dark:bg-slate-900 p-0 rounded-2xl shadow-2xl' }"
+    >
+      <template #content="{ close }">
+        <div v-if="ccpOrder" class="p-6 space-y-5 bg-white dark:bg-slate-900 rounded-2xl">
+          <!-- Header & Amount -->
+          <div class="bg-primary/5 dark:bg-primary/10 p-4 rounded-xl border border-primary/20 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Montant à régler pour :</span>
+              <h4 class="font-bold text-slate-900 dark:text-white line-clamp-1">{{ ccpOrder.hotel_name }}</h4>
+              <span class="text-[11px] font-mono text-primary">#HOTEL-{{ ccpOrder.id }}</span>
+            </div>
+            <div class="text-right">
+              <span class="text-xl font-black text-primary">{{ formatCurrency(ccpOrder.final_price_dzd) }} DZD</span>
+            </div>
+          </div>
+
+          <!-- Agency Bank Details -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 space-y-2 text-xs">
+            <p class="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              Coordonnées Bancaires de l'Agence
+            </p>
+            <div v-if="ccpLoading" class="text-slate-400 py-2">Chargement des coordonnées...</div>
+            <div v-else-if="ccpSettings" class="space-y-1.5 text-slate-600 dark:text-slate-300">
+              <div class="flex justify-between">
+                <span>Compte CCP :</span>
+                <span class="font-mono font-bold text-slate-900 dark:text-white">{{ ccpSettings.ccp_account_number }} (Clé: {{ ccpSettings.ccp_key }})</span>
+              </div>
+              <div v-if="ccpSettings.baridi_mob_number" class="flex justify-between">
+                <span>RIP BaridiMob :</span>
+                <span class="font-mono font-bold text-slate-900 dark:text-white">{{ ccpSettings.baridi_mob_number }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Titulaire du compte :</span>
+                <span class="font-bold text-slate-900 dark:text-white">{{ ccpSettings.owner_name }}</span>
+              </div>
+            </div>
+            <div v-else class="text-amber-500 py-1">Coordonnées par défaut : Contactez le support au besoin.</div>
+          </div>
+
+          <!-- Payment Submission Form -->
+          <div class="space-y-4">
+            <!-- Transaction Number -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Numéro de Transaction (BaridiMob ou Reçu Postal) *
+              </label>
+              <UInput
+                v-model="ccpTransactionNumber"
+                placeholder="Ex: 0092837492..."
+                class="w-full"
+              />
+            </div>
+
+            <!-- File Upload -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                Preuve de paiement (Reçu scanné ou capture d'écran) *
+              </label>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover cursor-pointer"
+                @change="onCcpFileChange"
+              />
+              <p v-if="ccpProofFile" class="text-[11px] text-emerald-600 mt-1 font-semibold">
+                Fichier sélectionné : {{ ccpProofFile.name }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <UButton variant="ghost" color="gray" @click="showCcpModal = false">
+              Annuler
+            </UButton>
+            <UButton
+              color="primary"
+              icon="i-heroicons-arrow-up-tray"
+              :loading="ccpSubmitting"
+              @click="submitCcpPayment"
+            >
+              Envoyer le Justificatif
+            </UButton>
+          </div>
+
+        </div>
+      </template>
+    </UModal>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  MODAL: CONFIRMATION ANNULATION HÔTEL                                  -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <UModal
+      v-model:open="openHotelCancelModal"
+      :close="false"
+      :ui="{ content: 'sm:max-w-md bg-white dark:bg-slate-900 p-0 rounded-2xl shadow-2xl' }"
+    >
+      <template #content="{ close }">
+        <div v-if="orderToCancel" class="p-6 space-y-4 bg-white dark:bg-slate-900 rounded-2xl">
+          <div class="flex items-start gap-3">
+            <UIcon name="i-heroicons-exclamation-triangle" class="w-8 h-8 text-rose-500 shrink-0" />
+            <div>
+              <h4 class="font-bold text-slate-900 dark:text-white">Annuler la réservation ?</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Êtes-vous sûr de vouloir annuler votre réservation pour <strong>{{ orderToCancel.hotel_name }}</strong> (Réf: {{ orderToCancel.ns_booking_reference || orderToCancel.id }}) ?
+              </p>
+              <p v-if="orderToCancel.cancellation_deadline" class="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-2">
+                Date limite sans frais : {{ formatDateShort(orderToCancel.cancellation_deadline) }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <UButton variant="ghost" color="gray" @click="openHotelCancelModal = false">
+              Garder ma réservation
+            </UButton>
+            <UButton color="rose" :loading="cancellingOrder" @click="confirmCancelHotelBooking">
+              Confirmer l'annulation
+            </UButton>
           </div>
         </div>
       </template>
     </UModal>
 
-    <!-- Cancel Confirmation Modal -->
-    <UModal v-model:open="isCancelModalOpen" title="Confirmation d'annulation">
-      <template #body>
-        <div class="space-y-4">
-          <div class="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-300 text-xs">
-            Êtes-vous sûr de vouloir annuler le dossier <strong>{{ cancelTargetBooking?.reference }}</strong> ({{ cleanText(cancelTargetBooking?.hotel_name) }}) ? Cette action est irréversible.
-          </div>
-          <div class="flex justify-end gap-2 pt-2">
-            <UButton color="neutral" variant="ghost" label="Conserver la réservation" @click="isCancelModalOpen = false" />
-            <UButton color="error" :loading="cancellingBooking" label="Confirmer l'annulation" @click="confirmCancelBooking" />
-          </div>
-        </div>
-      </template>
-    </UModal>
-
-    <!-- Visa Order Slideover & Modals (Preserved) -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  VISA SLIDEOVER & MODALS (PRESERVED INTACT)                             -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <USlideover fullscreen v-model:open="open" close-icon="i-lucide-arrow-right" :close="{ color: 'secondary', class: 'cursor-pointer' }">
       <template #header>
         <div class="flex flex-col gap-2">
@@ -582,7 +812,10 @@
           <div class="flex flex-col gap-2">
             <p class="text-secondary">Visa:</p>
             <div class="flex items-center gap-3">
-              <UAvatar :src="order?.visa?.country?.flag" size="sm" />
+              <div class="w-6 h-6 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-100 flex items-center justify-center">
+                <img v-if="order?.visa?.country?.flag" :src="order?.visa?.country?.flag" class="w-full h-full object-cover" />
+                <UIcon v-else name="i-heroicons-globe-alt" class="w-4 h-4 text-gray-400" />
+              </div>
               <div>{{ order?.visa?.country?.name }}</div>
             </div>
           </div>
@@ -696,12 +929,13 @@
         </div>
       </template>
     </UModal>
+
   </div>
 </template>
 
 <script setup>
 import { h, resolveComponent, ref, computed, onMounted } from 'vue'
-import { refDebounced, useRoute } from '#imports'
+import { refDebounced, useRoute, useRouter } from '#imports'
 import { NuxtTime, UIcon } from '#components'
 import Confirmation from '~/components/modals/Confirmation.vue'
 import Invoice from '~/components/invoices/Invoice.vue'
@@ -709,198 +943,356 @@ import html2canvas from 'html2canvas'
 import { sendApi } from '@/composables/api'
 
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 
-// Tabs
-const activeTab = ref(route.query.tab === 'visas' ? 'visas' : 'hotels')
+// ─── ACTIVE SERVICE TAB ──────────────────────────────────────────────────────
+const activeTab = ref(route.query.tab === 'visa' ? 'visa' : 'hotels')
 
-// ----------------------------------------------------
-// HOTELS STATE & ACTIONS
-// ----------------------------------------------------
-const hotelBookings = ref([])
-const loadingHotels = ref(false)
+function switchTab(tab) {
+  activeTab.value = tab
+  router.replace({ query: { ...route.query, tab } })
+  if (tab === 'hotels') {
+    fetchHotelOrders(1)
+  } else if (tab === 'visa') {
+    getOrders(1)
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  HOTEL ORDERS STATE & LOGIC
+// ═════════════════════════════════════════════════════════════════════════════
+const hotelOrders = ref([])
+const hotelLoading = ref(false)
 const hotelSearch = ref('')
-const hotelStatusFilter = ref('all')
+const hotelSelectedStatus = ref('all')
+const hotelSelectedPayment = ref('all')
 
-const isVoucherModalOpen = ref(false)
-const selectedVoucherBooking = ref(null)
-const hideVoucherPrice = ref(false)
+const hotelStatusOptions = [
+  { label: 'Tous les statuts', value: 'all' },
+  { label: 'Confirmé', value: 'confirmed' },
+  { label: 'En Attente', value: 'pending' },
+  { label: 'Annulé', value: 'cancelled' },
+  { label: 'Échoué', value: 'failed' },
+]
 
-const isEmailModalOpen = ref(false)
-const emailTargetBooking = ref(null)
-const emailRecipient = ref('')
-const sendingEmail = ref(false)
+const hotelPaymentOptions = [
+  { label: 'Tous les paiements', value: 'all' },
+  { label: 'Payé', value: 'paid' },
+  { label: 'Non Payé', value: 'unpaid' },
+  { label: 'En Vérification CCP', value: 'verification_pending' },
+]
 
-const isCancelModalOpen = ref(false)
-const cancelTargetBooking = ref(null)
-const cancellingBooking = ref(false)
-
-const cleanText = (str) => {
-  if (!str) return ''
-  try {
-    return decodeURIComponent(escape(str))
-  } catch (e) {
-    return str
-      .replace(/Ã´/g, 'ô')
-      .replace(/Ã©/g, 'é')
-      .replace(/Ã¨/g, 'è')
-      .replace(/Ã¯/g, 'ï')
-      .replace(/Ã /g, 'à')
-      .replace(/Ã§/g, 'ç')
-      .replace(/Ãª/g, 'ê')
-  }
-}
-
-const formatPrice = (val) => {
-  if (!val) return '0'
-  return new Intl.NumberFormat('fr-DZ').format(Math.round(Number(val)))
-}
-
-const boardTypeLabel = (bt) => {
-  if (!bt) return 'Logement Seul (RO)'
-  const map = {
-    RO: 'Logement Seul (Room Only)',
-    BB: 'Petit-déjeuner Inclus (Bed & Breakfast)',
-    HB: 'Demi-pension (Half Board)',
-    FB: 'Pension Complète (Full Board)',
-    AI: 'Tout Compris (All Inclusive)',
-    UAI: 'Ultra All Inclusive'
-  }
-  return map[bt.toUpperCase()] || bt
-}
-
-const fetchHotelBookings = async () => {
-  loadingHotels.value = true
-  try {
-    const res = await sendApi('/hotels/bookings', {}, 'GET')
-    if (res && res.data) {
-      hotelBookings.value = res.data
-    } else if (Array.isArray(res)) {
-      hotelBookings.value = res
-    }
-  } catch (err) {
-    console.error('Erreur chargement réservations hôtels:', err)
-  } finally {
-    loadingHotels.value = false
-  }
-}
-
-const filteredHotelBookings = computed(() => {
-  let list = hotelBookings.value || []
-  if (hotelStatusFilter.value !== 'all') {
-    list = list.filter(b => b.status === hotelStatusFilter.value)
-  }
-  if (hotelSearch.value.trim()) {
-    const q = hotelSearch.value.toLowerCase().trim()
-    list = list.filter(b => 
-      (b.reference && b.reference.toLowerCase().includes(q)) ||
-      (b.hotel_name && b.hotel_name.toLowerCase().includes(q)) ||
-      (b.city && b.city.toLowerCase().includes(q)) ||
-      (b.holder_name && b.holder_name.toLowerCase().includes(q))
-    )
-  }
-  return list
+const hotelPagination = ref({
+  current_page: 1,
+  per_page: 10,
+  total: 0,
+  last_page: 1
 })
 
-const copyReference = (refVal) => {
-  if (!refVal) return
-  navigator.clipboard.writeText(refVal)
+const hotelStats = computed(() => {
+  const all = hotelOrders.value || []
+  return {
+    total: hotelPagination.value.total || all.length,
+    confirmed: all.filter(o => o.status === 'confirmed').length,
+    pending: all.filter(o => o.status === 'pending').length,
+    cancelled: all.filter(o => o.status === 'cancelled').length,
+    unpaid: all.filter(o => o.payment_status === 'unpaid').length,
+  }
+})
+
+let hotelDebounceTimer = null
+function debounceHotelFetch() {
+  clearTimeout(hotelDebounceTimer)
+  hotelDebounceTimer = setTimeout(() => {
+    fetchHotelOrders(1)
+  }, 350)
+}
+
+async function fetchHotelOrders(page = 1) {
+  hotelLoading.value = true
+  try {
+    let url = `/hotels/orders?page=${page}&per_page=10`
+    if (hotelSearch.value) url += `&search=${encodeURIComponent(hotelSearch.value)}`
+    if (hotelSelectedStatus.value && hotelSelectedStatus.value !== 'all') url += `&status=${hotelSelectedStatus.value}`
+    if (hotelSelectedPayment.value && hotelSelectedPayment.value !== 'all') url += `&payment_status=${hotelSelectedPayment.value}`
+
+    const res = await sendApi(url, null, 'GET', { silent: true })
+    const data = res?.data
+    if (data?.data && Array.isArray(data.data)) {
+      hotelOrders.value = data.data
+      hotelPagination.value = {
+        current_page: data.current_page || page,
+        per_page: data.per_page || 10,
+        total: data.total || 0,
+        last_page: data.last_page || 1
+      }
+    } else if (Array.isArray(data)) {
+      hotelOrders.value = data
+      hotelPagination.value.total = data.length
+    }
+  } catch (err) {
+    console.error('Error fetching hotel orders:', err)
+  } finally {
+    hotelLoading.value = false
+  }
+}
+
+// ─── Hotel Slideover & Live Tracking ─────────────────────────────────────────
+const showHotelDetails = ref(false)
+const selectedHotelOrder = ref(null)
+const hotelTrackingLoading = ref(false)
+const hotelTrackingData = ref(null)
+
+function openHotelDrawer(order) {
+  selectedHotelOrder.value = order
+  hotelTrackingData.value = null
+  showHotelDetails.value = true
+}
+
+async function trackHotelBooking(order) {
+  if (!order?.id) return
+  hotelTrackingLoading.value = true
+  try {
+    const res = await sendApi(`/hotels/orders/${order.id}/track`, null, 'GET')
+    if (res?.data) {
+      hotelTrackingData.value = res.data
+      if (res.data.ns_booking_status) {
+        order.ns_booking_status = res.data.ns_booking_status
+      }
+      toast.add({
+        title: 'Suivi Netstorming mis à jour',
+        description: `Statut en direct : ${res.data.ns_booking_status || 'Confirmé'}`,
+        color: 'emerald'
+      })
+    }
+  } catch (err) {
+    toast.add({
+      title: 'Erreur de suivi',
+      description: err?.response?.data?.message || 'Impossible de contacter Netstorming en direct.',
+      color: 'red'
+    })
+  } finally {
+    hotelTrackingLoading.value = false
+  }
+}
+
+// ─── Hotel Cancellation ──────────────────────────────────────────────────────
+const openHotelCancelModal = ref(false)
+const orderToCancel = ref(null)
+const cancellingOrder = ref(false)
+
+function promptCancelHotelOrder(order) {
+  orderToCancel.value = order
+  openHotelCancelModal.value = true
+}
+
+async function confirmCancelHotelBooking() {
+  if (!orderToCancel.value) return
+  cancellingOrder.value = true
+  try {
+    await sendApi(`/hotels/orders/${orderToCancel.value.id}/cancel`, null, 'POST')
+    toast.add({
+      title: 'Réservation annulée',
+      description: 'Votre réservation d\'hôtel a été annulée avec succès.',
+      color: 'emerald'
+    })
+    orderToCancel.value.status = 'cancelled'
+    openHotelCancelModal.value = false
+    if (selectedHotelOrder.value?.id === orderToCancel.value.id) {
+      selectedHotelOrder.value.status = 'cancelled'
+    }
+    await fetchHotelOrders(hotelPagination.value.current_page)
+  } catch (err) {
+    toast.add({
+      title: 'Échec d\'annulation',
+      description: err?.response?.data?.message || 'Erreur lors de l\'annulation.',
+      color: 'red'
+    })
+  } finally {
+    cancellingOrder.value = false
+  }
+}
+
+// ─── Voucher, Relevé de compte & Email Modals ──────────────────────────────
+import HotelVoucherModal from '~/components/hotels/HotelVoucherModal.vue'
+import HotelInvoiceModal from '~/components/hotels/HotelInvoiceModal.vue'
+import HotelEmailModal from '~/components/hotels/HotelEmailModal.vue'
+
+const showVoucherModal = ref(false)
+const voucherOrder = ref(null)
+
+function openVoucher(order) {
+  voucherOrder.value = order
+  showVoucherModal.value = true
+}
+
+const showInvoiceModal = ref(false)
+const invoiceOrder = ref(null)
+
+function openHotelInvoice(order) {
+  invoiceOrder.value = order
+  showInvoiceModal.value = true
+}
+
+const showEmailModal = ref(false)
+const emailOrder = ref(null)
+
+function openEmail(order) {
+  emailOrder.value = order
+  showEmailModal.value = true
+}
+
+// ─── CCP / BaridiMob Payment Modal ───────────────────────────────────────────
+const showCcpModal = ref(false)
+const ccpOrder = ref(null)
+const ccpSettings = ref(null)
+const ccpLoading = ref(false)
+const ccpSubmitting = ref(false)
+const ccpTransactionNumber = ref('')
+const ccpProofFile = ref(null)
+
+async function openCcpPayment(order) {
+  ccpOrder.value = order
+  ccpTransactionNumber.value = ''
+  ccpProofFile.value = null
+  showCcpModal.value = true
+
+  if (!ccpSettings.value) {
+    ccpLoading.value = true
+    try {
+      const res = await sendApi('/client/ccp/settings', null, 'GET', { silent: true })
+      ccpSettings.value = res?.data || null
+    } catch (e) {
+      console.error(e)
+    } finally {
+      ccpLoading.value = false
+    }
+  }
+}
+
+function onCcpFileChange(e) {
+  const file = e.target.files?.[0]
+  if (file) {
+    ccpProofFile.value = file
+  }
+}
+
+async function submitCcpPayment() {
+  if (!ccpOrder.value || !ccpTransactionNumber.value || !ccpProofFile.value) {
+    toast.add({
+      title: 'Champs incomplets',
+      description: 'Veuillez saisir le numéro de transaction et joindre le reçu.',
+      color: 'red'
+    })
+    return
+  }
+
+  ccpSubmitting.value = true
+  const formData = new FormData()
+  formData.append('order_type', 'hotel')
+  formData.append('order_id', ccpOrder.value.id)
+  formData.append('transaction_number', ccpTransactionNumber.value)
+  formData.append('proof_file', ccpProofFile.value)
+
+  try {
+    await sendApi('/client/ccp/submit', formData, 'POST')
+    toast.add({
+      title: 'Paiement soumis !',
+      description: 'Votre reçu a été envoyé avec succès et est en cours de vérification.',
+      color: 'emerald'
+    })
+    showCcpModal.value = false
+    ccpOrder.value.payment_status = 'verification_pending'
+    if (selectedHotelOrder.value?.id === ccpOrder.value.id) {
+      selectedHotelOrder.value.payment_status = 'verification_pending'
+    }
+    await fetchHotelOrders(hotelPagination.value.current_page)
+  } catch (err) {
+    toast.add({
+      title: 'Erreur de soumission',
+      description: err?.response?.data?.message || 'Échec de l\'envoi du justificatif de paiement.',
+      color: 'red'
+    })
+  } finally {
+    ccpSubmitting.value = false
+  }
+}
+
+// ─── Formatters & Utility Functions ──────────────────────────────────────────
+function formatCurrency(val) {
+  return Number(val || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function formatDate(val) {
+  if (!val) return '-'
+  const d = new Date(val)
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDateShort(val) {
+  if (!val) return '-'
+  const d = new Date(val)
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function getStatusBadgeColor(status) {
+  switch (status) {
+    case 'confirmed': return 'emerald'
+    case 'pending': return 'amber'
+    case 'cancelled': return 'rose'
+    case 'failed': return 'red'
+    case 'refunded': return 'purple'
+    default: return 'gray'
+  }
+}
+
+function getStatusLabel(status) {
+  switch (status) {
+    case 'confirmed': return 'Confirmé'
+    case 'pending': return 'En Attente'
+    case 'cancelled': return 'Annulé'
+    case 'failed': return 'Échoué'
+    case 'refunded': return 'Remboursé'
+    default: return status || 'Inconnu'
+  }
+}
+
+function getPaymentBadgeColor(status) {
+  switch (status) {
+    case 'paid': return 'emerald'
+    case 'unpaid': return 'rose'
+    case 'verification_pending': return 'blue'
+    case 'partially_paid': return 'amber'
+    case 'refunded': return 'purple'
+    default: return 'gray'
+  }
+}
+
+function getPaymentLabel(status) {
+  switch (status) {
+    case 'paid': return 'Payé'
+    case 'unpaid': return 'Non Payé'
+    case 'verification_pending': return 'En Vérification CCP'
+    case 'partially_paid': return 'Partiel'
+    case 'refunded': return 'Remboursé'
+    default: return status || 'Non payé'
+  }
+}
+
+function copyToClipboard(text) {
+  if (!text) return
+  navigator.clipboard.writeText(text)
   toast.add({
     title: 'Copié !',
-    description: `Référence ${refVal} copiée dans le presse-papier`,
-    color: 'success',
-    icon: 'i-heroicons-check-circle'
+    description: `Référence ${text} copiée dans le presse-papiers.`,
+    color: 'emerald'
   })
 }
 
-const openVoucherModal = (booking) => {
-  if (booking.status !== 'confirmed' || booking.paiment_status !== 'paid') {
-    toast.add({
-      title: 'Voucher verrouillé',
-      description: "Le voucher officiel certifié sera débloqué dès que l'administration aura vérifié et validé votre paiement électronique.",
-      color: 'amber'
-    });
-    return;
-  }
-  selectedVoucherBooking.value = booking
-  isVoucherModalOpen.value = true
-}
-
-const closeVoucherModal = () => {
-  isVoucherModalOpen.value = false
-  selectedVoucherBooking.value = null
-}
-
-const printVoucher = () => {
-  window.print()
-}
-
-const promptEmailVoucher = (booking) => {
-  if (booking.status !== 'confirmed' || booking.paiment_status !== 'paid') {
-    toast.add({
-      title: 'Voucher verrouillé',
-      description: "Le voucher ne peut pas être envoyé avant la validation définitive du paiement par l'administration.",
-      color: 'amber'
-    });
-    return;
-  }
-  emailTargetBooking.value = booking
-  emailRecipient.value = booking.holder_email || ''
-  isEmailModalOpen.value = true
-}
-
-const confirmSendEmail = async () => {
-  if (!emailRecipient.value) {
-    toast.add({ title: 'Erreur', description: 'Veuillez saisir une adresse email', color: 'error' })
-    return
-  }
-  sendingEmail.value = true
-  try {
-    await sendApi('/hotels/voucher/send-email', {
-      reference: emailTargetBooking.value.reference,
-      email: emailRecipient.value
-    }, 'POST')
-    toast.add({
-      title: 'Voucher envoyé',
-      description: `Le voucher a été transmis avec succès à ${emailRecipient.value}`,
-      color: 'success'
-    })
-    isEmailModalOpen.value = false
-  } catch (err) {
-    toast.add({ title: 'Erreur d\'envoi', description: err.message || 'Impossible d\'envoyer le voucher', color: 'error' })
-  } finally {
-    sendingEmail.value = false
-  }
-}
-
-const promptCancelBooking = (booking) => {
-  cancelTargetBooking.value = booking
-  isCancelModalOpen.value = true
-}
-
-const confirmCancelBooking = async () => {
-  cancellingBooking.value = true
-  try {
-    await sendApi('/hotels/cancel', {
-      reference: cancelTargetBooking.value.reference
-    }, 'POST')
-    toast.add({
-      title: 'Réservation annulée',
-      description: `Le dossier ${cancelTargetBooking.value.reference} a été annulé.`,
-      color: 'success'
-    })
-    isCancelModalOpen.value = false
-    await fetchHotelBookings()
-  } catch (err) {
-    toast.add({ title: 'Erreur d\'annulation', description: err.message || 'Échec de l\'annulation', color: 'error' })
-  } finally {
-    cancellingBooking.value = false
-  }
-}
-
-// ----------------------------------------------------
-// VISA STATE & ACTIONS (PRESERVED)
-// ----------------------------------------------------
+// ═════════════════════════════════════════════════════════════════════════════
+//  VISA STATE & ACTIONS (PRESERVED INTACT)
+// ═════════════════════════════════════════════════════════════════════════════
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
 const overlay = useOverlay()
@@ -1104,8 +1496,11 @@ const search = ref('')
 const searchDebounce = refDebounced(search, 200)
 
 onMounted(() => {
-  fetchHotelBookings()
-  getOrders(1)
+  if (activeTab.value === 'hotels') {
+    fetchHotelOrders(1)
+  } else {
+    getOrders(1)
+  }
 })
 
 const onFileChange = (event) => {
@@ -1228,18 +1623,23 @@ const onPageChange = async (page) => {
 <style scoped>
 @media print {
   body * {
-    visibility: hidden;
+    visibility: hidden !important;
   }
-  #official-voucher-printable, #official-voucher-printable * {
-    visibility: visible;
+  #official-hotel-voucher-printable, #official-hotel-voucher-printable * {
+    visibility: visible !important;
   }
-  #official-voucher-printable {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
+  #official-hotel-voucher-printable {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 15mm !important;
+    background: white !important;
+    color: black !important;
+    z-index: 999999 !important;
+    box-shadow: none !important;
   }
 }
 </style>

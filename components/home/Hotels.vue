@@ -6,11 +6,6 @@
             <!-- Text Content -->
             <div class="w-full lg:w-1/2 flex flex-col gap-5 text-center lg:text-left">
 
-                <!-- Badge -->
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 dark:bg-primary/20 text-primary font-bold text-xs tracking-widest uppercase rounded-full self-center lg:self-start border border-primary/20 dark:border-primary/30">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    Hébergement
-                </div>
 
                 <!-- Title -->
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-secondary dark:text-white uppercase tracking-tight leading-tight">
@@ -34,12 +29,9 @@
 
                 <!-- CTA Buttons -->
                 <div class="mt-2 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                    <nuxt-link to="/hotels" class="inline-flex items-center justify-center px-7 py-3.5 bg-secondary dark:bg-primary hover:bg-primary dark:hover:bg-primary-hover text-white font-black uppercase tracking-widest text-sm transition-all duration-300 shadow-lg hover:shadow-primary/30 rounded-xl">
+                    <nuxt-link to="/services/hotels" class="inline-flex items-center justify-center px-7 py-3.5 bg-secondary dark:bg-primary hover:bg-primary dark:hover:bg-primary-hover text-white font-black uppercase tracking-widest text-sm transition-all duration-300 shadow-lg hover:shadow-primary/30 rounded-xl">
                         Rechercher un hôtel
                         <Icon name="i-heroicons-arrow-right" class="w-4 h-4 ml-2"/>
-                    </nuxt-link>
-                    <nuxt-link to="/hotels" class="inline-flex items-center justify-center px-7 py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-secondary dark:text-white font-bold uppercase tracking-widest text-xs border border-slate-200 dark:border-slate-700 shadow-sm transition-all duration-300 rounded-xl">
-                        Voir les offres
                     </nuxt-link>
                 </div>
             </div>

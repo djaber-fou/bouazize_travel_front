@@ -15,7 +15,6 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/fonts',
     '@nuxt/icon',
-    '@nuxt/image',
     '@nuxt/ui',
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
@@ -57,7 +56,8 @@ export default defineNuxtConfig({
         '/admin/voyage_organise/orders': '/v1o2y3a4o',
         '/admin/banner': '/b2n3m4k5l',
         '/admin/ccp': '/c2c3p4p5',
-        '/admin/ccp/settings': '/s3t4t5i6n'
+        '/admin/ccp/settings': '/s3t4t5i6n',
+        '/admin/hotels': '/h0t1e2l3s',
       };
 
       function updatePagePath(page: any) {

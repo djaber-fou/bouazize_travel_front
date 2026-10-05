@@ -60,7 +60,6 @@
 </template>
 
 <script setup>
-import { NuxtImg, UAvatar } from '#components';
 import OrderForm from '~/components/modals/OrderForm.vue'
 import { useAuthStore } from '#imports'
 

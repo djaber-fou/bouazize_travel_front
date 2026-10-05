@@ -98,15 +98,6 @@
                                     </nuxt-link>
 
                                     <nuxt-link 
-                                        to="/admin/hotels/mygo" 
-                                        @click="showAdminMenu = false"
-                                        class="flex items-center gap-2.5 px-3 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-primary/10 hover:text-primary rounded-xl transition-colors cursor-pointer"
-                                    >
-                                        <UIcon name="i-heroicons-building-office-2" class="w-4 h-4 text-primary" />
-                                        <span>Passerelle MyGO</span>
-                                    </nuxt-link>
-
-                                    <nuxt-link 
                                         to="/" 
                                         target="_blank"
                                         @click="showAdminMenu = false"
@@ -212,7 +203,7 @@ const currentPageTitle = computed(() => {
     if (path.includes('/v1o2y3a4o')) return 'Voyage Organisé - Commandes';
     if (path.includes('/s3t4t5i6n')) return 'Paramètres CCP';
     if (path.includes('/c2c3p4p5')) return 'Paiements CCP';
-    if (path.includes('/hotels') || path.includes('/mygo')) return 'Hôtellerie MyGO';
+    if (path.includes('/h0t1e2l3s') || path.includes('/admin/hotels')) return 'Hôtels (Netstorming)';
     return 'Tableau de bord';
 });
 

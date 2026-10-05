@@ -28,33 +28,35 @@
                 <div class="flex items-end gap-3 flex-wrap">
                     <UFormField label="Valeur de la marge" class="flex-1 min-w-[140px]">
                         <UInput
-                            :trailing-icon="margins[service.key].type === 'percentage' ? 'i-material-symbols-percent' : null"
-                            :placeholder="margins[service.key].type === 'percentage' ? 'Ex: 15' : 'Ex: 500.00'"
+                            :trailing-icon="getType(service.key) === 'percentage' ? 'i-material-symbols-percent' : null"
+                            :placeholder="getType(service.key) === 'percentage' ? 'Ex: 10' : 'Ex: 500'"
                             v-model="margins[service.key].value"
                             type="number"
                             min="0"
+                            step="any"
                             class="w-full"
                             size="lg"
                         >
-                            <template v-if="margins[service.key].type === 'price'" #trailing>
+                            <template v-if="getType(service.key) === 'price'" #trailing>
                                 <div class="text-xs text-muted tabular-nums font-semibold px-1">DZD</div>
                             </template>
                         </UInput>
                     </UFormField>
-                    <UFormField label="Type" class="w-40">
+                    <UFormField label="Type" class="w-44">
                         <USelect 
                             v-model="margins[service.key].type" 
                             :items="types" 
+                            value-key="value"
                             class="w-full"
                             size="lg"
-                            @change="margins[service.key].value = null"
+                            @update:model-value="onTypeChange(service.key)"
                         />
                     </UFormField>
 
                     <!-- Live preview -->
-                    <div v-if="margins[service.key].value" class="text-xs text-slate-500 dark:text-slate-400 self-end pb-2 font-medium">
-                        <span v-if="margins[service.key].type === 'percentage'">
-                            → +{{ margins[service.key].value }}% sur le prix
+                    <div v-if="margins[service.key].value !== null && margins[service.key].value !== ''" class="text-xs text-slate-500 dark:text-slate-400 self-end pb-2 font-medium">
+                        <span v-if="getType(service.key) === 'percentage'">
+                            → +{{ margins[service.key].value }}% sur le prix NET
                         </span>
                         <span v-else>
                             → +{{ Number(margins[service.key].value).toLocaleString('fr-DZ') }} DZD fixe
@@ -80,7 +82,7 @@
                 <Transition name="fade">
                     <span v-if="saved" class="text-sm text-green-600 dark:text-green-400 font-semibold flex items-center gap-1.5">
                         <UIcon name="i-heroicons-check-circle" class="w-4 h-4"/>
-                        Marges sauvegardées !
+                        Marges sauvegardées avec succès !
                     </span>
                 </Transition>
             </div>
@@ -101,23 +103,35 @@ const profileGetUrl = computed(() => isAdmin.value ? '/admin/profile' : '/client
 const markupPutUrl = computed(() => isAdmin.value ? '/admin/profile/set-markup' : '/client/profile/set-markup')
 
 const services = [
-    { key: 'hotel',  label: 'Hôtellerie',        icon: 'i-heroicons-building-office' },
     { key: 'voyage', label: 'Voyages Organisés',  icon: 'i-heroicons-globe-americas' },
     { key: 'omra',   label: 'Omra',               icon: 'i-heroicons-moon' },
     { key: 'visa',   label: 'Visa',               icon: 'i-heroicons-identification' },
+    { key: 'hotel',  label: 'Hôtels',             icon: 'i-heroicons-building-office-2' },
 ]
 
-const types = ref([
+const types = [
     { label: "Pourcentage (%)", value: "percentage" },
     { label: "Prix fixe (DZD)", value: "price" },
-])
+]
 
 const margins = ref({
-    hotel:  { value: null, type: 'percentage' },
     voyage: { value: null, type: 'percentage' },
     omra:   { value: null, type: 'percentage' },
     visa:   { value: null, type: 'percentage' },
+    hotel:  { value: null, type: 'percentage' },
 })
+
+const getType = (key) => {
+    const raw = margins.value[key]?.type
+    if (typeof raw === 'object' && raw?.value) return raw.value
+    return raw === 'price' ? 'price' : 'percentage'
+}
+
+const onTypeChange = (key) => {
+    // Ensure string value
+    const cur = getType(key)
+    margins.value[key].type = cur
+}
 
 onMounted(() => {
     loadMargins()
@@ -127,29 +141,27 @@ const loadMargins = async () => {
     loadingMargins.value = true
     try {
         const response = await sendApi(profileGetUrl.value, null, 'GET')
-        // The profile response can have margins nested or at root
-        const m = response?.data?.margins || response?.margins || response?.data || response
+        const data = response?.data || response
+        const m = data?.margins || data
 
-        for (const key of ['hotel', 'voyage', 'omra', 'visa']) {
-            if (m?.[key]) {
-                margins.value[key].type = m[key].type || 'percentage'
-                // Server stores percentages as decimals (0.15 = 15%), display as whole number
-                if (m[key].type === 'percentage' || !m[key].type) {
-                    margins.value[key].value = m[key].margin ? (m[key].margin * 100).toFixed(2).replace(/\.00$/, '') : null
+        for (const key of ['voyage', 'omra', 'visa', 'hotel']) {
+            const item = m?.[key] || data?.margins?.[key]
+            const rawType = item?.type || data?.[`markup_type_${key}`] || 'percentage'
+            const cleanType = typeof rawType === 'object' && rawType?.value ? rawType.value : rawType
+            margins.value[key].type = cleanType === 'price' ? 'price' : 'percentage'
+
+            const rawVal = item?.margin ?? data?.[`markup_${key}`]
+            if (rawVal !== null && rawVal !== undefined && rawVal !== '') {
+                const num = parseFloat(rawVal)
+                if (cleanType === 'percentage') {
+                    // If stored as decimal (0.10 = 10%), display as 10. If already > 1 (e.g. 10), display as 10.
+                    const displayPct = num <= 1.0 && num > 0 ? (num * 100) : num
+                    margins.value[key].value = displayPct ? Number(displayPct.toFixed(2)).toString() : null
                 } else {
-                    margins.value[key].value = m[key].margin || null
+                    margins.value[key].value = num ? Number(num.toFixed(2)).toString() : null
                 }
-            }
-            // Also try flat field names (markup_hotel, markup_type_hotel)
-            const flatVal = m?.[`markup_${key}`]
-            const flatType = m?.[`markup_type_${key}`]
-            if (flatVal !== undefined || flatType !== undefined) {
-                margins.value[key].type = flatType || 'percentage'
-                if (margins.value[key].type === 'percentage') {
-                    margins.value[key].value = flatVal ? (flatVal * 100).toFixed(2).replace(/\.00$/, '') : null
-                } else {
-                    margins.value[key].value = flatVal || null
-                }
+            } else {
+                margins.value[key].value = null
             }
         }
     } catch (err) {
@@ -165,27 +177,35 @@ const updateAllMargins = async () => {
     saved.value = false
     try {
         const payload = {}
-        for (const key of ['hotel', 'voyage', 'omra', 'visa']) {
+        for (const key of ['voyage', 'omra', 'visa', 'hotel']) {
             const m = margins.value[key]
-            payload[`markup_type_${key}`] = m.type
-            if (m.type === 'percentage') {
-                // Convert display value (15) back to decimal (0.15) for server
-                payload[`markup_${key}`] = m.value ? parseFloat(m.value) / 100 : null
+            const typeVal = getType(key)
+            payload[`markup_type_${key}`] = typeVal
+
+            if (m.value !== null && m.value !== '' && !isNaN(m.value)) {
+                const val = parseFloat(m.value)
+                if (typeVal === 'percentage') {
+                    // Convert display percentage (e.g. 10) to decimal (0.10) for database
+                    payload[`markup_${key}`] = val / 100
+                } else {
+                    // Fixed DZD price
+                    payload[`markup_${key}`] = val
+                }
             } else {
-                payload[`markup_${key}`] = m.value ? parseFloat(m.value) : null
+                payload[`markup_${key}`] = null
             }
         }
         
         await sendApi(markupPutUrl.value, payload, 'PUT')
         saved.value = true
 
-        // ✅ CRITICAL: Refresh authStore.User so businessMarkup computed updates immediately
-        // Without this, hotel prices won't reflect the new margin until the user logs out/in
         await authStore.refreshUser()
+
+        // Reload to ensure full two-way sync
+        await loadMargins()
 
         setTimeout(() => { saved.value = false }, 4000)
     } catch (err) {
-        // api.js already shows error toast
         console.error('Margin update error:', err)
     } finally {
         saving.value = false

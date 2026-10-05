@@ -337,8 +337,8 @@ const paymentSubmittedSuccess = ref(false)
 const isOrderPaid = ref(route.query.status === 'paid')
 const cibReceiptNumber = ref(route.query.receipt || null)
 
-const activeMethod = ref('cib') // 'cib' (default modern) or 'ccp'
-const isCibModalOpen = ref(false)
+const activeMethod = ref(route.query.method === 'baridimob' || route.query.method === 'ccp' ? 'ccp' : 'cib')
+const isCibModalOpen = ref(route.query.auto_open === '1' || (route.query.method === 'cib' && !isOrderPaid.value))
 
 const isSubmitting = ref(false)
 const fileSelected = ref(null)

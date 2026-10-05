@@ -94,11 +94,7 @@ const schema = z.object({
     }).email('Email non valide'),
     password: z.string({
         required_error: 'Mot de passe est obligatoire'
-    })
-    .min(8, 'Doit contenir au moins 8 caractères').regex(
-      passwordRegex,
-      'Le mot de passe doit contenir une majuscule et un caractère spécial'
-    ),
+    }).min(1, 'Mot de passe est obligatoire'),
 })
 
 const state = ref({
