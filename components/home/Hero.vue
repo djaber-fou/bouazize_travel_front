@@ -217,37 +217,48 @@
                         <!-- Autocomplete Suggestions Dropdown -->
                         <div
                             v-if="showSuggestions && (hotelStore.destinationSuggestions.length || destinationInput.length >= 2)"
-                            class="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
+                            class="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
                         >
-                            <div
-                                v-for="dest in hotelStore.destinationSuggestions"
-                                :key="dest.hotel_id ? ('h-' + dest.hotel_id) : (dest.code || dest.ns_code)"
-                                class="px-4 py-2.5 hover:bg-primary/10 transition-colors cursor-pointer flex items-center justify-between"
-                                @click="chooseDestination(dest)"
-                            >
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <UIcon
-                                        :name="dest.type === 'hotel' ? 'i-heroicons-building-office-2' : 'i-heroicons-map-pin'"
-                                        class="w-4 h-4 shrink-0"
-                                        :class="dest.type === 'hotel' ? 'text-amber-500' : 'text-primary'"
-                                    />
-                                    <div class="truncate">
-                                        <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
-                                            {{ dest.name }}
-                                        </p>
-                                        <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
-                                            <span v-if="dest.type === 'hotel'" class="px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold rounded text-[10px]">Hôtel</span>
-                                            <span>{{ dest.type === 'hotel' && dest.city_name ? (dest.city_name + ', ') : '' }}{{ dest.country_name || dest.country_code }}</span>
-                                            <span v-if="dest.stars" class="text-amber-400 font-bold">★ {{ dest.stars }}</span>
-                                        </p>
+                            <div v-if="groupedSuggestions.length">
+                                <div v-for="group in groupedSuggestions" :key="group.title" class="pb-1">
+                                    <div class="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-50 dark:bg-slate-800/80 sticky top-0 z-10 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800">
+                                        <UIcon :name="group.icon" class="w-3.5 h-3.5" :class="group.iconColor" />
+                                        <span>{{ group.title }}</span>
+                                    </div>
+                                    <div
+                                        v-for="dest in group.items"
+                                        :key="dest.hotel_id ? ('h-' + dest.hotel_id) : ('d-' + (dest.code || dest.ns_code) + '-' + dest.name)"
+                                        class="px-4 py-2.5 hover:bg-primary/10 transition-colors cursor-pointer flex items-center justify-between"
+                                        @click="chooseDestination(dest)"
+                                    >
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <UIcon
+                                                :name="dest.type === 'hotel' ? 'i-heroicons-building-office-2' : (dest.type === 'country' ? 'i-heroicons-globe-alt' : 'i-heroicons-map-pin')"
+                                                class="w-4 h-4 shrink-0"
+                                                :class="dest.type === 'hotel' ? 'text-amber-500' : (dest.type === 'country' ? 'text-blue-500' : 'text-primary')"
+                                            />
+                                            <div class="truncate">
+                                                <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                                                    {{ dest.name }}
+                                                </p>
+                                                <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+                                                    <span v-if="dest.type === 'hotel'" class="px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold rounded text-[10px]">Hôtel</span>
+                                                    <span>{{ dest.type === 'hotel' && dest.city_name ? (dest.city_name + ', ') : '' }}{{ dest.country_name || dest.country_code }}</span>
+                                                    <span v-if="dest.stars" class="text-amber-400 font-bold">★ {{ dest.stars }}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[11px] font-mono font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded shrink-0 ml-2">
+                                            {{ dest.type === 'hotel' ? 'Voir l\'offre' : (dest.hotel_count > 1 ? Number(dest.hotel_count).toLocaleString('fr-FR') + ' hôtels' : (dest.code || dest.ns_code)) }}
+                                        </span>
                                     </div>
                                 </div>
-                                <span class="text-[11px] font-mono font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded shrink-0 ml-2">
-                                    {{ dest.type === 'hotel' ? 'Voir l\'offre' : (dest.hotel_count > 1 ? Number(dest.hotel_count).toLocaleString() + ' hôtels' : (dest.code || dest.ns_code)) }}
-                                </span>
                             </div>
-                            <div v-if="!hotelStore.destinationSuggestions.length" class="p-3 text-center text-xs text-slate-400">
+                            <div v-else-if="hotelStore.loadingDestinations" class="p-3 text-center text-xs text-slate-400">
                                 Recherche en cours...
+                            </div>
+                            <div v-else class="p-4 text-center text-xs text-slate-400">
+                                Aucune destination ou hôtel trouvé pour "{{ destinationInput }}"
                             </div>
                         </div>
                     </div>
@@ -378,13 +389,35 @@ const adults = ref(2)
 const children = ref(0)
 
 const popularChips = [
-    { name: 'La Mecque', code: 'MAC1' },
-    { name: 'Médine', code: 'MAD2' },
+    { name: 'Moscou', code: 'MOW' },
+    { name: 'Bali', code: 'KUTB' },
     { name: 'Istanbul', code: 'IST' },
-    { name: 'Tunis', code: 'TUN' },
     { name: 'Dubaï', code: 'DXB' },
     { name: 'Paris', code: 'PAR' },
+    { name: 'La Mecque', code: 'MAK' },
 ]
+
+const groupedSuggestions = computed(() => {
+    const list = hotelStore.destinationSuggestions || []
+    if (!list.length) return []
+
+    const cities = list.filter(d => d.type === 'city')
+    const hotels = list.filter(d => d.type === 'hotel')
+    const countries = list.filter(d => d.type === 'country')
+    const groups = []
+
+    const firstType = list[0]?.type
+    if (firstType === 'hotel') {
+        if (hotels.length) groups.push({ title: 'HÔTELS & ÉTABLISSEMENTS', icon: 'i-heroicons-building-office-2', iconColor: 'text-amber-500', items: hotels })
+        if (cities.length) groups.push({ title: 'DESTINATIONS & VILLES', icon: 'i-heroicons-map-pin', iconColor: 'text-primary', items: cities })
+        if (countries.length) groups.push({ title: 'PAYS', icon: 'i-heroicons-globe-alt', iconColor: 'text-blue-500', items: countries })
+    } else {
+        if (cities.length) groups.push({ title: 'DESTINATIONS & VILLES', icon: 'i-heroicons-map-pin', iconColor: 'text-primary', items: cities })
+        if (hotels.length) groups.push({ title: 'HÔTELS & ÉTABLISSEMENTS', icon: 'i-heroicons-building-office-2', iconColor: 'text-amber-500', items: hotels })
+        if (countries.length) groups.push({ title: 'PAYS', icon: 'i-heroicons-globe-alt', iconColor: 'text-blue-500', items: countries })
+    }
+    return groups
+})
 
 let destDebounce = null
 function onDestinationInput() {
@@ -417,7 +450,7 @@ function chooseDestination(dest) {
         selectedHotelId.value = null
         selectedHotelName.value = ''
     }
-    destinationCode.value = dest.ns_code || dest.code
+    destinationCode.value = dest.ns_code || dest.code || dest.city_code || ''
     destinationName.value = dest.name || dest.label || ''
     showSuggestions.value = false
     // Pre-warm Netstorming cache for this destination so the first search is fast

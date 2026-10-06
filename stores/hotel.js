@@ -174,7 +174,7 @@ export const useHotelStore = defineStore('hotel', {
     },
 
     selectDestination(destination) {
-      const code = destination.code || destination.ns_code || '';
+      const code = destination.code || destination.ns_code || destination.city_code || '';
       const name = destination.type === 'hotel'
         ? destination.name + ' — ' + destination.city_name
         : destination.name;

@@ -94,39 +94,55 @@
 
               <!-- Autocomplete suggestions dropdown -->
               <div v-if="showSuggestions && destinationSuggestions.length" class="dest-dropdown">
-                <div
-                  v-for="dest in destinationSuggestions"
-                  :key="dest.type === 'hotel' ? ('h-' + dest.hotel_id) : ('c-' + (dest.code || dest.ns_code) + '-' + dest.name)"
-                  class="dest-item"
-                  :class="{ 'dest-item-hotel': dest.type === 'hotel', 'dest-item-city': dest.type === 'city' }"
-                  @mousedown.prevent="selectDestination(dest)"
-                >
-                  <div class="dest-info">
-                    <!-- City icon -->
-                    <svg v-if="dest.type !== 'hotel'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="pin-ico">
+                <div v-for="group in groupedSuggestions" :key="group.title" class="dest-group">
+                  <div class="dest-group-header">
+                    <svg v-if="group.type === 'city'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-portal-gold">
                       <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd"/>
                     </svg>
-                    <!-- Hotel icon -->
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="pin-ico pin-ico-hotel">
+                    <svg v-else-if="group.type === 'hotel'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3.5 h-3.5 text-amber-500">
                       <path d="M2.25 19.5h19.5M3.75 6.75h.75M3.75 10.5h.75M3.75 14.25h.75M9 6.75h1.5M9 10.5h1.5M9 14.25h1.5M15 6.75h.75M15 10.5h.75M15 14.25h.75M3 21V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25V21" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
                     </svg>
-                    <div>
-                      <div class="dest-title">{{ dest.name }}</div>
-                      <div class="dest-subtitle">
-                        <span v-if="dest.type === 'hotel'" class="dest-type-badge">Hôtel</span>
-                        {{ dest.type === 'hotel' ? dest.city_name + ', ' : '' }}{{ dest.country_name || dest.country_code }}
-                        <span v-if="dest.type === 'hotel' && dest.stars" class="dest-stars">
-                          <svg v-for="n in dest.stars" :key="n" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dest-star-icon"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" /></svg>
-                        </span>
-
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-blue-500">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 7.647a6.015 6.015 0 012.302-2.302l1.015 1.015a.75.75 0 001.06 0l1.22-1.22a6.006 6.006 0 013.914 1.157l-.872.872a.75.75 0 00.22 1.255l1.52.443a6.002 6.002 0 01-.84 4.887l-.95-.95a.75.75 0 00-1.06 0l-1.06 1.06a.75.75 0 000 1.06l.354.354A5.986 5.986 0 0110 16a5.975 5.975 0 01-4.243-1.757l.89-.89a.75.75 0 00-.53-1.28H4.66a5.98 5.98 0 01-.328-4.426z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>{{ group.title }}</span>
+                  </div>
+                  <div
+                    v-for="dest in group.items"
+                    :key="dest.type === 'hotel' ? ('h-' + dest.hotel_id) : ('c-' + (dest.code || dest.ns_code) + '-' + dest.name)"
+                    class="dest-item"
+                    :class="{ 'dest-item-hotel': dest.type === 'hotel', 'dest-item-city': dest.type === 'city' }"
+                    @mousedown.prevent="selectDestination(dest)"
+                  >
+                    <div class="dest-info">
+                      <!-- City icon -->
+                      <svg v-if="dest.type !== 'hotel'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="pin-ico">
+                        <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd"/>
+                      </svg>
+                      <!-- Hotel icon -->
+                      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="pin-ico pin-ico-hotel">
+                        <path d="M2.25 19.5h19.5M3.75 6.75h.75M3.75 10.5h.75M3.75 14.25h.75M9 6.75h1.5M9 10.5h1.5M9 14.25h1.5M15 6.75h.75M15 10.5h.75M15 14.25h.75M3 21V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25V21" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                      </svg>
+                      <div>
+                        <div class="dest-title">{{ dest.name }}</div>
+                        <div class="dest-subtitle">
+                          <span v-if="dest.type === 'hotel'" class="dest-type-badge">Hôtel</span>
+                          {{ dest.type === 'hotel' ? dest.city_name + ', ' : '' }}{{ dest.country_name || dest.country_code }}
+                          <span v-if="dest.type === 'hotel' && dest.stars" class="dest-stars">
+                            <svg v-for="n in dest.stars" :key="n" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dest-star-icon"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" /></svg>
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="dest-meta">
-                    <span v-if="dest.type !== 'hotel' && dest.hotel_count > 1" class="dest-hotel-count">
-                      {{ formatCount(dest.hotel_count) }} hôtels
-                    </span>
-                    <span class="dest-code">{{ dest.code || dest.ns_code }}</span>
+                    <div class="dest-meta">
+                      <span v-if="dest.type === 'hotel'" class="dest-hotel-view-badge">
+                        Voir l'offre
+                      </span>
+                      <span v-else-if="dest.hotel_count > 1" class="dest-hotel-count">
+                        {{ formatCount(dest.hotel_count) }} hôtels
+                      </span>
+                      <span class="dest-code">{{ dest.code || dest.ns_code }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -838,20 +854,45 @@ function updateChildAges(idx) {
 
 // ── Popular / Recommended destinations shown when input is focused empty ──
 const popularDestinations = [
+  { type: 'city', name: 'MOSCOU', label: 'MOSCOU, Russie', code: 'MOW', country_code: 'RU', country_name: 'Russie', hotel_count: 1656, hotel_id: null },
+  { type: 'city', name: 'BALI', label: 'BALI, Indonésie', code: 'KUTB', country_code: 'IA', country_name: 'Indonésie', hotel_count: 7737, hotel_id: null },
   { type: 'city', name: 'PARIS', label: 'PARIS, France', code: 'PAR', country_code: 'F', country_name: 'France', hotel_count: 3554, hotel_id: null },
   { type: 'city', name: 'LONDON', label: 'LONDON, United Kingdom', code: 'LON', country_code: 'GB', country_name: 'United Kingdom', hotel_count: 5263, hotel_id: null },
-  { type: 'city', name: 'NEW YORK', label: 'NEW YORK (NY), United States', code: 'NYC', country_code: 'US', country_name: 'United States', hotel_count: 1267, hotel_id: null },
   { type: 'city', name: 'ISTANBUL', label: 'ISTANBUL, Turquie', code: 'IST', country_code: 'TR', country_name: 'Turquie', hotel_count: 5065, hotel_id: null },
   { type: 'city', name: 'DUBAI', label: 'DUBAI, Émirats Arabes Unis', code: 'DXB', country_code: 'AE', country_name: 'Émirats Arabes Unis', hotel_count: 1890, hotel_id: null },
-  { type: 'city', name: 'MADRID', label: 'MADRID, Espagne', code: 'MAD', country_code: 'E', country_name: 'Espagne', hotel_count: 1938, hotel_id: null },
-  { type: 'city', name: 'BARCELONA', label: 'BARCELONE, Espagne', code: 'BCN', country_code: 'E', country_name: 'Espagne', hotel_count: 2402, hotel_id: null },
+  { type: 'city', name: 'TOKYO', label: 'TOKYO, Japon', code: 'TYO', country_code: 'J', country_name: 'Japon', hotel_count: 3048, hotel_id: null },
+  { type: 'city', name: 'BANGKOK', label: 'BANGKOK, Thaïlande', code: 'BKK', country_code: 'TH', country_name: 'Thaïlande', hotel_count: 4846, hotel_id: null },
+  { type: 'city', name: 'NEW YORK', label: 'NEW YORK (NY), United States', code: 'NYC', country_code: 'US', country_name: 'United States', hotel_count: 1267, hotel_id: null },
   { type: 'city', name: 'ROME', label: 'ROME, Italie', code: 'ROM', country_code: 'I', country_name: 'Italie', hotel_count: 1200, hotel_id: null },
   { type: 'city', name: 'ALGER', label: 'ALGER, Algérie', code: 'AXAL', country_code: 'DZ', country_name: 'Algérie', hotel_count: 133, hotel_id: null },
   { type: 'city', name: 'ORAN', label: 'ORAN, Algérie', code: 'ORNA', country_code: 'DZ', country_name: 'Algérie', hotel_count: 85, hotel_id: null },
-  { type: 'city', name: 'TUNIS', label: 'TUNIS, Tunisie', code: 'TUN', country_code: 'TN', country_name: 'Tunisie', hotel_count: 74, hotel_id: null },
+  { type: 'hotel', name: 'HILTON BALI RESORT', label: 'HILTON BALI RESORT (Bali)', code: 'KUTB', hotel_id: '43970', city_name: 'Bali', stars: 5, country_name: 'Indonésie' },
+  { type: 'hotel', name: 'THE RITZ-CARLTON, MOSCOW', label: 'THE RITZ-CARLTON, MOSCOW (Moscou)', code: 'MOW', hotel_id: '38192', city_name: 'Moscou', stars: 5, country_name: 'Russie' },
   { type: 'hotel', name: 'FOUR SEASONS HOTEL GEORGE V PARIS', label: 'FOUR SEASONS HOTEL GEORGE V PARIS (Paris)', code: 'PAR', hotel_id: '11595', city_name: 'Paris', stars: 5, country_name: 'France' },
   { type: 'hotel', name: 'HOTEL EL AURASSI', label: 'HOTEL EL AURASSI (Alger)', code: 'AXAL', hotel_id: '852001', city_name: 'Alger', stars: 5, country_name: 'Algérie' },
 ];
+
+const groupedSuggestions = computed(() => {
+  const list = destinationSuggestions.value || [];
+  if (!list.length) return [];
+
+  const cities = list.filter(d => d.type === 'city');
+  const hotels = list.filter(d => d.type === 'hotel');
+  const countries = list.filter(d => d.type === 'country');
+  const groups = [];
+
+  const firstType = list[0]?.type;
+  if (firstType === 'hotel') {
+    if (hotels.length) groups.push({ type: 'hotel', title: 'Hôtels & Établissements', items: hotels });
+    if (cities.length) groups.push({ type: 'city', title: 'Destinations & Villes', items: cities });
+    if (countries.length) groups.push({ type: 'country', title: 'Pays', items: countries });
+  } else {
+    if (cities.length) groups.push({ type: 'city', title: 'Destinations & Villes', items: cities });
+    if (hotels.length) groups.push({ type: 'hotel', title: 'Hôtels & Établissements', items: hotels });
+    if (countries.length) groups.push({ type: 'country', title: 'Pays', items: countries });
+  }
+  return groups;
+});
 
 function onFocusDest() {
   if (destinationQuery.value.trim().length >= 2) {
@@ -1992,6 +2033,30 @@ useHead({
   margin-right: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+.dest-group-header {
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--portal-sub-color);
+  background: rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--portal-card-border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.dest-hotel-view-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--portal-gold);
+  padding: 2px 8px;
+  border-radius: 2px;
 }
 .dest-stars {
   display: inline-flex;
