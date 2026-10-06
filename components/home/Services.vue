@@ -12,7 +12,7 @@
             <div class="relative px-2">
                 <swiper-container ref="containerRef" class="pb-10">
                     <swiper-slide v-for="(country, index) in countries" :key="index" class="py-4">
-                        <nuxt-link :to="`services/visa/${country.id}`" class="block group relative overflow-hidden bg-gray-50 aspect-[3/4] border border-gray-100 hover:shadow-lg transition-all duration-300">
+                        <nuxt-link :to="`/services/visa/${country.id}`" class="block group relative overflow-hidden bg-gray-50 aspect-[3/4] border border-gray-100 hover:shadow-lg transition-all duration-300">
                             <!-- Image -->
                             <img :src="country.landmark ?? '/images/illustrations/landmark.png'" class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" alt="Landmark" />
                             
