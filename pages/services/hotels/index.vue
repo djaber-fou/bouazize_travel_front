@@ -983,6 +983,8 @@ async function triggerSearch() {
   if (hotelStore.searchForm.children_ages?.length) {
     query.children_ages = hotelStore.searchForm.children_ages.join(',');
   }
+  if (hotelStore.searchForm.hotel_id) query.hotel_id = hotelStore.searchForm.hotel_id;
+  if (hotelStore.searchForm.hotel_name) query.hotel_name = hotelStore.searchForm.hotel_name;
   if (advancedOptions.value.stars) query.stars = advancedOptions.value.stars;
   if (advancedOptions.value.currency) query.currency = advancedOptions.value.currency;
   if (geocodage.value) query.geocodage = geocodage.value;

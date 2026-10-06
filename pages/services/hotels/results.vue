@@ -187,6 +187,28 @@
           <!-- Desktop Sidebar Filters -->
           <aside class="sidebar-filters">
             <div class="filter-box">
+              <div class="filter-head">Nom de l'hôtel</div>
+              <div class="hotel-search-input-wrap">
+                <input
+                  id="filter-hotel-name"
+                  v-model="hotelStore.filters.searchName"
+                  type="text"
+                  class="form-ctrl"
+                  placeholder="Rechercher par nom..."
+                />
+                <button
+                  v-if="hotelStore.filters.searchName"
+                  type="button"
+                  class="clear-hotel-name-btn"
+                  title="Effacer"
+                  @click="hotelStore.filters.searchName = ''"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+
+            <div class="filter-box">
               <div class="filter-head">Catégorie (Étoiles)</div>
               <div class="stars-filter-list">
                 <button
@@ -256,6 +278,27 @@
                   </div>
 
                   <div class="mobile-filter-drawer-body">
+                    <div class="filter-box">
+                      <div class="filter-head">Nom de l'hôtel</div>
+                      <div class="hotel-search-input-wrap">
+                        <input
+                          v-model="hotelStore.filters.searchName"
+                          type="text"
+                          class="form-ctrl"
+                          placeholder="Rechercher par nom..."
+                        />
+                        <button
+                          v-if="hotelStore.filters.searchName"
+                          type="button"
+                          class="clear-hotel-name-btn"
+                          title="Effacer"
+                          @click="hotelStore.filters.searchName = ''"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    </div>
+
                     <div class="filter-box">
                       <div class="filter-head">Catégorie (Étoiles)</div>
                       <div class="stars-filter-list">
@@ -491,6 +534,7 @@ const showMobileFilters   = ref(false);
 
 const activeFiltersCount = computed(() => {
   let count = 0;
+  if (hotelStore.filters?.searchName && hotelStore.filters.searchName.trim()) count++;
   if (hotelStore.filters?.minStars) count++;
   if (hotelStore.filters?.maxPrice) count++;
   if (hotelStore.filters?.mealBasis) count++;
@@ -551,15 +595,16 @@ const currentNights = computed(() => {
 
 function getRouteSearchKey() {
   const q = route.query;
-  const destCode = q.destination_code || hotelStore.searchForm.destination_code || '';
-  const hotelId  = q.hotel_id || hotelStore.searchForm.hotel_id || '';
-  const cIn      = q.check_in || hotelStore.searchForm.check_in || '';
-  const cOut     = q.check_out || hotelStore.searchForm.check_out || '';
-  const adults   = q.adults || hotelStore.searchForm.adults || 2;
-  const children = q.children || hotelStore.searchForm.children || 0;
-  const rooms    = q.rooms || hotelStore.searchForm.rooms || 1;
-  const ages     = q.children_ages || (hotelStore.searchForm.children_ages || []).join(',');
-  return `${destCode}|${hotelId}|${cIn}|${cOut}|${adults}|${children}|${rooms}|${ages}`;
+  const destCode  = q.destination_code || hotelStore.searchForm.destination_code || '';
+  const hotelId   = q.hotel_id || hotelStore.searchForm.hotel_id || '';
+  const hotelName = q.hotel_name || hotelStore.filters.searchName || '';
+  const cIn       = q.check_in || hotelStore.searchForm.check_in || '';
+  const cOut      = q.check_out || hotelStore.searchForm.check_out || '';
+  const adults    = q.adults || hotelStore.searchForm.adults || 2;
+  const children  = q.children || hotelStore.searchForm.children || 0;
+  const rooms     = q.rooms || hotelStore.searchForm.rooms || 1;
+  const ages      = q.children_ages || (hotelStore.searchForm.children_ages || []).join(',');
+  return `${destCode}|${hotelId}|${hotelName}|${cIn}|${cOut}|${adults}|${children}|${rooms}|${ages}`;
 }
 
 // ── Auto-retry state (for cold Netstorming destinations) ─────────────────
@@ -605,6 +650,9 @@ async function executeSearch(isAutoRetry = false) {
   }
   if (q.hotel_id) {
     hotelStore.searchForm.hotel_id = String(q.hotel_id);
+  }
+  if (q.hotel_name) {
+    hotelStore.filters.searchName = String(q.hotel_name);
   }
 
   // Trigger search availability
@@ -676,7 +724,7 @@ watch(
 
 // When filters or sort change, reset pagination to page 1
 watch(
-  () => [hotelStore.filters.maxPrice, hotelStore.filters.minStars, hotelStore.filters.mealBasis, hotelStore.sortBy],
+  () => [hotelStore.filters.searchName, hotelStore.filters.maxPrice, hotelStore.filters.minStars, hotelStore.filters.mealBasis, hotelStore.sortBy],
   () => {
     hotelStore.currentPage = 1;
     hotelStore.displayedCount = 20;
@@ -1549,6 +1597,31 @@ useHead({
   padding: 8px 10px;
   width: 100%;
   box-sizing: border-box;
+}
+.hotel-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.hotel-search-input-wrap .form-ctrl {
+  padding-right: 28px;
+}
+.clear-hotel-name-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--portal-label-color);
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+.clear-hotel-name-btn:hover {
+  color: var(--portal-gold);
 }
 .reset-filters-link {
   background: transparent;

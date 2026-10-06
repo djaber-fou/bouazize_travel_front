@@ -221,19 +221,29 @@
                         >
                             <div
                                 v-for="dest in hotelStore.destinationSuggestions"
-                                :key="dest.code || dest.ns_code"
+                                :key="dest.hotel_id ? ('h-' + dest.hotel_id) : (dest.code || dest.ns_code)"
                                 class="px-4 py-2.5 hover:bg-primary/10 transition-colors cursor-pointer flex items-center justify-between"
                                 @click="chooseDestination(dest)"
                             >
-                                <div class="flex items-center gap-2.5">
-                                    <UIcon name="i-heroicons-building-office" class="w-4 h-4 text-primary shrink-0" />
-                                    <div>
-                                        <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">{{ dest.name }}</p>
-                                        <p class="text-[11px] text-slate-400">{{ dest.country_name || dest.country_code }}</p>
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <UIcon
+                                        :name="dest.type === 'hotel' ? 'i-heroicons-building-office-2' : 'i-heroicons-map-pin'"
+                                        class="w-4 h-4 shrink-0"
+                                        :class="dest.type === 'hotel' ? 'text-amber-500' : 'text-primary'"
+                                    />
+                                    <div class="truncate">
+                                        <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                                            {{ dest.name }}
+                                        </p>
+                                        <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+                                            <span v-if="dest.type === 'hotel'" class="px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold rounded text-[10px]">Hôtel</span>
+                                            <span>{{ dest.type === 'hotel' && dest.city_name ? (dest.city_name + ', ') : '' }}{{ dest.country_name || dest.country_code }}</span>
+                                            <span v-if="dest.stars" class="text-amber-400 font-bold">★ {{ dest.stars }}</span>
+                                        </p>
                                     </div>
                                 </div>
-                                <span class="text-[11px] font-mono font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
-                                    {{ dest.hotel_count > 1 ? Number(dest.hotel_count).toLocaleString() + ' hôtels' : (dest.code || dest.ns_code) }}
+                                <span class="text-[11px] font-mono font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded shrink-0 ml-2">
+                                    {{ dest.type === 'hotel' ? 'Voir l\'offre' : (dest.hotel_count > 1 ? Number(dest.hotel_count).toLocaleString() + ' hôtels' : (dest.code || dest.ns_code)) }}
                                 </span>
                             </div>
                             <div v-if="!hotelStore.destinationSuggestions.length" class="p-3 text-center text-xs text-slate-400">
@@ -353,6 +363,8 @@ const isNavigating = ref(false)
 const destinationInput = ref('')
 const destinationCode = ref('')
 const destinationName = ref('')
+const selectedHotelId = ref(null)
+const selectedHotelName = ref('')
 const showSuggestions = ref(false)
 
 const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
@@ -378,6 +390,8 @@ let destDebounce = null
 function onDestinationInput() {
     destinationCode.value = ''
     destinationName.value = ''
+    selectedHotelId.value = null
+    selectedHotelName.value = ''
     showSuggestions.value = true
     clearTimeout(destDebounce)
     destDebounce = setTimeout(() => {
@@ -394,12 +408,20 @@ function onDestinationFocus() {
 }
 
 function chooseDestination(dest) {
-    destinationInput.value = dest.name || dest.label || ''
+    if (dest.type === 'hotel') {
+        destinationInput.value = dest.name + (dest.city_name ? (' — ' + dest.city_name) : '')
+        selectedHotelId.value = dest.hotel_id || null
+        selectedHotelName.value = dest.name || ''
+    } else {
+        destinationInput.value = dest.name || dest.label || ''
+        selectedHotelId.value = null
+        selectedHotelName.value = ''
+    }
     destinationCode.value = dest.ns_code || dest.code
     destinationName.value = dest.name || dest.label || ''
     showSuggestions.value = false
     // Pre-warm Netstorming cache for this destination so the first search is fast
-    if (destinationCode.value) {
+    if (destinationCode.value && dest.type !== 'hotel') {
         warmupDestination(destinationCode.value, checkIn.value, checkOut.value, adults.value)
     }
 }
@@ -408,6 +430,8 @@ function selectQuickChip(chip) {
     destinationInput.value = chip.name
     destinationCode.value = chip.code
     destinationName.value = chip.name
+    selectedHotelId.value = null
+    selectedHotelName.value = ''
     showSuggestions.value = false
     // Pre-warm Netstorming cache for popular destinations
     warmupDestination(chip.code, checkIn.value, checkOut.value, adults.value)
@@ -429,6 +453,8 @@ function triggerHotelSearch() {
 
     hotelStore.searchForm.destination_code = destinationCode.value
     hotelStore.searchForm.destination_name = destinationName.value
+    hotelStore.searchForm.hotel_id = selectedHotelId.value || null
+    hotelStore.searchForm.hotel_name = selectedHotelName.value || null
     hotelStore.searchForm.check_in = checkIn.value
     hotelStore.searchForm.check_out = checkOut.value
     hotelStore.searchForm.adults = adults.value
@@ -437,16 +463,24 @@ function triggerHotelSearch() {
     hotelStore.clearSearchResults()
     isNavigating.value = true
 
+    const query = {
+        destination_code: destinationCode.value,
+        destination_name: destinationName.value,
+        check_in: checkIn.value,
+        check_out: checkOut.value,
+        adults: adults.value,
+        children: children.value,
+    }
+    if (selectedHotelId.value) {
+        query.hotel_id = selectedHotelId.value
+    }
+    if (selectedHotelName.value) {
+        query.hotel_name = selectedHotelName.value
+    }
+
     router.push({
         path: '/services/hotels/results',
-        query: {
-            destination_code: destinationCode.value,
-            destination_name: destinationName.value,
-            check_in: checkIn.value,
-            check_out: checkOut.value,
-            adults: adults.value,
-            children: children.value,
-        }
+        query
     }).finally(() => {
         setTimeout(() => { isNavigating.value = false }, 1000)
     })

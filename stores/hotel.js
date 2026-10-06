@@ -30,6 +30,7 @@ export const useHotelStore = defineStore('hotel', {
       destination_code: '',
       destination_name: '',
       hotel_id: null,
+      hotel_name: null,
       check_in: '',
       check_out: '',
       room_type: 'dbl',
@@ -68,6 +69,7 @@ export const useHotelStore = defineStore('hotel', {
       maxPrice: null,
       minStars: null,
       mealBasis: '',
+      searchName: '',
     },
     sortBy: 'price_asc',
     selectedHotel: null,
@@ -92,6 +94,15 @@ export const useHotelStore = defineStore('hotel', {
       let list = state.allHotels.length > 0
         ? [...state.allHotels]
         : [...state.searchResults.hotels];
+
+      if (state.filters.searchName && state.filters.searchName.trim()) {
+        const term = state.filters.searchName.trim().toLowerCase();
+        list = list.filter((h) => {
+          const name = (h.name || h.hotel_name || '').toLowerCase();
+          const city = (h.city || h.hotel_city || '').toLowerCase();
+          return name.includes(term) || city.includes(term);
+        });
+      }
 
       if (state.filters.maxPrice) {
         list = list.filter((h) => (h.lowest_price_dzd || h.final_price_dzd || 0) <= state.filters.maxPrice);
@@ -170,6 +181,10 @@ export const useHotelStore = defineStore('hotel', {
       this.searchForm.destination_code = code;
       this.searchForm.destination_name = name;
       this.searchForm.hotel_id = destination.hotel_id || null;
+      this.searchForm.hotel_name = destination.type === 'hotel' ? destination.name : null;
+      if (destination.type === 'hotel' && destination.name) {
+        this.filters.searchName = destination.name;
+      }
       this.destinationSuggestions = [];
 
       // Fire-and-forget warmup: pre-heat Netstorming cache for this destination
@@ -206,6 +221,7 @@ export const useHotelStore = defineStore('hotel', {
         maxPrice: null,
         minStars: null,
         mealBasis: '',
+        searchName: '',
       };
       this.sortBy = 'price_asc';
       this.currentPage = 1;
