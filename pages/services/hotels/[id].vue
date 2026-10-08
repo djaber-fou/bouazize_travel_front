@@ -694,7 +694,7 @@
         </main>
 
         <!-- ════════════ RIGHT STICKY SIDEBAR ════════════ -->
-        <aside class="hotel-sidebar-col">
+        <aside id="hotel-summary-card" class="hotel-sidebar-col">
           <div class="sticky-summary-card">
             <div class="summary-head">
               <span class="summary-title">Récapitulatif du Séjour</span>
@@ -816,12 +816,47 @@
 
       </div><!-- /hotel-content-grid -->
 
+      <!-- ════════════ MOBILE STICKY BOOKING BAR (PHONE VIEW) ════════════ -->
+      <div v-if="hotel && !hotelStore.bookingConfirmation" class="mobile-sticky-booking-bar">
+        <div class="mobile-bar-info">
+          <span class="mobile-bar-sub">Total séjour · {{ hotelStore.nights }} nuits</span>
+          <div class="mobile-bar-price-row">
+            <span class="mobile-bar-price-amt">{{ formatPrice(currentPrice) }}</span>
+            <span class="mobile-bar-price-cur">DZD</span>
+          </div>
+          <span class="mobile-bar-room truncate">{{ selectedAgreement?.room_type || hotel.room_basis_name || 'Chambre Standard' }}</span>
+        </div>
+
+        <div class="mobile-bar-actions">
+          <button
+            type="button"
+            class="mobile-recap-toggle-btn"
+            @click="scrollToSummary"
+            title="Consulter le récapitulatif complet"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
+            <span>Détails</span>
+          </button>
+
+          <button
+            id="mobile-book-btn"
+            type="button"
+            class="mobile-bar-cta-btn"
+            :class="{ loading: hotelStore.loadingEvaluation }"
+            @click="openPassengerForm"
+          >
+            <span v-if="hotelStore.loadingEvaluation" class="btn-spinner"></span>
+            <span>SAISIR COORDONNÉES</span>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useHotelStore } from '~/stores/hotel';
 import { useAuthStore } from '~/stores/auth';
@@ -1203,6 +1238,15 @@ function buildPassengers() {
   }
 }
 
+function scrollToSummary() {
+  if (typeof document !== 'undefined') {
+    const el = document.getElementById('hotel-summary-card') || document.querySelector('.sticky-summary-card');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+}
+
 function chooseAgreement(ag) {
   if (selectedAgreement.value?.agreement_id === ag.agreement_id) {
     // If clicking on already selected offer ("Offre sélectionnée"), open traveler form
@@ -1214,11 +1258,27 @@ function chooseAgreement(ag) {
   evaluation.value = null;
   // Automatically evaluate this agreement for instant confirmation
   evaluateCurrentOffer();
+
+  // On mobile screens, smoothly scroll to summary so the traveler sees all confirmed details
+  if (typeof window !== 'undefined' && window.innerWidth <= 900) {
+    nextTick(() => {
+      scrollToSummary();
+    });
+  }
 }
 
 function openPassengerForm() {
+  if (!paxList.value || !paxList.value.length) {
+    buildPassengers();
+  }
   showBookingForm.value = true;
 }
+
+watch(showBookingForm, (val) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = val ? 'hidden' : '';
+  }
+});
 
 async function evaluateCurrentOffer() {
   if (!hotel.value) return;
@@ -3246,5 +3306,221 @@ useHead({
 .pay-desc strong {
   color: var(--dt-text-main);
   font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE STICKY BOOKING BAR (PHONE VIEW)
+══════════════════════════════════════════════════════════════════════ */
+.mobile-sticky-booking-bar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-sticky-booking-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    background: var(--dt-card-bg);
+    border-top: 1.5px solid var(--dt-card-border);
+    padding: 10px 16px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.28);
+    border-radius: 0 !important;
+  }
+
+  .page-container {
+    padding-bottom: 95px !important;
+  }
+
+  .mobile-bar-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .mobile-bar-sub {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--dt-text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.1;
+  }
+
+  .mobile-bar-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .mobile-bar-price-amt {
+    font-size: 19px;
+    font-weight: 900;
+    color: var(--dt-gold, #d2a749);
+    line-height: 1.2;
+  }
+
+  .mobile-bar-price-cur {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--dt-text-sub);
+  }
+
+  .mobile-bar-room {
+    font-size: 10.5px;
+    color: var(--dt-text-main);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .mobile-recap-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 9px 10px;
+    background: var(--dt-box-bg);
+    border: 1px solid var(--dt-card-border);
+    color: var(--dt-text-main);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 0 !important;
+    transition: all 0.2s;
+  }
+  .mobile-recap-toggle-btn:hover {
+    border-color: var(--dt-gold, #d2a749);
+    color: var(--dt-gold, #d2a749);
+  }
+
+  .mobile-bar-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    background: var(--dt-gold, #d2a749);
+    color: #111827;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 0 !important;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .mobile-bar-cta-btn:hover:not(:disabled) {
+    background: var(--dt-gold-hover, #c4912c);
+  }
+
+  .hotel-sidebar-col {
+    scroll-margin-top: 85px;
+  }
+
+  .hotel-sidebar-col .sticky-summary-card {
+    border-top: 4px solid var(--dt-gold, #d2a749);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MOBILE PASSENGER MODAL FULLSCREEN ADAPTATION
+══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .passenger-modal-backdrop {
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    overflow: hidden !important;
+  }
+
+  .passenger-modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .passenger-modal-header {
+    padding: 12px 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .modal-title-text {
+    font-size: 14px !important;
+  }
+
+  .modal-subtitle-text {
+    font-size: 10px !important;
+  }
+
+  .modal-booking-recap-ribbon {
+    padding: 8px 14px !important;
+    gap: 6px 12px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .ribbon-price {
+    margin-left: 0 !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .passenger-modal-body {
+    padding: 14px 14px 90px !important;
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .passenger-modal-footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 30 !important;
+    padding: 12px 14px !important;
+    padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    background: var(--dt-box-bg) !important;
+    border-top: 1px solid var(--dt-card-border) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .modal-cancel-btn {
+    padding: 10px 14px !important;
+    font-size: 11px !important;
+  }
+
+  .final-booking-btn {
+    flex: 1 !important;
+    padding: 12px 12px !important;
+    font-size: 11px !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
+    text-align: center !important;
+  }
+
+  .pax-inputs-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 </style>
