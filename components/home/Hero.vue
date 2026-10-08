@@ -171,7 +171,7 @@
                                 Réservez Votre Hôtel
                             </h3>
                             <p class="text-[11px] text-slate-400 font-medium">
-                                Moteur Netstorming en direct · {{ destinationsTotalLabel }} destinations dans le monde
+                                Moteur Netstorming en direct · {{ hotelsTotalLabel }} hôtels dans {{ destinationsTotalLabel }} destinations
                             </p>
                         </div>
                     </div>
@@ -359,13 +359,20 @@ const toast = useToast()
 const hotelStore = useHotelStore()
 
 const destinationsTotal = ref(0)
+const hotelsTotal = ref(838351)
 const destinationsTotalLabel = computed(() =>
-    destinationsTotal.value ? Number(destinationsTotal.value).toLocaleString('fr-FR') : '…'
+    destinationsTotal.value ? Number(destinationsTotal.value).toLocaleString('fr-FR') : '50 000+'
+)
+const hotelsTotalLabel = computed(() =>
+    hotelsTotal.value ? '+' + Number(hotelsTotal.value).toLocaleString('fr-FR') : '+838 000'
 )
 onMounted(async () => {
     try {
         const res = await getHotelStats()
         destinationsTotal.value = res?.data?.destinations_count || 0
+        if (res?.data?.worldwide_inventory_count) {
+            hotelsTotal.value = res.data.worldwide_inventory_count
+        }
     } catch { /* keep placeholder */ }
 })
 
@@ -389,6 +396,8 @@ const adults = ref(2)
 const children = ref(0)
 
 const popularChips = [
+    { name: 'Sétif', code: 'QSF' },
+    { name: 'Alger', code: 'AXAL' },
     { name: 'Moscou', code: 'MOW' },
     { name: 'Bali', code: 'KUTB' },
     { name: 'Istanbul', code: 'IST' },

@@ -60,7 +60,7 @@
     </div>
 
     <!-- ─── KPI Stats Grid ───────────────────────────────────────────────── -->
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
       <!-- Total Orders -->
       <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
         <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
@@ -102,13 +102,23 @@
       </div>
 
       <!-- Cached Destinations -->
-      <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between col-span-2 lg:col-span-1">
+      <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
         <div class="flex items-center justify-between text-blue-500 mb-2">
           <span class="text-xs font-semibold uppercase tracking-wider">Destinations</span>
           <UIcon name="i-heroicons-globe-alt" class="w-5 h-5" />
         </div>
         <p class="text-2xl font-black text-blue-500">{{ Number(settings.destinations_count || 0).toLocaleString('fr-FR') }}</p>
         <span class="text-[11px] text-slate-400 mt-1">Villes en cache local</span>
+      </div>
+
+      <!-- Worldwide & Algeria Hotel Inventory -->
+      <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
+        <div class="flex items-center justify-between text-amber-500 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider">Inventaire Hôtels</span>
+          <UIcon name="i-heroicons-building-office-2" class="w-5 h-5 text-amber-500" />
+        </div>
+        <p class="text-2xl font-black text-amber-500">+838 000</p>
+        <span class="text-[11px] text-slate-400 mt-1">{{ Number(settings.hotels_count || 0).toLocaleString('fr-FR') }} en cache · {{ Number(settings.algeria_hotels_count || 0).toLocaleString('fr-FR') }} DZ</span>
       </div>
     </div>
 
@@ -767,6 +777,42 @@
               Synchroniser Villes
             </UButton>
           </div>
+
+          <!-- Algeria hotels sync box -->
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-200">Hôtels en Algérie : {{ Number(settings.algeria_hotels_count || 0).toLocaleString('fr-FR') }} hôtels (58 Wilayas)</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Synchroniser tous les hôtels d'Algérie avec étoiles, adresses et coordonnées (Sétif, Alger, Oran...).</p>
+            </div>
+            <UButton
+              icon="i-heroicons-arrow-path-rounded-square"
+              color="emerald"
+              variant="outline"
+              size="xs"
+              :loading="syncingHotelsAlgeria"
+              @click="triggerSyncAlgeriaHotels"
+            >
+              Synchroniser Algérie
+            </UButton>
+          </div>
+
+          <!-- Worldwide inventory sync box -->
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-200">Catalogue Mondial Netstorming : {{ Number(settings.hotels_count || 0).toLocaleString('fr-FR') }} / 838 351 hôtels</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Importer des lots d'inventaire mondial via l'API officielle Netstorming (Chapitre 27 get_inventory).</p>
+            </div>
+            <UButton
+              icon="i-heroicons-cloud-arrow-down"
+              color="primary"
+              variant="outline"
+              size="xs"
+              :loading="syncingHotelsWorld"
+              @click="triggerSyncWorldwideInventory"
+            >
+              Importer Lot Mondial
+            </UButton>
+          </div>
         </div>
 
         <!-- Footer Actions -->
@@ -848,6 +894,8 @@ const updatingPayment = ref(false);
 const openSettings = ref(false);
 const openReconciliation = ref(false);
 const syncingDestinations = ref(false);
+const syncingHotelsAlgeria = ref(false);
+const syncingHotelsWorld = ref(false);
 const syncingPending = ref(false);
 const savingSettings = ref(false);
 
@@ -1086,6 +1134,34 @@ async function triggerManualSync() {
     alert('Erreur: ' + (e?.message || 'Échec de la synchronisation'));
   } finally {
     syncingDestinations.value = false;
+  }
+}
+
+async function triggerSyncAlgeriaHotels() {
+  syncingHotelsAlgeria.value = true;
+  try {
+    const res = await sendApi('/admin/hotels/inventory/sync', { algeria: true }, 'POST');
+    alert(res?.message || 'Synchronisation des hôtels en Algérie réussie (58 Wilayas) !');
+    await fetchSettings();
+  } catch (e) {
+    console.error('Failed to sync Algeria hotels:', e);
+    alert('Erreur: ' + (e?.message || 'Échec de la synchronisation'));
+  } finally {
+    syncingHotelsAlgeria.value = false;
+  }
+}
+
+async function triggerSyncWorldwideInventory() {
+  syncingHotelsWorld.value = true;
+  try {
+    const res = await sendApi('/admin/hotels/inventory/sync', { batch_size: 5000, max: 10000 }, 'POST');
+    alert(res?.message || 'Importation du lot mondial réussie !');
+    await fetchSettings();
+  } catch (e) {
+    console.error('Failed to sync worldwide inventory:', e);
+    alert('Erreur: ' + (e?.message || 'Échec de la synchronisation'));
+  } finally {
+    syncingHotelsWorld.value = false;
   }
 }
 

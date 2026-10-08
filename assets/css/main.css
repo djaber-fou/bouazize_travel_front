@@ -72,7 +72,8 @@
 }
 
 .dark .nav-link:hover,
-.dark .nav-link.router-link-active {
+.dark .nav-link:not([href="/"]).router-link-active,
+.dark .nav-link[href="/"].router-link-exact-active {
     color: var(--color-primary) !important;
 }
 
@@ -261,7 +262,7 @@ html, body {
     }
 
     /* Modal dialogs: full width on mobile */
-    [class*="modal"], [class*="dialog"] {
+    dialog, [role="dialog"], .modal-dialog, .modal-box {
         max-width: 100vw !important;
         width: 100% !important;
         margin: 0 !important;

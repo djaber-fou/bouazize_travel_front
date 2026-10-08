@@ -360,7 +360,7 @@
                         </svg>
                       </div>
                       <div>
-                        <h2 id="modal-pax-title" class="modal-title-text">Coordonnées des Voyageurs</h2>
+                        <h2 id="modal-pax-title" class="modal-title-text">COORDONNÉES DES VOYAGEURS</h2>
                         <p class="modal-subtitle-text">Veuillez renseigner les noms et prénoms tels qu'indiqués sur les pièces d'identité</p>
                       </div>
                     </div>
@@ -394,8 +394,11 @@
                       <strong class="ribbon-val">{{ formatDate(hotelStore.searchForm.check_in) }} → {{ formatDate(hotelStore.searchForm.check_out) }} ({{ hotelStore.nights }} nuits)</strong>
                     </div>
                     <div class="ribbon-item ribbon-price">
-                      <span class="ribbon-label">Total :</span>
-                      <strong class="ribbon-price-val">{{ formatPrice(currentPrice) }} DZD</strong>
+                      <span class="ribbon-label">Total séjour :</span>
+                      <div class="recap-price-badge">
+                        <strong class="ribbon-price-val">{{ formatPrice(currentPrice) }}</strong>
+                        <span class="currency-tag">DZD</span>
+                      </div>
                     </div>
                   </div>
 
@@ -434,7 +437,12 @@
                           <span class="pax-role-badge" :class="pax.type === 'adult' ? 'adult-role' : 'child-role'">
                             {{ pax.type === 'adult' ? 'Voyageur Adulte' : 'Enfant' }} {{ pIdx + 1 }}
                           </span>
-                          <span v-if="pIdx === 0" class="lead-flag">⭐ Responsable de la réservation (Titulaire)</span>
+                          <span v-if="pIdx === 0" class="lead-flag">
+                            <svg class="lead-flag-svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+                            </svg>
+                            Responsable de la réservation (Titulaire)
+                          </span>
                           <span v-if="pax.type === 'child'" class="child-age-flag">{{ pax.age }} ans</span>
                         </div>
 
@@ -519,7 +527,9 @@
                       <!-- ── MODE DE PAIEMENT SÉCURISÉ ── -->
                       <div class="payment-method-section">
                         <div class="section-subheading-row">
-                          <span class="section-subheading-icon">💳</span>
+                          <svg class="section-subheading-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M2.5 4A1.5 1.5 0 001 5.5V6h18v-.5A1.5 1.5 0 0017.5 4h-15zM19 8.5H1v6A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-6zM3 13.25a.75.75 0 01.75-.75h3.5a.75.75 0 010 1.5h-3.5a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+                          </svg>
                           <span class="section-subheading-title">Mode de Règlement &amp; Confirmation</span>
                         </div>
 
@@ -539,7 +549,12 @@
                             <div class="pay-method-content">
                               <div class="pay-method-top">
                                 <div class="pay-badges-row">
-                                  <span class="pay-badge-auto">⚡ Confirmation Automatique</span>
+                                  <span class="pay-badge-auto">
+                                    <svg class="pay-badge-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                      <path d="M11.983 1.907a.75.75 0 00-1.292-.657l-8.5 9.5A.75.75 0 002.75 12h6.536l-1.269 6.093a.75.75 0 001.292.657l8.5-9.5A.75.75 0 0017.25 8h-6.536l1.269-6.093z" />
+                                    </svg>
+                                    Confirmation Automatique
+                                  </span>
                                   <span class="pay-brand-tag">CIB • EDAHABIA</span>
                                 </div>
                                 <span class="pay-title">Carte CIB / Edahabia (SATIM)</span>
@@ -565,7 +580,12 @@
                             <div class="pay-method-content">
                               <div class="pay-method-top">
                                 <div class="pay-badges-row">
-                                  <span class="pay-badge-manual">📬 Validation par l'Admin</span>
+                                  <span class="pay-badge-manual">
+                                    <svg class="pay-badge-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" />
+                                    </svg>
+                                    Validation Admin
+                                  </span>
                                   <span class="pay-brand-tag">BARIDIMOB • CCP</span>
                                 </div>
                                 <span class="pay-title">Virement BaridiMob / CCP</span>
@@ -592,7 +612,12 @@
                             <div class="pay-method-content">
                               <div class="pay-method-top">
                                 <div class="pay-badges-row">
-                                  <span class="pay-badge-wallet">💼 Solde Portefeuille</span>
+                                  <span class="pay-badge-wallet">
+                                    <svg class="pay-badge-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fill-rule="evenodd" d="M2.5 4A1.5 1.5 0 001 5.5v9A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0017.5 4h-15zm10.5 4a1.5 1.5 0 011.5 1.5v1a1.5 1.5 0 01-1.5 1.5h-2A1.5 1.5 0 019.5 10.5v-1A1.5 1.5 0 0111 8h2z" clip-rule="evenodd" />
+                                    </svg>
+                                    Solde Portefeuille
+                                  </span>
                                   <span class="pay-brand-tag">{{ formatPrice(authStore.User?.account_balance || 0) }} DZD</span>
                                 </div>
                                 <span class="pay-title">Débit Direct du Portefeuille Agence B2B</span>
@@ -636,14 +661,8 @@
                         <template v-if="hotelStore.loadingBooking">
                           TRAITEMENT EN COURS...
                         </template>
-                        <template v-else-if="selectedPaymentMethod === 'satim'">
-                          RÉGLER PAR CARTE CIB / EDAHABIA ({{ formatPrice(currentPrice) }} DZD) →
-                        </template>
-                        <template v-else-if="selectedPaymentMethod === 'baridimob'">
-                          TRANSMETTRE LE REÇU BARIDIMOB / CCP →
-                        </template>
                         <template v-else>
-                          CONFIRMER VIA PORTEFEUILLE ({{ formatPrice(currentPrice) }} DZD)
+                          PAYER ET CONFIRMER ({{ formatPrice(currentPrice) }} DZD)
                         </template>
                       </span>
                     </button>
@@ -2199,8 +2218,12 @@ useHead({
 }
 
 .modal-close-btn {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  max-height: 30px;
   border-radius: 0 !important;
   background: transparent;
   border: 1px solid var(--dt-card-border);
@@ -2209,8 +2232,10 @@ useHead({
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   flex-shrink: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .modal-close-btn svg {
@@ -2219,9 +2244,21 @@ useHead({
 }
 
 .modal-close-btn:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border-color: #ef4444;
+}
+
+.dark-theme .modal-close-btn,
+:global(.dark) .modal-close-btn {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+}
+.dark-theme .modal-close-btn:hover,
+:global(.dark) .modal-close-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 /* Ribbon summary */
@@ -2239,12 +2276,15 @@ useHead({
 .ribbon-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .ribbon-label {
   color: var(--dt-text-sub);
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.3px;
 }
 
 .ribbon-val {
@@ -2252,10 +2292,32 @@ useHead({
   font-weight: 700;
 }
 
+.ribbon-price {
+  margin-left: auto;
+}
+
+.recap-price-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--dt-card-bg);
+  border: 1px solid var(--dt-card-border);
+  border-left: 3px solid var(--dt-gold, #d2a749);
+  border-radius: 0 !important;
+}
+
 .ribbon-price-val {
-  color: var(--dt-gold);
-  font-weight: 900;
-  font-size: 12.5px;
+  color: var(--dt-text-main);
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.currency-tag {
+  color: var(--dt-gold, #d2a749);
+  font-weight: 800;
+  font-size: 11px;
 }
 
 .passenger-modal-body {
@@ -2329,8 +2391,8 @@ useHead({
 .pax-card-box {
   background: var(--dt-box-bg);
   border: 1px solid var(--dt-box-border);
-  border-radius: 0;
-  padding: 14px;
+  border-radius: 0 !important;
+  padding: 16px;
 }
 .pax-head-row {
   display: flex;
@@ -2341,26 +2403,48 @@ useHead({
 .pax-role-badge {
   font-size: 10px;
   font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 0;
+  padding: 2.5px 8px;
+  border-radius: 0 !important;
   text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 .adult-role {
-  background: var(--dt-gold-light);
-  color: var(--dt-gold);
+  background: var(--dt-gold-light, rgba(210, 167, 73, 0.12));
+  color: var(--dt-gold, #d2a749);
+  border: 1px solid rgba(210, 167, 73, 0.28);
 }
 .child-role {
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(59, 130, 246, 0.12);
   color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 .lead-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 10px;
-  color: var(--dt-gold);
+  color: var(--dt-gold, #d2a749);
+  background: rgba(210, 167, 73, 0.08);
+  border: 1px solid rgba(210, 167, 73, 0.25);
+  padding: 2.5px 8px;
+  border-radius: 0 !important;
   font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.lead-flag-svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: var(--dt-gold, #d2a749);
 }
 .child-age-flag {
   font-size: 10px;
   color: var(--dt-text-sub);
+  background: var(--dt-card-bg);
+  border: 1px solid var(--dt-card-border);
+  padding: 2.5px 7px;
+  border-radius: 0 !important;
+  font-weight: 600;
 }
 
 .pax-inputs-grid {
@@ -2395,15 +2479,16 @@ useHead({
 .form-select-ctrl {
   padding: 8px 10px;
   font-size: 12px;
-  border-radius: 0;
+  border-radius: 0 !important;
   border: 1px solid var(--dt-input-border);
   background: var(--dt-input-bg);
   color: var(--dt-input-text);
   outline: none;
+  transition: border-color 0.15s ease;
 }
 .form-input-ctrl:focus,
 .form-select-ctrl:focus {
-  border-color: var(--dt-gold);
+  border-color: var(--dt-gold, #d2a749) !important;
 }
 .uppercase {
   text-transform: uppercase;
@@ -2413,7 +2498,7 @@ useHead({
   background: var(--dt-box-bg);
   border: 1px solid var(--dt-box-border);
   padding: 12px 14px;
-  border-radius: 0;
+  border-radius: 0 !important;
 }
 .remarks-heading {
   font-size: 11px;
@@ -2439,16 +2524,17 @@ useHead({
   font-size: 11px;
   color: var(--dt-text-main);
   cursor: pointer;
+  border-radius: 0 !important;
 }
 .custom-check {
-  accent-color: var(--dt-gold);
+  accent-color: var(--dt-gold, #d2a749);
 }
 
 .booking-fail-banner {
   padding: 10px 14px;
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.35);
-  border-radius: 0;
+  border-radius: 0 !important;
   color: #ef4444;
   font-size: 12px;
   display: flex;
@@ -2467,13 +2553,14 @@ useHead({
 }
 .final-booking-btn {
   padding: 12px 28px;
-  background: var(--dt-gold);
-  color: #111827;
-  border: none;
-  border-radius: 0;
-  font-size: 13px;
+  background: var(--dt-gold, #d2a749);
+  color: #0A0B25;
+  border: 1px solid var(--dt-gold, #d2a749);
+  border-radius: 0 !important;
+  font-size: 12.5px;
   font-weight: 800;
-  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -2481,8 +2568,9 @@ useHead({
   transition: all 0.2s;
 }
 .final-booking-btn:hover:not(:disabled) {
-  background: var(--dt-gold-hover);
-  box-shadow: 0 4px 16px rgba(212, 160, 60, 0.4);
+  background: var(--dt-gold-hover, #b8923f);
+  border-color: var(--dt-gold-hover, #b8923f);
+  box-shadow: 0 4px 16px rgba(210, 167, 73, 0.35);
 }
 .final-booking-btn.disabled,
 .final-booking-btn:disabled {
@@ -2926,9 +3014,10 @@ useHead({
 }
 /* ── Guest & Auth Banners in Booking Modal ── */
 .guest-checkout-banner {
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(202, 138, 4, 0.03) 100%);
-  border: 1px solid rgba(234, 179, 8, 0.25);
-  border-left: 4px solid var(--dt-gold, #eab308);
+  background: linear-gradient(135deg, rgba(210, 167, 73, 0.08) 0%, rgba(210, 167, 73, 0.02) 100%);
+  border: 1px solid rgba(210, 167, 73, 0.25);
+  border-left: 4px solid var(--dt-gold, #d2a749);
+  border-radius: 0 !important;
   padding: 14px 16px;
   margin-bottom: 18px;
 }
@@ -2940,9 +3029,9 @@ useHead({
 .guest-badge-icon {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
-  background: rgba(234, 179, 8, 0.15);
-  color: var(--dt-gold, #eab308);
+  border-radius: 0 !important;
+  background: rgba(210, 167, 73, 0.15);
+  color: var(--dt-gold, #d2a749);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2971,6 +3060,7 @@ useHead({
   background: rgba(16, 185, 129, 0.12);
   color: #10b981;
   padding: 2px 7px;
+  border-radius: 0 !important;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -2988,6 +3078,7 @@ useHead({
   padding: 10px 14px;
   background: var(--dt-box-bg);
   border: 1px solid var(--dt-box-border);
+  border-radius: 0 !important;
   margin-bottom: 18px;
   font-size: 11.5px;
   color: var(--dt-text-main);
@@ -2995,7 +3086,7 @@ useHead({
 .auth-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: 0 !important;
   background: #10b981;
   box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
   flex-shrink: 0;
@@ -3008,6 +3099,7 @@ useHead({
   background: rgba(59, 130, 246, 0.12);
   color: #3b82f6;
   border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 0 !important;
   padding: 2px 7px;
 }
 
@@ -3022,6 +3114,12 @@ useHead({
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+}
+.section-subheading-svg {
+  width: 18px;
+  height: 18px;
+  color: var(--dt-gold, #d2a749);
+  flex-shrink: 0;
 }
 .section-subheading-icon {
   font-size: 16px;
@@ -3046,21 +3144,22 @@ useHead({
   padding: 14px 16px;
   background: var(--dt-card-bg);
   border: 1.5px solid var(--dt-box-border);
+  border-radius: 0 !important;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 }
 .pay-method-card:hover {
-  border-color: rgba(234, 179, 8, 0.4);
+  border-color: rgba(210, 167, 73, 0.4);
   background: var(--dt-box-bg);
 }
 .pay-method-card.active {
-  border-color: var(--dt-gold, #eab308);
-  background: rgba(234, 179, 8, 0.05);
+  border-color: var(--dt-gold, #d2a749);
+  background: rgba(210, 167, 73, 0.05);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 .pay-radio {
   margin-top: 4px;
-  accent-color: var(--dt-gold, #eab308);
+  accent-color: var(--dt-gold, #d2a749);
   cursor: pointer;
   transform: scale(1.15);
 }
@@ -3080,31 +3179,48 @@ useHead({
   margin-bottom: 2px;
 }
 .pay-badge-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 9.5px;
   font-weight: 800;
   text-transform: uppercase;
   background: rgba(16, 185, 129, 0.15);
   color: #10b981;
   border: 1px solid rgba(16, 185, 129, 0.3);
-  padding: 1.5px 6px;
+  border-radius: 0 !important;
+  padding: 2px 7px;
 }
 .pay-badge-manual {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 9.5px;
   font-weight: 800;
   text-transform: uppercase;
   background: rgba(245, 158, 11, 0.15);
   color: #f59e0b;
   border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 1.5px 6px;
+  border-radius: 0 !important;
+  padding: 2px 7px;
 }
 .pay-badge-wallet {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 9.5px;
   font-weight: 800;
   text-transform: uppercase;
   background: rgba(59, 130, 246, 0.15);
   color: #3b82f6;
   border: 1px solid rgba(59, 130, 246, 0.3);
-  padding: 1.5px 6px;
+  border-radius: 0 !important;
+  padding: 2px 7px;
+}
+.pay-badge-svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
 }
 .pay-brand-tag {
   font-size: 9px;
@@ -3113,7 +3229,8 @@ useHead({
   color: var(--dt-text-sub);
   background: var(--dt-box-bg);
   border: 1px solid var(--dt-box-border);
-  padding: 1.5px 5px;
+  border-radius: 0 !important;
+  padding: 2px 6px;
 }
 .pay-title {
   font-size: 13px;

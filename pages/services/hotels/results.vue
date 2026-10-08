@@ -32,41 +32,47 @@
           <div class="portal-nav-actions">
             <button
               type="button"
-              class="tab-btn active"
+              class="tab-btn active compact-modify-btn"
               @click="navigateTo('/services/hotels')"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
               </svg>
-              Modifier la recherche
+              <span>Modifier</span>
             </button>
           </div>
         </div>
       </header>
 
-
-
-      <!-- ─── RESULTS HEADER BAR (Count & Sort) ───────────────────────── -->
+      <!-- ─── RESULTS HEADER BAR (Count & Sort & Filter) ───────────────── -->
       <div v-if="hotelStore.hasSearchResults && !hotelStore.loadingSearch" class="results-header-bar">
         <div class="results-header-bar-inner">
           <div class="summary-left">
-            <span class="count-highlight">{{ hotelStore.searchResults.total || hotelStore.filteredHotels.length }}</span>
-            <span class="count-label"> hôtel(s) disponible(s) à </span>
-            <span class="dest-highlight">{{ currentDestName }}</span>
-            <span class="dates-meta">
-              · {{ formatDate(currentCheckIn) }} → {{ formatDate(currentCheckOut) }} · {{ currentNights }} nuit{{ currentNights > 1 ? 's' : '' }}
-            </span>
+            <div class="summary-title-line">
+              <span class="dest-highlight">{{ currentDestName }}</span>
+              <span class="count-pill">{{ hotelStore.searchResults.total || hotelStore.filteredHotels.length }} hôtel{{ (hotelStore.searchResults.total || hotelStore.filteredHotels.length) > 1 ? 's' : '' }}</span>
+            </div>
+            <div class="dates-meta-row">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dates-mini-pin">
+                <path fill-rule="evenodd" d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z" clip-rule="evenodd" />
+              </svg>
+              <span>{{ formatDate(currentCheckIn) }} → {{ formatDate(currentCheckOut) }} · {{ currentNights }} nuit{{ currentNights > 1 ? 's' : '' }}</span>
+            </div>
           </div>
 
           <div class="summary-right">
-            <span class="sort-title">Trier :</span>
-            <select id="sort-results-select" v-model="hotelStore.sortBy" class="sort-dropdown">
-              <option value="price_asc">Prix croissant</option>
-              <option value="price_desc">Prix décroissant</option>
-              <option value="stars_desc">Meilleures étoiles</option>
-              <option value="name_asc">Nom A - Z</option>
-            </select>
-
+            <!-- Sort Select -->
+            <div class="sort-select-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="sort-select-icon">
+                <path fill-rule="evenodd" d="M2.24 6.8a.75.75 0 001.06-.04l1.95-2.1v8.59a.75.75 0 001.5 0V4.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0L2.2 5.74a.75.75 0 00.04 1.06zm8 6.4a.75.75 0 00-.04 1.06l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V6.75a.75.75 0 00-1.5 0v8.59l-1.95-2.1a.75.75 0 00-1.06-.04z" clip-rule="evenodd" />
+              </svg>
+              <select id="sort-results-select" v-model="hotelStore.sortBy" class="sort-dropdown">
+                <option value="price_asc">Prix croissant</option>
+                <option value="price_desc">Prix décroissant</option>
+                <option value="stars_desc">Meilleures étoiles</option>
+                <option value="name_asc">Nom A - Z</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -102,7 +108,10 @@
           <span class="btn-spinner"></span>
           <div>
             <h4 class="loading-title">
-              <template v-if="isRetrying">🔄 Nouvelle tentative... ({{ retryCount }}/{{ maxRetries }})</template>
+              <template v-if="isRetrying">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline animate-spin mr-1.5 text-portal-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Nouvelle tentative... ({{ retryCount }}/{{ maxRetries }})
+              </template>
               <template v-else>Recherche des meilleurs tarifs en cours...</template>
             </h4>
             <p class="loading-sub">
@@ -128,9 +137,7 @@
       <!-- Empty State (only shown when NOT auto-retrying) -->
       <div v-else-if="!hotelStore.hasSearchResults && !isRetrying" class="feedback-card empty-card">
         <div class="feedback-icon empty-ico">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path fill-rule="evenodd" d="M4.5 2.25a.75.75 0 000 1.5v16.5h-.75a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5h-.75V3.75a.75.75 0 000-1.5h-15zM9 6a.75.75 0 000 1.5h1.5a.75.75 0 000-1.5H9z" clip-rule="evenodd"/>
-          </svg>
+          <UIcon name="i-heroicons-building-office-2" class="w-12 h-12 text-slate-400 dark:text-slate-500" />
         </div>
         <div class="feedback-text">
           <h4>Aucun hôtel disponible</h4>
@@ -138,7 +145,8 @@
         </div>
         <div class="feedback-actions">
           <button class="retry-action-btn" type="button" @click="executeSearch()">
-            🔄 Relancer la recherche
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline mr-1 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Relancer la recherche
           </button>
           <nuxt-link to="/services/hotels" class="rechercher-gold-btn">
             Modifier mes critères de recherche
@@ -154,7 +162,10 @@
           </svg>
         </div>
         <div class="feedback-text">
-          <h4>🔍 Recherche en cours...</h4>
+          <h4 class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-portal-gold inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            Recherche en cours...
+          </h4>
           <p>Netstorming interroge les fournisseurs pour <strong>{{ currentDestName }}</strong>. Les résultats arrivent dans quelques secondes. (Tentative {{ retryCount }}/{{ maxRetries }})</p>
         </div>
         <div class="feedback-actions">
@@ -168,21 +179,6 @@
 
         <!-- Main Layout with Filters + Grid -->
         <div class="results-grid-layout">
-
-          <!-- Mobile Filter FAB -->
-          <div class="mobile-filter-fab-wrap">
-            <button
-              id="mobile-filter-btn"
-              type="button"
-              class="mobile-filter-fab"
-              @click="showMobileFilters = true"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" /></svg>
-              Filtres
-
-              <span v-if="activeFiltersCount > 0" class="filter-fab-badge">{{ activeFiltersCount }}</span>
-            </button>
-          </div>
 
           <!-- Desktop Sidebar Filters -->
           <aside class="sidebar-filters">
@@ -263,18 +259,27 @@
           <!-- Mobile Filter Drawer -->
           <Teleport to="body">
             <Transition name="filter-drawer">
-              <div v-if="showMobileFilters" class="mobile-filter-drawer-overlay" @click.self="showMobileFilters = false">
+              <div
+                v-if="showMobileFilters"
+                class="mobile-filter-drawer-overlay hotel-portal"
+                :class="{ 'dark-theme': isDark }"
+                @click.self="showMobileFilters = false"
+              >
                 <div class="mobile-filter-drawer">
+                  <div class="drawer-drag-pill-wrap">
+                    <div class="drawer-drag-pill"></div>
+                  </div>
                   <div class="mobile-filter-drawer-header">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;color:var(--portal-gold)"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" /></svg>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <div class="filter-header-icon-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;color:var(--portal-gold)"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" /></svg>
+                      </div>
                       <span class="mobile-filter-drawer-title">Filtres de recherche</span>
                     </div>
 
-                    <button type="button" class="mobile-filter-drawer-close" @click="showMobileFilters = false">
+                    <button type="button" class="mobile-filter-drawer-close" @click="showMobileFilters = false" aria-label="Fermer">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
-
                   </div>
 
                   <div class="mobile-filter-drawer-body">
@@ -377,7 +382,7 @@
                   />
                   <!-- Stars badge -->
                   <div v-if="hotel.stars" class="card-stars-badge">
-                    <span v-for="s in hotel.stars" :key="s">★</span>
+                    <svg v-for="s in hotel.stars" :key="s" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="card-star-svg"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" /></svg>
                   </div>
                   <!-- Dynamic badge -->
                   <span v-if="hotel.agreements?.some(a => a.is_dynamic)" class="dynamic-chip">
@@ -431,8 +436,29 @@
               </div>
             </div>
 
+            <!-- In-filter Empty State (when hotels exist for destination, but active filters match 0) -->
+            <div v-if="hotelStore.filteredHotels.length === 0" class="feedback-card empty-card" style="margin: 24px 0;">
+              <div class="feedback-icon empty-ico">
+                <UIcon name="i-heroicons-funnel" class="w-10 h-10 text-slate-400 dark:text-slate-500" />
+              </div>
+              <div class="feedback-text">
+                <h4>Aucun établissement ne correspond à vos filtres</h4>
+                <p>
+                  Aucun résultat ne correspond aux filtres appliqués<span v-if="hotelStore.filters.searchName"> (recherche : "<strong>{{ hotelStore.filters.searchName }}</strong>")</span>.
+                  <span v-if="hotelStore.allHotels.length || hotelStore.searchResults.total">
+                    Il y a <strong>{{ hotelStore.allHotels.length || hotelStore.searchResults.total }}</strong> établissement(s) disponible(s) sans ces filtres.
+                  </span>
+                </p>
+              </div>
+              <div class="feedback-actions">
+                <button class="retry-action-btn" type="button" @click="hotelStore.resetFilters()">
+                  Effacer les filtres et tout afficher ({{ hotelStore.allHotels.length || hotelStore.searchResults.total }})
+                </button>
+              </div>
+            </div>
+
             <!-- Pagination Bar (20 per page) -->
-            <div v-if="hotelStore.searchResults.total > 0 || hotelStore.filteredHotels.length > 0" class="progressive-load-wrapper">
+            <div v-if="hotelStore.filteredHotels.length > 0" class="progressive-load-wrapper">
 
               <!-- Background continuous loading indicator (loading other 20 20 20... in the background) -->
               <div v-if="hotelStore.loadingAllHotels" class="all-loading-info">
@@ -650,9 +676,13 @@ async function executeSearch(isAutoRetry = false) {
   }
   if (q.hotel_id) {
     hotelStore.searchForm.hotel_id = String(q.hotel_id);
+  } else {
+    hotelStore.searchForm.hotel_id = null;
   }
   if (q.hotel_name) {
     hotelStore.filters.searchName = String(q.hotel_name);
+  } else {
+    hotelStore.filters.searchName = '';
   }
 
   // Trigger search availability
@@ -1309,40 +1339,147 @@ useHead({
   color: var(--portal-title-color);
 }
 .dest-highlight {
+  font-size: 15px;
   font-weight: 800;
-  color: var(--portal-gold);
+  color: var(--portal-title-color);
+  letter-spacing: -0.2px;
 }
-.dates-meta {
-  color: var(--portal-label-color);
-  font-size: 12px;
+.count-pill {
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  background: rgba(210, 167, 73, 0.15);
+  color: var(--portal-gold);
+  border: 1px solid var(--portal-gold);
+  border-radius: 0 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.summary-title-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dates-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--portal-sub-color, #64748b);
+}
+.dates-mini-pin {
+  width: 13px;
+  height: 13px;
+  color: var(--portal-gold);
+  flex-shrink: 0;
 }
 .summary-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
-.sort-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--portal-label-color);
+.sort-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.sort-select-icon {
+  position: absolute;
+  left: 9px;
+  width: 13px;
+  height: 13px;
+  color: var(--portal-gold);
+  pointer-events: none;
 }
 .sort-dropdown {
-  background: var(--portal-input-bg);
+  background: var(--portal-box-bg);
   border: 1px solid var(--portal-input-border);
   color: var(--portal-input-text);
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
-  padding: 6px 10px;
+  padding: 7px 12px 7px 28px;
+  border-radius: 0 !important;
   cursor: pointer;
+  transition: all 0.2s;
 }
-@media (max-width: 640px) {
-  .results-header-bar-inner { padding: 0 10px; gap: 6px; }
-  .results-header-bar { padding: 6px 0; }
-  .count-highlight { font-size: 14px; }
-  .dates-meta { font-size: 11px; }
-  .summary-left { font-size: 12px; gap: 4px; }
-  .sort-dropdown { font-size: 11px; padding: 5px 8px; }
+.sort-dropdown:focus {
+  border-color: var(--portal-gold);
+  outline: none;
+}
+
+.header-filter-trigger-btn {
+  display: none;
+}
+
+.compact-modify-btn {
+  padding: 6px 12px !important;
+  font-size: 11px !important;
+}
+
+@media (max-width: 900px) {
+  .results-header-bar {
+    padding: 8px 0;
+  }
+  .results-header-bar-inner {
+    padding: 0 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .summary-left {
+    gap: 3px;
+  }
+  .dest-highlight {
+    font-size: 13.5px;
+  }
+  .dates-meta-row {
+    font-size: 11px;
+  }
+  .summary-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .header-filter-trigger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--portal-gold);
+    color: #0b1022;
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border: none;
+    border-radius: 0 !important;
+    cursor: pointer;
+    flex: 1;
+    min-height: 38px;
+    transition: all 0.15s;
+  }
+  .header-filter-trigger-btn:hover {
+    background: var(--portal-gold-hover);
+  }
+  .header-filter-badge {
+    background: #0b1022;
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 0 !important;
+  }
+  .sort-select-wrapper {
+    flex: 1.2;
+  }
+  .sort-dropdown {
+    width: 100%;
+    min-height: 38px;
+    font-size: 11px;
+  }
 }
 
 /* Results Grid Layout */
@@ -1365,7 +1502,10 @@ useHead({
 @media (max-width: 900px) {
   .mobile-filter-fab-wrap {
     display: flex;
-    padding: 10px 12px 4px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 6px;
+    gap: 10px;
   }
 }
 .mobile-filter-fab {
@@ -1373,20 +1513,25 @@ useHead({
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: var(--portal-card-bg);
-  border: 1.5px solid var(--portal-input-border);
+  background: var(--portal-box-bg);
+  border: 1px solid var(--portal-card-border);
   color: var(--portal-title-color);
-  font-size: 13px;
-  font-weight: 700;
-  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  border-radius: 0;
   cursor: pointer;
   position: relative;
-  transition: border-color 0.2s, color 0.2s;
+  transition: all 0.2s;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
-.mobile-filter-fab:hover {
+.mobile-filter-fab:hover,
+.mobile-filter-fab:active {
   border-color: var(--portal-gold);
   color: var(--portal-gold);
+  background: rgba(210, 167, 73, 0.08);
 }
 .filter-fab-badge {
   position: absolute;
@@ -1396,13 +1541,13 @@ useHead({
   height: 18px;
   background: var(--portal-gold);
   color: #0A0B25;
-  border-radius: 9px;
+  border-radius: 0;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
+  padding: 0 5px;
 }
 
 /* Sidebar Filters — hidden on mobile */
@@ -1449,97 +1594,202 @@ useHead({
 .mobile-filter-drawer-overlay {
   position: fixed;
   inset: 0;
-  z-index: 600;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(4px);
+  z-index: 99999;
+  background: rgba(7, 11, 25, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: flex-end;
 }
 .mobile-filter-drawer {
   width: 100%;
-  background: var(--portal-card-bg);
-  border-radius: 20px 20px 0 0;
-  max-height: 85vh;
+  background: #ffffff;
+  border-top: 3px solid var(--portal-gold, #d2a749);
+  border-radius: 0 !important;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
+  box-shadow: 0 -16px 45px rgba(0, 0, 0, 0.6);
+}
+.dark-theme .mobile-filter-drawer,
+:global(.dark) .mobile-filter-drawer {
+  background: #0b1022;
+  border-top-color: #d2a749;
+}
+.drawer-drag-pill-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 2px;
+  background: inherit;
+}
+.drawer-drag-pill {
+  width: 38px;
+  height: 4px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  opacity: 0.8;
+}
+.dark-theme .drawer-drag-pill,
+:global(.dark) .drawer-drag-pill {
+  background: #334155;
+}
+.filter-header-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 0;
+  background: rgba(210, 167, 73, 0.12);
+  border: 1px solid rgba(210, 167, 73, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .mobile-filter-drawer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--portal-card-border);
+  padding: 12px 18px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
   flex-shrink: 0;
 }
+.dark-theme .mobile-filter-drawer-header,
+:global(.dark) .mobile-filter-drawer-header {
+  background: #080d1c;
+  border-bottom-color: rgba(210, 167, 73, 0.2);
+}
 .mobile-filter-drawer-title {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 800;
-  color: var(--portal-title-color);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #0b1022;
+}
+.dark-theme .mobile-filter-drawer-title,
+:global(.dark) .mobile-filter-drawer-title {
+  color: #ffffff;
 }
 .mobile-filter-drawer-close {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--portal-box-bg);
-  border: 1px solid var(--portal-input-border);
-  border-radius: 8px;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 0;
   cursor: pointer;
-  color: var(--portal-label-color);
+  color: #64748b;
+  transition: all 0.2s;
   -webkit-tap-highlight-color: transparent;
+}
+.dark-theme .mobile-filter-drawer-close,
+:global(.dark) .mobile-filter-drawer-close {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+}
+.mobile-filter-drawer-close:hover {
+  border-color: var(--portal-gold);
+  color: var(--portal-gold);
 }
 .mobile-filter-drawer-body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  background: #f8fafc;
+  -webkit-overflow-scrolling: touch;
+}
+.dark-theme .mobile-filter-drawer-body,
+:global(.dark) .mobile-filter-drawer-body {
+  background: #0b1022;
+}
+.mobile-filter-drawer-body .form-ctrl {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0b1022;
+}
+.dark-theme .mobile-filter-drawer-body .form-ctrl,
+:global(.dark) .mobile-filter-drawer-body .form-ctrl {
+  background: #080d1c;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 .mobile-filter-drawer-footer {
   display: flex;
-  gap: 10px;
-  padding: 14px 20px;
-  border-top: 1px solid var(--portal-card-border);
+  gap: 12px;
+  padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
   flex-shrink: 0;
+}
+.dark-theme .mobile-filter-drawer-footer,
+:global(.dark) .mobile-filter-drawer-footer {
+  background: #080d1c;
+  border-top-color: rgba(210, 167, 73, 0.2);
 }
 .filter-reset-btn {
   flex: 0 0 auto;
   padding: 12px 18px;
-  background: var(--portal-box-bg);
-  border: 1px solid var(--portal-input-border);
-  color: var(--portal-label-color);
-  font-size: 13px;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  font-size: 11px;
   font-weight: 700;
-  border-radius: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: 0;
   cursor: pointer;
+  transition: all 0.2s;
   -webkit-tap-highlight-color: transparent;
+}
+.dark-theme .filter-reset-btn,
+:global(.dark) .filter-reset-btn {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #94a3b8;
+}
+.filter-reset-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
 }
 .filter-apply-btn {
   flex: 1;
-  padding: 12px 18px;
-  background: var(--portal-gold);
+  padding: 12px 20px;
+  background: var(--portal-gold, #d2a749);
   border: none;
-  color: #0A0B25;
-  font-size: 14px;
+  color: #0b1022;
+  font-size: 12px;
   font-weight: 800;
-  border-radius: 8px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  border-radius: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(212, 160, 60, 0.3);
   -webkit-tap-highlight-color: transparent;
 }
+.filter-apply-btn:hover {
+  background: var(--portal-gold-hover, #b8923f);
+  color: #ffffff;
+}
 .filter-count-badge {
-  background: rgba(0,0,0,0.15);
-  border-radius: 9px;
+  background: rgba(11, 16, 34, 0.2);
+  border-radius: 0;
   padding: 2px 7px;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 900;
+}
+.card-star-svg {
+  width: 10px;
+  height: 10px;
+  color: #f59e0b;
+  fill: #f59e0b;
 }
 /* Filter Drawer Animation */
 .filter-drawer-enter-active { transition: all 0.3s cubic-bezier(0.16,1,0.3,1); }
@@ -1671,6 +1921,68 @@ useHead({
 @media (max-width: 640px) {
   .hotel-preview-card {
     grid-template-columns: 1fr;
+  }
+  .card-media {
+    min-height: 180px;
+    height: 180px;
+  }
+  .card-details {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .card-action-footer {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    padding-top: 10px !important;
+    margin-top: 4px !important;
+    border-top: 1px solid var(--portal-card-border, #e2e8f0);
+  }
+  .price-container {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+  .price-nights-sub {
+    font-size: 9.5px !important;
+    white-space: nowrap !important;
+    color: var(--portal-sub-color, #64748b) !important;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .price-amount-row {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 4px !important;
+    margin-top: 1px;
+  }
+  .price-val {
+    font-size: 21px !important;
+    font-weight: 800 !important;
+    color: var(--portal-title-color, #0b1022) !important;
+    line-height: 1.1 !important;
+  }
+  .price-currency {
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
+    color: var(--portal-gold, #d2a749) !important;
+  }
+  .view-deal-btn {
+    width: auto !important;
+    padding: 10px 18px !important;
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    justify-content: center !important;
+    background: var(--portal-gold, #d2a749) !important;
+    color: #0b1022 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(210, 167, 73, 0.3) !important;
   }
 }
 

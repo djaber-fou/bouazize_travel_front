@@ -1,11 +1,19 @@
 <template>
-    <div id="omra-section" class="px-6 md:px-12 py-24 bg-white">
+    <div id="omra-section" class="px-6 md:px-12 py-20 md:py-24 bg-slate-50/70 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto">
             <!-- Section Header -->
-            <div class="flex flex-col gap-4 items-center mb-16 text-center">
-                <h2 class="text-3xl md:text-4xl font-bold text-secondary uppercase tracking-widest">Nos Offres Omra</h2>
-                <div class="h-1 w-16 bg-primary"></div>
-                <p class="text-gray-500 mt-4 max-w-2xl text-md font-light">Nous vous accompagnons dans votre pèlerinage avec des offres adaptées, incluant hébergement et transport de qualité.</p>
+            <div class="flex flex-col gap-3 items-center mb-14 text-center">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
+                    <Icon name="i-heroicons-building-library" class="w-3.5 h-3.5" />
+                    Pèlerinage Sacré
+                </span>
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-secondary dark:text-white uppercase tracking-tight">
+                    Nos Offres <span class="text-primary">Omra</span>
+                </h2>
+                <div class="h-1 w-16 bg-primary rounded-full"></div>
+                <p class="text-slate-500 dark:text-slate-400 mt-2 max-w-2xl text-sm md:text-base font-light">
+                    Nous vous accompagnons dans votre pèlerinage avec des offres adaptées, incluant hébergement et transport de qualité.
+                </p>
             </div>
 
             <!-- Carousel -->

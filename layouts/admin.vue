@@ -16,7 +16,7 @@
                 <div class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                     <span class="text-slate-400 dark:text-slate-500 font-medium">Administration</span>
                     <UIcon name="i-heroicons-chevron-right-20-solid" class="w-4 h-4 text-slate-300 dark:text-slate-600" />
-                    <span class="text-slate-900 dark:text-slate-100 font-bold bg-primary/10 text-primary px-3 py-1 rounded-lg text-xs uppercase tracking-wider">
+                    <span class="font-bold bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-lg text-xs uppercase tracking-wider shadow-2xs">
                         {{ currentPageTitle }}
                     </span>
                 </div>

@@ -184,6 +184,8 @@ export const useHotelStore = defineStore('hotel', {
       this.searchForm.hotel_name = destination.type === 'hotel' ? destination.name : null;
       if (destination.type === 'hotel' && destination.name) {
         this.filters.searchName = destination.name;
+      } else {
+        this.filters.searchName = '';
       }
       this.destinationSuggestions = [];
 
@@ -209,6 +211,7 @@ export const useHotelStore = defineStore('hotel', {
       this.searchError = null;
       this.loadingSearch = false;
       this.loadingAllHotels = false;
+      this.resetFilters();
     },
 
     setPage(page) {

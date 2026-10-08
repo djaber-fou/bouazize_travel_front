@@ -4,9 +4,11 @@
             <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
             <!-- Text Content -->
-            <div class="w-full lg:w-1/2 flex flex-col gap-5 text-center lg:text-left">
-
-
+            <div class="w-full lg:w-1/2 flex flex-col gap-4 text-center lg:text-left">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/20 w-fit mx-auto lg:mx-0">
+                    <Icon name="i-heroicons-building-office-2" class="w-3.5 h-3.5" />
+                    Hébergements Mondiaux
+                </span>
                 <!-- Title -->
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-secondary dark:text-white uppercase tracking-tight leading-tight">
                     Trouvez l'hôtel <br/><span class="text-primary">Idéal</span>
