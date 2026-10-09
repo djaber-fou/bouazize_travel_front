@@ -1,5 +1,5 @@
 <template>
-    <header class="z-[100] w-full sticky top-0 bg-white dark:bg-slate-900/95 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 transition-all duration-300 shadow-sm" :class="{'py-3': y > 20, 'py-4': y <= 20}">
+    <header id="site-global-header" class="z-[100] w-full sticky top-0 bg-white dark:bg-slate-900/95 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 shadow-sm h-16 md:h-[72px] flex items-center">
         <div class="w-full px-6 md:px-12">
             <nav class="flex justify-between items-center">
                 <nuxt-link to="/" class="flex gap-3 items-center z-[101]">

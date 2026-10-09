@@ -61,6 +61,23 @@
           </div>
 
           <div class="summary-right">
+            <!-- Filter Button (Mobile Trigger) -->
+            <button
+              id="mobile-header-filter-btn"
+              type="button"
+              class="header-filter-trigger-btn"
+              @click="showMobileFilters = true"
+              aria-label="Ouvrir les filtres de recherche"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+              </svg>
+              <span>Filtres</span>
+              <span v-if="activeFiltersCount > 0" class="header-filter-badge">
+                {{ activeFiltersCount }}
+              </span>
+            </button>
+
             <!-- Sort Select -->
             <div class="sort-select-wrapper">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="sort-select-icon">
@@ -539,6 +556,25 @@
 
     </div><!-- /page-body -->
 
+    <!-- Mobile Floating Filter Button (always accessible while scrolling) -->
+    <div v-if="hotelStore.hasSearchResults && !hotelStore.loadingSearch" class="mobile-floating-filter-bar">
+      <button
+        id="mobile-floating-filter-btn"
+        type="button"
+        class="mobile-floating-filter-btn"
+        @click="showMobileFilters = true"
+        aria-label="Filtrer les établissements"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+          <path fill-rule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z" clip-rule="evenodd" />
+        </svg>
+        <span>Filtres</span>
+        <span v-if="activeFiltersCount > 0" class="floating-filter-badge">
+          {{ activeFiltersCount }}
+        </span>
+      </button>
+    </div>
+
   </div>
 </template>
 
@@ -554,7 +590,7 @@ const hotelStore = useHotelStore();
 const isDark     = useDark();
 
 const stickyWrapperRef    = ref(null);
-const siteHeaderHeight    = ref(76);
+const siteHeaderHeight    = ref(72);
 const stickyWrapperHeight = ref(95);
 const showMobileFilters   = ref(false);
 
@@ -570,12 +606,12 @@ const activeFiltersCount = computed(() => {
 
 function updateStickyHeights() {
   if (typeof window !== 'undefined') {
-    const mainHeader = document.getElementById('site-global-header') || document.querySelector('header.sticky.top-0, header.z-\\[100\\]') || document.querySelector('header');
+    const mainHeader = document.getElementById('site-global-header') || document.querySelector('header');
     if (mainHeader) {
-      siteHeaderHeight.value = mainHeader.offsetHeight || 76;
+      siteHeaderHeight.value = Math.round(mainHeader.getBoundingClientRect().height) || (window.innerWidth < 768 ? 64 : 72);
     }
     if (stickyWrapperRef.value) {
-      stickyWrapperHeight.value = stickyWrapperRef.value.offsetHeight || 95;
+      stickyWrapperHeight.value = Math.round(stickyWrapperRef.value.getBoundingClientRect().height) || 95;
     }
   }
 }
@@ -889,6 +925,7 @@ useHead({
    DESIGN SYSTEM TOKENS (LIGHT & DARK)
 ══════════════════════════════════════════════════════════════════════ */
 .hotel-portal {
+  --site-header-h: 72px;
   --portal-page-bg: #f4f6fa;
   --portal-card-bg: #ffffff;
   --portal-card-border: #e2e8f0;
@@ -914,6 +951,14 @@ useHead({
   color: var(--portal-title-color);
   transition: background 0.25s ease, color 0.25s ease;
   overflow: visible !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+@media (max-width: 767px) {
+  .hotel-portal {
+    --site-header-h: 64px;
+  }
 }
 
 /* ── Dark Mode Theme ─────────────────────────────────────────────────── */
@@ -976,15 +1021,30 @@ useHead({
 .results-sticky-wrapper {
   position: -webkit-sticky;
   position: sticky;
-  top: var(--site-header-h, 76px);
+  top: calc(var(--site-header-h, 72px) - 1px);
   z-index: 45;
   background: var(--portal-page-bg);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: background 0.25s ease, box-shadow 0.25s ease;
+  margin-top: 0 !important;
+}
+.results-sticky-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--portal-subbar-bg, #ffffff);
+  pointer-events: none;
 }
 .hotel-portal.dark-theme .results-sticky-wrapper,
 :global(html.dark) .results-sticky-wrapper {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}
+.hotel-portal.dark-theme .results-sticky-wrapper::before,
+:global(html.dark) .results-sticky-wrapper::before {
+  background: var(--portal-subbar-bg, #0a0f20);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1495,59 +1555,48 @@ useHead({
   }
 }
 
-/* Mobile Filter FAB — only visible on mobile */
-.mobile-filter-fab-wrap {
+.mobile-floating-filter-bar {
   display: none;
 }
 @media (max-width: 900px) {
-  .mobile-filter-fab-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px 6px;
-    gap: 10px;
+  .mobile-floating-filter-bar {
+    display: block;
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 80;
+    pointer-events: auto;
   }
-}
-.mobile-filter-fab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  background: var(--portal-box-bg);
-  border: 1px solid var(--portal-card-border);
-  color: var(--portal-title-color);
-  font-size: 12.5px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  border-radius: 0;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-.mobile-filter-fab:hover,
-.mobile-filter-fab:active {
-  border-color: var(--portal-gold);
-  color: var(--portal-gold);
-  background: rgba(210, 167, 73, 0.08);
-}
-.filter-fab-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 18px;
-  height: 18px;
-  background: var(--portal-gold);
-  color: #0A0B25;
-  border-radius: 0;
-  font-size: 10px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 5px;
+  .mobile-floating-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #0A0B25;
+    color: #ffffff;
+    border: 1.5px solid var(--portal-gold, #d2a749);
+    border-radius: 0 !important;
+    padding: 10px 22px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-floating-filter-btn:active {
+    transform: scale(0.97);
+  }
+  .floating-filter-badge {
+    background: var(--portal-gold, #d2a749);
+    color: #0A0B25;
+    font-size: 10px;
+    font-weight: 900;
+    padding: 1px 6px;
+    border-radius: 0 !important;
+  }
 }
 
 /* Sidebar Filters — hidden on mobile */
@@ -1559,8 +1608,8 @@ useHead({
   flex-direction: column;
   gap: 16px;
   position: sticky;
-  top: calc(var(--site-header-h, 76px) + var(--results-header-h, 155px) + 16px);
-  max-height: calc(100vh - var(--site-header-h, 76px) - var(--results-header-h, 155px) - 30px);
+  top: calc(var(--site-header-h, 72px) + var(--results-header-h, 95px) + 12px);
+  max-height: calc(100vh - var(--site-header-h, 72px) - var(--results-header-h, 95px) - 24px);
   overflow-y: auto;
   scrollbar-width: thin;
   z-index: 30;
