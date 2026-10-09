@@ -70,6 +70,7 @@ export const useHotelStore = defineStore('hotel', {
       minStars: null,
       mealBasis: '',
       searchName: '',
+      refundableOnly: false,
     },
     sortBy: 'price_asc',
     selectedHotel: null,
@@ -116,6 +117,17 @@ export const useHotelStore = defineStore('hotel', {
       }
       if (state.filters.mealBasis) {
         list = list.filter((h) => h.meal_basis_code === state.filters.mealBasis);
+      }
+      if (state.filters.refundableOnly) {
+        list = list.filter((h) => {
+          return Boolean(
+            h.is_fully_refundable ||
+            h.has_free_cancellation ||
+            h.cancellation_deadline ||
+            (Array.isArray(h.agreements) && h.agreements.some((a) => a.is_fully_refundable || a.has_free_cancellation || a.cancellation_deadline || a.deadline)) ||
+            (Array.isArray(h.rooms) && h.rooms.some((r) => r.is_fully_refundable || r.has_free_cancellation || r.deadline))
+          );
+        });
       }
 
       switch (state.sortBy) {
@@ -225,6 +237,7 @@ export const useHotelStore = defineStore('hotel', {
         minStars: null,
         mealBasis: '',
         searchName: '',
+        refundableOnly: false,
       };
       this.sortBy = 'price_asc';
       this.currentPage = 1;
@@ -489,11 +502,6 @@ export const useHotelStore = defineStore('hotel', {
       this.searchError = null;
     },
 
-    resetFilters() {
-      this.filters = { maxPrice: null, minStars: null, mealBasis: '' };
-      this.sortBy = 'price_asc';
-      this.displayedCount = 50;
-    },
   },
   persist: {
     paths: ['searchForm', 'searchResults', 'selectedHotel', 'selectedRoom', 'evaluationResult'],

@@ -263,6 +263,18 @@
               </select>
             </div>
 
+            <div class="filter-box">
+              <label class="filter-checkbox-label" for="filter-refundable-only">
+                <input
+                  id="filter-refundable-only"
+                  v-model="hotelStore.filters.refundableOnly"
+                  type="checkbox"
+                  class="custom-check"
+                />
+                <span class="filter-checkbox-text">Tarifs remboursables uniquement</span>
+              </label>
+            </div>
+
             <button
               id="reset-all-filters-btn"
               type="button"
@@ -359,6 +371,18 @@
                         <option value="FB">Pension complète</option>
                         <option value="AI">Tout compris</option>
                       </select>
+                    </div>
+
+                    <div class="filter-box">
+                      <label class="filter-checkbox-label" for="drawer-filter-refundable-only">
+                        <input
+                          id="drawer-filter-refundable-only"
+                          v-model="hotelStore.filters.refundableOnly"
+                          type="checkbox"
+                          class="custom-check"
+                        />
+                        <span class="filter-checkbox-text">Tarifs remboursables uniquement</span>
+                      </label>
                     </div>
                   </div>
 
@@ -600,6 +624,7 @@ const activeFiltersCount = computed(() => {
   if (hotelStore.filters?.minStars) count++;
   if (hotelStore.filters?.maxPrice) count++;
   if (hotelStore.filters?.mealBasis) count++;
+  if (hotelStore.filters?.refundableOnly) count++;
   return count;
 });
 
@@ -720,6 +745,11 @@ async function executeSearch(isAutoRetry = false) {
   } else {
     hotelStore.filters.searchName = '';
   }
+  if (q.refundable_only === '1' || q.refundable_only === 'true' || q.refundable_only === true) {
+    hotelStore.filters.refundableOnly = true;
+  } else {
+    hotelStore.filters.refundableOnly = false;
+  }
 
   // Trigger search availability
   try {
@@ -790,7 +820,7 @@ watch(
 
 // When filters or sort change, reset pagination to page 1
 watch(
-  () => [hotelStore.filters.searchName, hotelStore.filters.maxPrice, hotelStore.filters.minStars, hotelStore.filters.mealBasis, hotelStore.sortBy],
+  () => [hotelStore.filters.searchName, hotelStore.filters.maxPrice, hotelStore.filters.minStars, hotelStore.filters.mealBasis, hotelStore.filters.refundableOnly, hotelStore.sortBy],
   () => {
     hotelStore.currentPage = 1;
     hotelStore.displayedCount = 20;
@@ -1854,6 +1884,33 @@ useHead({
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  user-select: none;
+  padding: 8px 10px;
+  background: var(--portal-box-bg);
+  border: 1px solid var(--portal-input-border);
+  transition: border-color 0.15s ease;
+}
+.filter-checkbox-label:hover {
+  border-color: var(--portal-gold);
+}
+.filter-checkbox-label .custom-check {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--portal-gold);
+  border-radius: 0 !important;
+  cursor: pointer;
+}
+.filter-checkbox-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--portal-title-color);
+  line-height: 1.3;
 }
 .filter-head {
   font-size: 11px;

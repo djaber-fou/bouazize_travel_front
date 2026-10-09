@@ -165,29 +165,6 @@
 
             </div>
           </div>
-
-          <div class="form-col col-geocodage">
-            <label class="form-label">GEOCODAGE</label>
-            <input
-              id="geocodage-input"
-              v-model="geocodage"
-              type="text"
-              class="form-ctrl"
-              placeholder="Lieu..."
-            />
-          </div>
-
-          <div class="form-col col-km">
-            <label class="form-label">KM</label>
-            <input
-              id="km-input"
-              v-model.number="km"
-              type="number"
-              class="form-ctrl text-center"
-              min="1"
-              max="500"
-            />
-          </div>
         </div>
 
         <!-- ROW 2: Dates + Nuits + Chambres -->
@@ -369,6 +346,19 @@
           </div>
         </div>
 
+        <!-- Main Search Option: Tarifs remboursables uniquement -->
+        <div class="main-refundable-row">
+          <label class="main-refundable-label" for="main-refundable-only-check">
+            <input
+              id="main-refundable-only-check"
+              v-model="advancedOptions.refundableOnly"
+              type="checkbox"
+              class="custom-check"
+            />
+            <span class="main-refundable-text">Tarifs remboursables uniquement</span>
+          </label>
+        </div>
+
         <!-- OPTIONS AVANCÉES (Collapsible Bar) -->
         <div class="advanced-options-container" id="advanced-options-section">
           <div
@@ -428,19 +418,6 @@
                     <option value="BESTARRANGMENT">Meilleur arrangement</option>
                   </select>
                 </div>
-              </div>
-
-              <!-- Checkboxes Right -->
-              <div class="adv-col adv-check-col">
-                <label class="adv-check-label">
-                  <input
-                    id="refundable-only-check"
-                    v-model="advancedOptions.refundableOnly"
-                    type="checkbox"
-                    class="custom-check"
-                  />
-                  <span>Tarifs remboursables uniquement</span>
-                </label>
               </div>
 
               <!-- NATIONALITÉ DE PASSAGE -->
@@ -1062,8 +1039,9 @@ async function triggerSearch() {
   if (hotelStore.searchForm.hotel_name) query.hotel_name = hotelStore.searchForm.hotel_name;
   if (advancedOptions.value.stars) query.stars = advancedOptions.value.stars;
   if (advancedOptions.value.currency) query.currency = advancedOptions.value.currency;
+  query.km = km.value || 5;
   if (geocodage.value) query.geocodage = geocodage.value;
-  if (km.value) query.km = km.value;
+  if (advancedOptions.value.refundableOnly) query.refundable_only = '1';
 
   isNavigating.value = true;
   navigateTo({
@@ -2040,12 +2018,37 @@ useHead({
 }
 .col-destination {
   flex: 1;
+  width: 100%;
 }
-.col-geocodage {
-  width: 130px;
+
+/* Main search refundable option */
+.main-refundable-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  background: var(--portal-box-bg);
+  border: 1px solid var(--portal-box-border);
 }
-.col-km {
-  width: 60px;
+.main-refundable-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--portal-title-color);
+}
+.main-refundable-label .custom-check {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--portal-gold);
+  border-radius: 0 !important;
+  cursor: pointer;
+}
+.main-refundable-text {
+  letter-spacing: 0.2px;
 }
 
 /* Autocomplete */
