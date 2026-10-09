@@ -386,21 +386,6 @@
                                 </nuxt-link>
                             </div>
                         </div>
-
-                        <!-- Agency Contact Footer inside Drawer -->
-                        <div class="pt-5 border-t border-gray-100 dark:border-slate-800/80 text-xs text-gray-500 dark:text-gray-400 space-y-2.5">
-                            <p class="font-semibold text-secondary dark:text-gray-300 uppercase tracking-wider text-[11px]">
-                                Assistance Bouazize Travel
-                            </p>
-                            <div class="flex items-center gap-2.5">
-                                <Icon name="i-heroicons-phone" class="w-4 h-4 text-primary shrink-0" />
-                                <span>+213 (0) 550 00 00 00</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <Icon name="i-heroicons-envelope" class="w-4 h-4 text-primary shrink-0" />
-                                <span>contact@bouazizetravel.com</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
