@@ -119,18 +119,28 @@
                             >
                                 <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 border-t-2 border-t-primary shadow-2xl rounded-none overflow-hidden">
                                     <div class="p-2 flex flex-col gap-0.5">
-                                        <component 
-                                            :is="item?.link ? `nuxt-link` : `button`" 
-                                            v-for="(item, index) in menuItems" 
-                                            :key="index" 
-                                            :to="item?.link" 
-                                            @click="() => { if(item?.action) item.action(); showUserMenu = false; }" 
-                                            class="dropdown-item text-left"
-                                            :class="item?.class"
-                                        >
-                                            <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4" />
-                                            <span>{{ item.text }}</span>
-                                        </component>
+                                        <template v-for="(item, index) in menuItems" :key="index">
+                                            <NuxtLink 
+                                                v-if="item?.link"
+                                                :to="item.link" 
+                                                @click="() => { if(item?.action) item.action(); showUserMenu = false; }" 
+                                                class="dropdown-item text-left flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-secondary dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800/80 hover:text-primary transition-colors cursor-pointer"
+                                                :class="item?.class"
+                                            >
+                                                <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4 shrink-0" />
+                                                <span>{{ item.text }}</span>
+                                            </NuxtLink>
+                                            <button 
+                                                v-else
+                                                type="button"
+                                                @click="() => { if(item?.action) item.action(); showUserMenu = false; }" 
+                                                class="dropdown-item text-left flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-secondary dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800/80 hover:text-primary transition-colors cursor-pointer w-full"
+                                                :class="item?.class"
+                                            >
+                                                <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4 shrink-0" />
+                                                <span>{{ item.text }}</span>
+                                            </button>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -331,21 +341,34 @@
 
                                 <!-- Account Links -->
                                 <div class="space-y-1">
-                                    <component 
-                                        :is="item?.link ? `nuxt-link` : `button`"
-                                        v-for="(item, index) in menuItems" 
-                                        :key="index" 
-                                        :to="item?.link" 
-                                        @click="() => { if(item?.action) item.action(); showMenu = false; }" 
-                                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-secondary dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800/80 hover:text-primary transition-colors text-left border border-transparent hover:border-gray-200 dark:hover:border-slate-800"
-                                        :class="item?.class"
-                                    >
-                                        <div class="flex items-center gap-3">
-                                            <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4" />
-                                            <span>{{ item.text }}</span>
-                                        </div>
-                                        <Icon name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
-                                    </component>
+                                    <template v-for="(item, index) in menuItems" :key="index">
+                                        <NuxtLink 
+                                            v-if="item?.link"
+                                            :to="item.link" 
+                                            @click="() => { if(item?.action) item.action(); showMenu = false; }" 
+                                            class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-secondary dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800/80 hover:text-primary transition-colors text-left border border-transparent hover:border-gray-200 dark:hover:border-slate-800 cursor-pointer"
+                                            :class="item?.class"
+                                        >
+                                            <div class="flex items-center gap-3">
+                                                <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4 shrink-0" />
+                                                <span>{{ item.text }}</span>
+                                            </div>
+                                            <Icon name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
+                                        </NuxtLink>
+                                        <button 
+                                            v-else
+                                            type="button"
+                                            @click="() => { if(item?.action) item.action(); showMenu = false; }" 
+                                            class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-secondary dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800/80 hover:text-primary transition-colors text-left border border-transparent hover:border-gray-200 dark:hover:border-slate-800 cursor-pointer"
+                                            :class="item?.class"
+                                        >
+                                            <div class="flex items-center gap-3">
+                                                <Icon v-if="item?.icon" :name="item.icon" class="w-4 h-4 shrink-0" />
+                                                <span>{{ item.text }}</span>
+                                            </div>
+                                            <Icon name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
+                                        </button>
+                                    </template>
                                 </div>
                             </div>
 
@@ -465,12 +488,28 @@ const logout = async() => {
     await authStore.logout()
 }
 
-const menuItems = computed(() => [
-    {link:"/profile", text:"Mon profil", icon: 'i-heroicons-user'},
-    user.value?.role === "admin" ? {link:"/x8dj29msk", text:"Tableau de bord", icon: 'i-heroicons-squares-2x2'} : null,
-    user.value?.role !== "admin" ? {link:"/client/orders", text:"Mes commandes", icon: 'i-heroicons-shopping-bag'} : null,
-    {action:logout, text:"Déconnexion", icon: 'i-heroicons-arrow-right-on-rectangle', class: '!text-red-500 hover:!bg-red-50 dark:hover:!bg-red-950/50'}
-].filter(Boolean))
+const menuItems = computed(() => {
+    const items = [
+        { link: "/profile", text: "Mon profil", icon: 'i-heroicons-user' },
+    ];
+
+    if (user.value?.role === "admin") {
+        items.push({ link: "/x8dj29msk", text: "Tableau de bord", icon: 'i-heroicons-squares-2x2' });
+        items.push({ link: "/h0t1e2l3s", text: "Gestion Hôtels", icon: 'i-heroicons-building-office-2' });
+    }
+
+    // Always provide "Mes commandes" so all users (clients & admin) can access their orders
+    items.push({ link: "/client/orders", text: "Mes commandes", icon: 'i-heroicons-shopping-bag' });
+
+    items.push({
+        action: logout,
+        text: "Déconnexion",
+        icon: 'i-heroicons-arrow-right-on-rectangle',
+        class: '!text-red-500 hover:!bg-red-50 dark:hover:!bg-red-950/50'
+    });
+
+    return items;
+});
 
 // Lock/unlock body scroll when mobile menu is open
 watch(showMenu, (val) => {

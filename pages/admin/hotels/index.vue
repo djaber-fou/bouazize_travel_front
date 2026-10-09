@@ -583,7 +583,9 @@
                 variant="soft"
                 icon="i-heroicons-trash"
                 size="sm"
-                :disabled="selectedOrder.status === 'cancelled'"
+                class="!rounded-none"
+                :loading="cancellingBooking"
+                :disabled="selectedOrder.status === 'cancelled' || cancellingBooking"
                 @click="confirmCancelBooking"
               >
                 Annuler sur Netstorming
@@ -891,6 +893,7 @@ const trackingLoading = ref(false);
 const trackingResult = ref(null);
 const updatingStatus = ref(false);
 const updatingPayment = ref(false);
+const cancellingBooking = ref(false);
 const openSettings = ref(false);
 const openReconciliation = ref(false);
 const syncingDestinations = ref(false);
@@ -1230,18 +1233,28 @@ async function trackBookingNetstorming() {
 }
 
 async function confirmCancelBooking() {
-  if (!confirm('Êtes-vous sûr de vouloir annuler cette réservation sur Netstorming ? Cette action est irréversible.')) {
+  if (!selectedOrder.value) return;
+  const orderRef = selectedOrder.value.ns_booking_reference || `#${selectedOrder.value.id}`;
+  if (!confirm(`Êtes-vous sûr de vouloir annuler la réservation ${orderRef} sur Netstorming ? Cette action est irréversible.`)) {
     return;
   }
+  cancellingBooking.value = true;
   try {
-    await sendApi(`/admin/hotels/orders/${selectedOrder.value.id}/cancel`, { reason: 'Annulation demandée depuis l\'administration' }, 'POST');
+    const res = await sendApi(`/admin/hotels/orders/${selectedOrder.value.id}/cancel`, {
+      reason: 'Annulation demandée depuis l\'administration'
+    }, 'POST');
     selectedOrder.value.status = 'cancelled';
     selectedOrder.value.ns_booking_status = 'can';
-    await fetchOrders();
-    await fetchStats();
+    if (editForm.value) {
+      editForm.value.status = 'cancelled';
+    }
+    await Promise.all([fetchOrders(), fetchStats()]);
+    alert(res?.message || 'Réservation annulée avec succès sur Netstorming et en local !');
   } catch (e) {
     console.error('Failed to cancel order on Netstorming:', e);
-    alert('Erreur: ' + (e?.message || 'Échec de l\'annulation'));
+    alert('Erreur: ' + (e?.response?.data?.message || e?.message || 'Échec de l\'annulation'));
+  } finally {
+    cancellingBooking.value = false;
   }
 }
 

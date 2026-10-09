@@ -19,7 +19,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
         '/v1o2y3a4o',
         '/b2n3m4k5l',
         '/c2c3p4p5',
-        '/s3t4t5i6n'
+        '/s3t4t5i6n',
+        '/h0t1e2l3s'
     ];
 
     // Client/User protected pages (require login)
