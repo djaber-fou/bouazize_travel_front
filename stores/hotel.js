@@ -269,6 +269,10 @@ export const useHotelStore = defineStore('hotel', {
       try {
         const data = await searchHotelAvailability(this.searchForm);
         if (mySeq !== searchSeq) return; // a newer search superseded this one
+        if (!data || data.status === 'error' || data.success === false) {
+          this.searchError = data?.message || 'Erreur lors de la recherche des hôtels';
+          return;
+        }
         const res = data?.data ?? {};
         this.searchResults = {
           session_id: res.session_id ?? null,
