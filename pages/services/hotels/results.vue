@@ -889,7 +889,8 @@ function openHotelDetails(hotel) {
   const cOut   = currentCheckOut.value;
   const ad     = currentAdults.value;
   const ch     = currentChildren.value;
-  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}`);
+  const rm     = currentRooms.value;
+  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&rooms=${rm}`);
 }
 
 function onImageError(event, stars) {

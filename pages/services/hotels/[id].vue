@@ -223,8 +223,8 @@
 
             <!-- List of Room Offers -->
             <div class="room-offers-list">
-              <!-- Skeletons while offers are loading and none are displayed yet -->
-              <div v-if="loadingOffersAndImages && filteredAgreements.length === 0" class="room-offers-skeleton-group">
+              <!-- Skeletons while offers are loading -->
+              <div v-if="loadingOffersAndImages" class="room-offers-skeleton-group">
                 <div v-for="sk in 3" :key="sk" class="room-offer-card room-offer-skeleton-card">
                   <div class="sk-body">
                     <div class="sk-line w-60 h-20"></div>
@@ -238,15 +238,17 @@
                 </div>
               </div>
 
-              <div
-                v-for="(agreement, agIdx) in filteredAgreements"
-                :key="agreement.agreement_id || agIdx"
-                :id="`room-offer-${agIdx}`"
-                class="room-offer-card"
-                :class="{
-                  'selected-offer': selectedAgreement?.agreement_id === agreement.agreement_id
-                }"
-              >
+              <!-- Real offers rendered ONLY when not loading and agreements exist -->
+              <template v-else-if="filteredAgreements.length > 0">
+                <div
+                  v-for="(agreement, agIdx) in filteredAgreements"
+                  :key="agreement.agreement_id || agIdx"
+                  :id="`room-offer-${agIdx}`"
+                  class="room-offer-card"
+                  :class="{
+                    'selected-offer': selectedAgreement?.agreement_id === agreement.agreement_id
+                  }"
+                >
                 <!-- Room Card Header / Main Info -->
                 <div class="room-card-content">
 
@@ -335,6 +337,27 @@
                     </button>
                   </div>
 
+                </div>
+                </div>
+              </template>
+
+              <!-- Empty state when not loading and no agreements exist -->
+              <div v-else class="no-offers-empty-state">
+                <div class="empty-icon-circle">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="empty-state-svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                  </svg>
+                </div>
+                <h4 class="empty-state-title">Aucune offre disponible</h4>
+                <p class="empty-state-text">
+                  Désolé, aucune formule de chambre n'est disponible pour ces dates ({{ formatDate(hotelStore.searchForm.check_in) }} → {{ formatDate(hotelStore.searchForm.check_out) }})
+                  <span v-if="hotelStore.searchForm.rooms > 1">pour {{ hotelStore.searchForm.rooms }} chambres</span>
+                  ou cette configuration de voyageurs.
+                </p>
+                <div class="empty-state-actions">
+                  <NuxtLink to="/services/hotels/results" class="empty-back-btn">
+                    ← Retourner aux résultats de recherche
+                  </NuxtLink>
                 </div>
               </div>
             </div>
@@ -431,84 +454,120 @@
                         <span v-if="authStore.isBusiness" class="b2b-flag">Compte Agence B2B</span>
                       </div>
 
-                      <!-- ── PASSENGERS LIST ── -->
-                      <div v-for="(pax, pIdx) in paxList" :key="pIdx" class="pax-card-box">
-                        <div class="pax-head-row">
-                          <span class="pax-role-badge" :class="pax.type === 'adult' ? 'adult-role' : 'child-role'">
-                            {{ pax.type === 'adult' ? 'Voyageur Adulte' : 'Enfant' }} {{ pIdx + 1 }}
-                          </span>
-                          <span v-if="pIdx === 0" class="lead-flag">
-                            <svg class="lead-flag-svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
-                            </svg>
-                            Responsable de la réservation (Titulaire)
-                          </span>
-                          <span v-if="pax.type === 'child'" class="child-age-flag">{{ pax.age }} ans</span>
-                        </div>
-
-                        <div class="pax-inputs-grid">
-                          <div class="input-item col-title">
-                            <label :for="`title-${pIdx}`" class="input-lbl">Titre <span class="req">*</span></label>
-                            <select :id="`title-${pIdx}`" v-model="pax.title" class="form-select-ctrl">
-                              <option value="MR">M. (MR)</option>
-                              <option value="MS">Mme (MS)</option>
-                              <option value="MRS">Mme (MRS)</option>
-                              <option value="MISS">Mlle (MISS)</option>
-                            </select>
+                      <!-- ── CHAMBERS & PASSENGERS LIST ── -->
+                      <div class="chambers-container">
+                        <div
+                          v-for="(room, rIdx) in roomsList"
+                          :key="rIdx"
+                          class="chamber-card"
+                        >
+                          <!-- Chamber Header -->
+                          <div class="chamber-card-header">
+                            <div class="chamber-header-left">
+                              <div class="chamber-icon-box">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                  <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+                                  <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.432z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <h3 class="chamber-title">Chambre {{ rIdx + 1 }}</h3>
+                                <p class="chamber-subtitle">
+                                  {{ selectedAgreement?.room_type || 'Chambre Standard' }} • {{ room.pax.length }} voyageur{{ room.pax.length > 1 ? 's' : '' }}
+                                </p>
+                              </div>
+                            </div>
+                            <div class="chamber-header-right">
+                              <span class="chamber-badge">Chambre {{ rIdx + 1 }} / {{ roomsList.length }}</span>
+                            </div>
                           </div>
 
-                          <div class="input-item col-name">
-                            <label :for="`first-name-${pIdx}`" class="input-lbl">Prénom <span class="req">*</span></label>
-                            <input
-                              :id="`first-name-${pIdx}`"
-                              v-model="pax.name"
-                              type="text"
-                              class="form-input-ctrl uppercase"
-                              placeholder="Ex: MOHAMED"
-                            />
-                          </div>
+                          <!-- Passengers in this Chamber -->
+                          <div class="chamber-pax-list">
+                            <div
+                              v-for="(pax, pIdx) in room.pax"
+                              :key="pIdx"
+                              class="pax-card-box chamber-inner-pax"
+                            >
+                              <div class="pax-head-row">
+                                <span class="pax-role-badge" :class="pax.type === 'adult' ? 'adult-role' : 'child-role'">
+                                  {{ pax.type === 'adult' ? 'Voyageur Adulte' : 'Enfant' }} {{ pIdx + 1 }}
+                                </span>
+                                <span v-if="rIdx === 0 && pIdx === 0" class="lead-flag">
+                                  <svg class="lead-flag-svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+                                  </svg>
+                                  Responsable de la réservation (Titulaire principal)
+                                </span>
+                                <span v-if="pax.type === 'child'" class="child-age-flag">{{ pax.age }} ans</span>
+                              </div>
 
-                          <div class="input-item col-surname">
-                            <label :for="`last-name-${pIdx}`" class="input-lbl">Nom de famille <span class="req">*</span></label>
-                            <input
-                              :id="`last-name-${pIdx}`"
-                              v-model="pax.surname"
-                              type="text"
-                              class="form-input-ctrl uppercase"
-                              placeholder="Ex: BENALI"
-                            />
-                          </div>
+                              <div class="pax-inputs-grid">
+                                <div class="input-item col-title">
+                                  <label :for="`title-${rIdx}-${pIdx}`" class="input-lbl">Titre <span class="req">*</span></label>
+                                  <select :id="`title-${rIdx}-${pIdx}`" v-model="pax.title" class="form-select-ctrl">
+                                    <option value="MR">M. (MR)</option>
+                                    <option value="MS">Mme (MS)</option>
+                                    <option value="MRS">Mme (MRS)</option>
+                                    <option value="MISS">Mlle (MISS)</option>
+                                  </select>
+                                </div>
 
-                          <!-- Email for lead pax -->
-                          <div v-if="pIdx === 0" class="input-item col-email">
-                            <label for="lead-email" class="input-lbl">Email de confirmation &amp; Voucher <span class="req">*</span></label>
-                            <input
-                              id="lead-email"
-                              v-model="pax.email"
-                              type="email"
-                              class="form-input-ctrl"
-                              placeholder="client@email.com"
-                            />
-                          </div>
+                                <div class="input-item col-name">
+                                  <label :for="`first-name-${rIdx}-${pIdx}`" class="input-lbl">Prénom <span class="req">*</span></label>
+                                  <input
+                                    :id="`first-name-${rIdx}-${pIdx}`"
+                                    v-model="pax.name"
+                                    type="text"
+                                    class="form-input-ctrl uppercase"
+                                    placeholder="Ex: MOHAMED"
+                                  />
+                                </div>
 
-                          <!-- Phone for lead pax -->
-                          <div v-if="pIdx === 0" class="input-item col-phone">
-                            <label for="lead-phone" class="input-lbl">Téléphone de contact (SMS / Appel) <span class="req">*</span></label>
-                            <input
-                              id="lead-phone"
-                              v-model="pax.phone"
-                              type="tel"
-                              class="form-input-ctrl"
-                              placeholder="+213 550 00 00 00"
-                            />
-                          </div>
+                                <div class="input-item col-surname">
+                                  <label :for="`last-name-${rIdx}-${pIdx}`" class="input-lbl">Nom de famille <span class="req">*</span></label>
+                                  <input
+                                    :id="`last-name-${rIdx}-${pIdx}`"
+                                    v-model="pax.surname"
+                                    type="text"
+                                    class="form-input-ctrl uppercase"
+                                    placeholder="Ex: BENALI"
+                                  />
+                                </div>
 
-                          <!-- Child Age input (mandatory for child pax) -->
-                          <div v-if="pax.type === 'child'" class="input-item col-age">
-                            <label :for="`child-age-${pIdx}`" class="input-lbl">Âge de l'enfant <span class="req">*</span></label>
-                            <select :id="`child-age-${pIdx}`" v-model.number="pax.age" class="form-select-ctrl">
-                              <option v-for="a in 18" :key="a - 1" :value="a - 1">{{ a - 1 }} ans</option>
-                            </select>
+                                <!-- Email for global lead pax (Chambre 1, Voyageur 1) -->
+                                <div v-if="rIdx === 0 && pIdx === 0" class="input-item col-email">
+                                  <label for="lead-email" class="input-lbl">Email de confirmation &amp; Voucher <span class="req">*</span></label>
+                                  <input
+                                    id="lead-email"
+                                    v-model="pax.email"
+                                    type="email"
+                                    class="form-input-ctrl"
+                                    placeholder="client@email.com"
+                                  />
+                                </div>
+
+                                <!-- Phone for global lead pax (Chambre 1, Voyageur 1) -->
+                                <div v-if="rIdx === 0 && pIdx === 0" class="input-item col-phone">
+                                  <label for="lead-phone" class="input-lbl">Téléphone de contact (SMS / Appel) <span class="req">*</span></label>
+                                  <input
+                                    id="lead-phone"
+                                    v-model="pax.phone"
+                                    type="tel"
+                                    class="form-input-ctrl"
+                                    placeholder="+213 550 00 00 00"
+                                  />
+                                </div>
+
+                                <!-- Child Age input (mandatory for child pax) -->
+                                <div v-if="pax.type === 'child'" class="input-item col-age">
+                                  <label :for="`child-age-${rIdx}-${pIdx}`" class="input-lbl">Âge de l'enfant <span class="req">*</span></label>
+                                  <select :id="`child-age-${rIdx}-${pIdx}`" v-model.number="pax.age" class="form-select-ctrl">
+                                    <option v-for="a in 18" :key="a - 1" :value="a - 1">{{ a - 1 }} ans</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -600,7 +659,10 @@
                           <label
                             v-if="canPayWithWallet"
                             class="pay-method-card"
-                            :class="{ active: selectedPaymentMethod === 'wallet' }"
+                            :class="{
+                              active: selectedPaymentMethod === 'wallet',
+                              'wallet-insufficient': userWalletBalance < currentPrice
+                            }"
                           >
                             <input
                               type="radio"
@@ -618,13 +680,26 @@
                                     </svg>
                                     Solde Portefeuille
                                   </span>
-                                  <span class="pay-brand-tag">{{ formatPrice(authStore.User?.account_balance || 0) }} DZD</span>
+                                  <span
+                                    class="pay-brand-tag"
+                                    :class="userWalletBalance >= currentPrice ? 'tag-green' : 'tag-warn'"
+                                  >
+                                    {{ formatPrice(userWalletBalance) }} DZD
+                                  </span>
                                 </div>
                                 <span class="pay-title">Débit Direct du Portefeuille Agence B2B</span>
                               </div>
                               <p class="pay-desc">
                                 Déduction immédiate du montant NET du solde de votre compte agence. Confirmation instantanée transmise à Netstorming.
                               </p>
+
+                              <!-- Live Wallet Balance Status -->
+                              <div v-if="userWalletBalance < currentPrice" class="wallet-warning-msg">
+                                ⚠️ Solde insuffisant ({{ formatPrice(userWalletBalance) }} DZD disponible sur {{ formatPrice(currentPrice) }} DZD requis). Veuillez recharger votre compte ou choisir un autre moyen.
+                              </div>
+                              <div v-else class="wallet-success-msg">
+                                ✓ Solde disponible suffisant pour confirmer et débiter immédiatement cette réservation.
+                              </div>
                             </div>
                           </label>
                         </div>
@@ -660,6 +735,9 @@
                       <span class="btn-txt">
                         <template v-if="hotelStore.loadingBooking">
                           TRAITEMENT EN COURS...
+                        </template>
+                        <template v-else-if="selectedPaymentMethod === 'wallet'">
+                          CONFIRMER ET DÉBITER LE PORTEFEUILLE ({{ formatPrice(currentPrice) }} DZD)
                         </template>
                         <template v-else>
                           PAYER ET CONFIRMER ({{ formatPrice(currentPrice) }} DZD)
@@ -717,7 +795,7 @@
             </div>
 
             <!-- ── DISPONIBILITÉ & PRIX CONFIRMÉS (NETSTORMING) ── -->
-            <div v-if="selectedAgreement" class="sb-verified-card">
+            <div v-if="!loadingOffersAndImages && selectedAgreement" class="sb-verified-card">
               <div class="sb-verified-header">
                 <div class="sb-check-icon">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -756,6 +834,17 @@
               </div>
             </div>
 
+            <!-- Loading indicator in sidebar while fetching live prices -->
+            <div v-else-if="loadingOffersAndImages" class="sb-verified-card sb-loading-card">
+              <div class="sb-verified-header">
+                <span class="btn-spinner"></span>
+                <div class="sb-verified-titles">
+                  <h4 class="sb-verified-title">Vérification en direct...</h4>
+                  <p class="sb-verified-sub">Recherche des meilleurs tarifs en cours auprès de Netstorming</p>
+                </div>
+              </div>
+            </div>
+
             <div class="summary-key-values">
               <div class="kv-row">
                 <span class="kv-lbl">Dates de séjour</span>
@@ -769,11 +858,15 @@
                 <span class="kv-lbl">Voyageurs</span>
                 <span class="kv-val">{{ hotelStore.searchForm.adults || 2 }} Adulte(s) <span v-if="hotelStore.searchForm.children">, {{ hotelStore.searchForm.children }} enfant(s)</span></span>
               </div>
-              <div class="kv-row">
-                <span class="kv-lbl">Offre sélectionnée</span>
-                <span class="kv-val highlight-val">{{ selectedAgreement?.room_type || hotel.room_basis_name || 'Chambre Standard' }}</span>
+              <div v-if="hotelStore.searchForm.rooms > 1" class="kv-row">
+                <span class="kv-lbl">Chambres</span>
+                <span class="kv-val">{{ hotelStore.searchForm.rooms }} chambre(s)</span>
               </div>
               <div class="kv-row">
+                <span class="kv-lbl">Offre sélectionnée</span>
+                <span class="kv-val highlight-val">{{ selectedAgreement?.room_type || (loadingOffersAndImages ? 'Recherche en cours...' : 'Aucune sélection') }}</span>
+              </div>
+              <div class="kv-row" v-if="selectedAgreement">
                 <span class="kv-lbl">Régime repas</span>
                 <span class="kv-val">{{ roomBasisLabel(selectedAgreement?.room_basis || hotel.room_basis_code) }}</span>
               </div>
@@ -783,9 +876,15 @@
             <div class="summary-price-box">
               <div class="price-row-total">
                 <span class="total-lbl">Prix Total</span>
-                <div class="total-figures">
+                <div class="total-figures" v-if="loadingOffersAndImages">
+                  <span class="total-loading-txt">Calcul en cours...</span>
+                </div>
+                <div class="total-figures" v-else-if="currentPrice > 0">
                   <span class="total-amt">{{ formatPrice(currentPrice) }}</span>
                   <span class="total-cur">DZD</span>
+                </div>
+                <div class="total-figures" v-else>
+                  <span class="total-amt">—</span>
                 </div>
               </div>
               <span class="taxes-notice">Paiement sécurisé · Confirmation officielle</span>
@@ -798,11 +897,15 @@
                 id="sidebar-book-btn"
                 type="button"
                 class="sidebar-action-gold-btn"
-                :class="{ loading: hotelStore.loadingEvaluation }"
+                :class="{ loading: hotelStore.loadingEvaluation || loadingOffersAndImages }"
+                :disabled="loadingOffersAndImages || !selectedAgreement || hotelStore.loadingEvaluation"
                 @click="openPassengerForm"
               >
-                <span v-if="hotelStore.loadingEvaluation" class="btn-spinner"></span>
-                <span>{{ hotelStore.loadingEvaluation ? 'VÉRIFICATION EN COURS...' : 'SAISIR LES COORDONNÉES DES VOYAGEURS' }}</span>
+                <span v-if="hotelStore.loadingEvaluation || loadingOffersAndImages" class="btn-spinner"></span>
+                <span v-if="loadingOffersAndImages">CHARGEMENT DES OFFRES...</span>
+                <span v-else-if="hotelStore.loadingEvaluation">VÉRIFICATION EN COURS...</span>
+                <span v-else-if="!selectedAgreement">AUCUNE CHAMBRE DISPONIBLE</span>
+                <span v-else>SAISIR LES COORDONNÉES DES VOYAGEURS</span>
               </button>
             </div>
 
@@ -821,10 +924,10 @@
         <div class="mobile-bar-info">
           <span class="mobile-bar-sub">Total séjour · {{ hotelStore.nights }} nuits</span>
           <div class="mobile-bar-price-row">
-            <span class="mobile-bar-price-amt">{{ formatPrice(currentPrice) }}</span>
-            <span class="mobile-bar-price-cur">DZD</span>
+            <span class="mobile-bar-price-amt">{{ loadingOffersAndImages ? '...' : (currentPrice > 0 ? formatPrice(currentPrice) : '—') }}</span>
+            <span v-if="!loadingOffersAndImages && currentPrice > 0" class="mobile-bar-price-cur">DZD</span>
           </div>
-          <span class="mobile-bar-room truncate">{{ selectedAgreement?.room_type || hotel.room_basis_name || 'Chambre Standard' }}</span>
+          <span class="mobile-bar-room truncate">{{ selectedAgreement?.room_type || (loadingOffersAndImages ? 'Chargement...' : 'Aucune sélection') }}</span>
         </div>
 
         <div class="mobile-bar-actions">
@@ -842,11 +945,12 @@
             id="mobile-book-btn"
             type="button"
             class="mobile-bar-cta-btn"
-            :class="{ loading: hotelStore.loadingEvaluation }"
+            :class="{ loading: hotelStore.loadingEvaluation || loadingOffersAndImages }"
+            :disabled="loadingOffersAndImages || !selectedAgreement || hotelStore.loadingEvaluation"
             @click="openPassengerForm"
           >
-            <span v-if="hotelStore.loadingEvaluation" class="btn-spinner"></span>
-            <span>SAISIR COORDONNÉES</span>
+            <span v-if="hotelStore.loadingEvaluation || loadingOffersAndImages" class="btn-spinner"></span>
+            <span>{{ loadingOffersAndImages ? 'CHARGEMENT...' : (!selectedAgreement ? 'INDISPONIBLE' : 'SAISIR COORDONNÉES') }}</span>
           </button>
         </div>
       </div>
@@ -873,11 +977,35 @@ const isDark     = useDark();
 const selectedPaymentMethod = ref('satim'); // 'satim' | 'baridimob' | 'wallet'
 const guestInfo             = ref({ name: '', email: '', phone: '' });
 
+// Number of rooms requested (from URL query, store, or default 1)
+const roomsCount = computed(() => {
+  return Math.max(1, Number(route.query.rooms || hotelStore.searchForm.rooms || 1));
+});
+
+// Real-time B2B wallet balance from authenticated user model
+const userWalletBalance = computed(() => {
+  const u = authStore.User;
+  if (!u) return 0;
+  if (u.available_balance !== undefined && u.available_balance !== null) {
+    return Math.max(0, Number(u.available_balance));
+  }
+  if (u.account_balance !== undefined && u.account_balance !== null) {
+    return Math.max(0, Number(u.account_balance));
+  }
+  if (u.balance?.available !== undefined && u.balance?.available !== null) {
+    return Math.max(0, Number(u.balance.available));
+  }
+  if (u.balance?.balance !== undefined && u.balance?.balance !== null) {
+    return Math.max(0, Number(u.balance.balance));
+  }
+  return 0;
+});
+
 const canPayWithWallet = computed(() => {
   return authStore.isLoggedIn && (
     authStore.isBusiness ||
     authStore.isAdmin ||
-    (Number(authStore.User?.account_balance || 0) >= Number(currentPrice.value || 0))
+    userWalletBalance.value > 0
   );
 });
 
@@ -910,7 +1038,8 @@ const offersFilter      = ref('all');
 const offersSortOrder   = ref('price_asc');
 const activePhoto       = ref('');
 const hotelPhotos       = ref([]);
-const paxList           = ref([]);
+const roomsList         = ref([]);
+const paxList           = computed(() => roomsList.value.flatMap(r => r.pax));
 const selectedRemarks   = ref([]);
 
 const starFallbackPhotos = [
@@ -945,6 +1074,9 @@ function getDefaultCheckOut() {
 
 // ── Lifecycle ──────────────────────────────────────────────────────────
 onMounted(async () => {
+  if (authStore.isLoggedIn) {
+    authStore.refreshUser().catch(() => {});
+  }
   const hotelId = String(route.params.id);
 
   // 1. Instant Cache Hydration: Check Store, SessionStorage, LocalStorage
@@ -968,26 +1100,35 @@ onMounted(async () => {
   }
 
   if (cached) {
-    hotel.value = cached;
-    hotelStore.selectedHotel = cached;
-    initPhotos(cached);
-    initAgreement(cached);
+    // Use cached data only for static info (photos, name, stars, etc.).
+    // Clear stale agreements immediately — they reflect a different search context
+    // (wrong room count, dates, etc.). Fresh offers will be fetched below.
+    const cachedForDisplay = { ...cached, agreements: [] };
+    hotel.value = cachedForDisplay;
+    hotelStore.selectedHotel = cachedForDisplay;
+    initPhotos(cachedForDisplay);
+    // Do NOT call initAgreement here — it would show fake/stale prices
     loadingHotel.value = false;
   }
 
-  // 2. Resolve search criteria
-  const checkIn  = hotelStore.searchForm.check_in || route.query.check_in || getDefaultCheckIn();
-  const checkOut = hotelStore.searchForm.check_out || route.query.check_out || getDefaultCheckOut();
-  const adults   = Number(hotelStore.searchForm.adults || route.query.adults || 2);
-  const children = Number(hotelStore.searchForm.children || route.query.children || 0);
-  const sessId   = String(route.query.session || hotelStore.searchResults.session_id || cached?.session_id || '');
+  // 2. Resolve search criteria — ALWAYS prefer URL query params first (they are set by
+  //    results.vue when navigating), then fall back to store, then defaults.
+  const checkIn  = route.query.check_in  || hotelStore.searchForm.check_in  || getDefaultCheckIn();
+  const checkOut = route.query.check_out || hotelStore.searchForm.check_out || getDefaultCheckOut();
+  const adults   = Number(route.query.adults   || hotelStore.searchForm.adults   || 2);
+  const children = Number(route.query.children || hotelStore.searchForm.children || 0);
+  const rooms    = Number(route.query.rooms    || hotelStore.searchForm.rooms    || 1);
+  const sessId   = String(route.query.session  || hotelStore.searchResults.session_id || cached?.session_id || '');
 
+  // Sync resolved values back into the store so the summary sidebar shows correct info
   hotelStore.searchForm.check_in  = checkIn;
   hotelStore.searchForm.check_out = checkOut;
   hotelStore.searchForm.adults    = adults;
   hotelStore.searchForm.children  = children;
+  hotelStore.searchForm.rooms     = rooms;
 
   // 3. Fetch full hotel static details AND live room agreements
+  //    Pass rooms so Netstorming searches for the correct number of rooms
   loadingOffersAndImages.value = true;
   try {
     const res = await fetchHotelDetails(hotelId, {
@@ -995,6 +1136,7 @@ onMounted(async () => {
       check_out: checkOut,
       adults,
       children,
+      rooms,
       session_id: sessId,
     });
     const details = res?.data;
@@ -1030,10 +1172,9 @@ onMounted(async () => {
     loadingOffersAndImages.value = false;
   }
 
-  // 4. Ensure agreement & photos are initialized even if network failed
+  // 4. Ensure photos are initialized even if network failed
   if (hotel.value) {
     initPhotos(hotel.value);
-    initAgreement(hotel.value);
   } else {
     // Fallback minimal hotel
     hotel.value = {
@@ -1043,10 +1184,9 @@ onMounted(async () => {
       hotel_city: '',
       stars: 3,
       agreements: [],
-      lowest_price_dzd: 34140,
+      lowest_price_dzd: 0,
     };
     initPhotos(hotel.value);
-    initAgreement(hotel.value);
   }
 
   buildPassengers();
@@ -1101,25 +1241,14 @@ function initAgreement(h) {
     });
     const match = reqRoom ? sorted.find(a => a.agreement_id === reqRoom) : null;
     selectedAgreement.value = match || sorted[0];
-  } else if (!selectedAgreement.value) {
-    selectedAgreement.value = {
-      agreement_id: route.query.room || h?.room_code || ('AG-' + (h?.hotel_code || '1')),
-      room_type: h?.room_basis_name || 'Twin Room With Shared Bathroom',
-      room_basis: h?.room_basis_code || 'RO',
-      meal_basis: h?.meal_basis_code || 'X',
-      final_price_dzd: h?.final_price_dzd || h?.lowest_price_dzd || 17399,
-      is_fully_refundable: true,
-      deadline: '2026-10-01',
-    };
-    if (h && (!h.agreements || !h.agreements.length)) {
-      h.agreements = [selectedAgreement.value];
-    }
+  } else {
+    selectedAgreement.value = null;
   }
 }
 
 // ── Computed ───────────────────────────────────────────────────────────
 const availableAgreements = computed(() => {
-  return hotel.value?.agreements?.length ? hotel.value.agreements : (selectedAgreement.value ? [selectedAgreement.value] : []);
+  return hotel.value?.agreements?.length ? hotel.value.agreements : [];
 });
 
 const filteredAgreements = computed(() => {
@@ -1153,11 +1282,10 @@ const filteredAgreements = computed(() => {
 });
 
 const currentPrice = computed(() => {
+  if (loadingOffersAndImages.value) return 0;
   return evaluation.value?.price ||
          selectedAgreement.value?.final_price_dzd ||
-         selectedAgreement.value?.raw_price ||
-         hotel.value?.final_price_dzd ||
-         hotel.value?.lowest_price_dzd || 0;
+         selectedAgreement.value?.raw_price || 0;
 });
 
 const cancellationDeadlineFormatted = computed(() => {
@@ -1180,13 +1308,31 @@ const cancellationDeadlineFormatted = computed(() => {
 });
 
 const paxFormValid = computed(() => {
-  if (!paxList.value.length) return false;
-  return paxList.value.every((p, idx) => {
-    if (!p.name?.trim() || !p.surname?.trim() || !p.title) return false;
-    if (idx === 0 && (!p.email?.trim() || !p.phone?.trim())) return false;
-    if (p.type === 'child' && (p.age === undefined || p.age === null || p.age === '' || isNaN(p.age))) return false;
-    return true;
-  });
+  if (!roomsList.value.length) return false;
+  for (let r = 0; r < roomsList.value.length; r++) {
+    const room = roomsList.value[r];
+    if (!room.pax || !room.pax.length) return false;
+    for (let p = 0; p < room.pax.length; p++) {
+      const pax = room.pax[p];
+      if (!pax.name?.trim() || !pax.surname?.trim() || !pax.title) return false;
+      // Global lead pax (Chambre 1, Voyageur 1) must provide email and phone
+      if (r === 0 && p === 0) {
+        if (!pax.email?.trim() || !pax.phone?.trim()) return false;
+      }
+      if (pax.type === 'child' && (pax.age === undefined || pax.age === null || pax.age === '' || isNaN(pax.age))) {
+        return false;
+      }
+    }
+  }
+
+  // If agency wallet selected, ensure available balance is sufficient
+  if (selectedPaymentMethod.value === 'wallet') {
+    if (userWalletBalance.value < currentPrice.value) {
+      return false;
+    }
+  }
+
+  return true;
 });
 
 // ── Methods ────────────────────────────────────────────────────────────
@@ -1199,43 +1345,98 @@ function goBack() {
 }
 
 function buildPassengers() {
-  paxList.value = [];
-  const adults = hotelStore.searchForm.adults || 2;
-  const children = hotelStore.searchForm.children || 0;
+  roomsList.value = [];
+  const totalRooms = roomsCount.value;
+  const adults = Math.max(1, Number(route.query.adults || hotelStore.searchForm.adults || 2));
+  const children = Math.max(0, Number(route.query.children || hotelStore.searchForm.children || 0));
+
+  let savedRooms = null;
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      const raw = sessionStorage.getItem('hotel_rooms_config');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length === totalRooms) {
+          savedRooms = parsed;
+        }
+      }
+    } catch {}
+  }
 
   const leadName = authStore.User?.name ? authStore.User.name.split(' ')[0] : (guestInfo.value.name ? guestInfo.value.name.split(' ')[0] : '');
   const leadSurname = authStore.User?.name ? authStore.User.name.split(' ').slice(1).join(' ') : (guestInfo.value.name ? guestInfo.value.name.split(' ').slice(1).join(' ') : '');
   const leadEmail = authStore.User?.email || guestInfo.value.email || '';
   const leadPhone = authStore.User?.phone || guestInfo.value.phone || '';
 
-  for (let i = 0; i < adults; i++) {
-    paxList.value.push({
-      type: 'adult',
-      title: 'MR',
-      name: i === 0 ? leadName : '',
-      surname: i === 0 ? leadSurname : '',
-      email: i === 0 ? leadEmail : undefined,
-      phone: i === 0 ? leadPhone : undefined,
+  const baseAdultsPerRoom = Math.floor(adults / totalRooms);
+  const extraAdults = adults % totalRooms;
+
+  const baseChildrenPerRoom = Math.floor(children / totalRooms);
+  const extraChildren = children % totalRooms;
+  let childIdxCounter = 0;
+
+  for (let r = 0; r < totalRooms; r++) {
+    const roomAdultsCount = savedRooms
+      ? Math.max(1, Number(savedRooms[r]?.adults || 1))
+      : Math.max(1, baseAdultsPerRoom + (r < extraAdults ? 1 : 0));
+
+    const roomChildrenCount = savedRooms
+      ? Math.max(0, Number(savedRooms[r]?.children || 0))
+      : (baseChildrenPerRoom + (r < extraChildren ? 1 : 0));
+
+    const savedChildrenAges = savedRooms ? (savedRooms[r]?.childrenAges || []) : [];
+
+    const roomPax = [];
+    for (let a = 0; a < roomAdultsCount; a++) {
+      const isLead = (r === 0 && a === 0);
+      roomPax.push({
+        room_index: r,
+        room_number: r + 1,
+        type: 'adult',
+        title: 'MR',
+        name: isLead ? leadName : '',
+        surname: isLead ? leadSurname : '',
+        email: isLead ? leadEmail : undefined,
+        phone: isLead ? leadPhone : undefined,
+      });
+    }
+
+    for (let c = 0; c < roomChildrenCount; c++) {
+      const childAge = savedRooms
+        ? (savedChildrenAges[c] ?? 5)
+        : (hotelStore.searchForm.children_ages?.[childIdxCounter] ?? 5);
+      childIdxCounter++;
+      roomPax.push({
+        room_index: r,
+        room_number: r + 1,
+        type: 'child',
+        title: 'MR',
+        name: '',
+        surname: '',
+        age: childAge,
+      });
+    }
+
+    roomsList.value.push({
+      room_number: r + 1,
+      pax: roomPax,
     });
   }
 
-  for (let i = 0; i < children; i++) {
-    const age = hotelStore.searchForm.children_ages?.[i] ?? 5;
-    paxList.value.push({
-      type: 'child',
-      title: 'MR',
-      name: '',
-      surname: '',
-      age,
-    });
-  }
-
-  // Pre-select payment method based on user wallet capability
-  if (canPayWithWallet.value) {
+  // Pre-select payment method based on user wallet capability and balance
+  if (canPayWithWallet.value && userWalletBalance.value >= currentPrice.value) {
     selectedPaymentMethod.value = 'wallet';
   } else {
     selectedPaymentMethod.value = 'satim';
   }
+}
+
+function addPaxToRoom() {
+  // Fixed chamber capacity per booking reservation
+}
+
+function removePaxFromRoom() {
+  // Fixed chamber capacity per booking reservation
 }
 
 function scrollToSummary() {
@@ -1249,17 +1450,14 @@ function scrollToSummary() {
 
 function chooseAgreement(ag) {
   if (selectedAgreement.value?.agreement_id === ag.agreement_id) {
-    // If clicking on already selected offer ("Offre sélectionnée"), open traveler form
     openPassengerForm();
     return;
   }
   selectedAgreement.value = ag;
   hotelStore.selectedRoom = ag;
   evaluation.value = null;
-  // Automatically evaluate this agreement for instant confirmation
   evaluateCurrentOffer();
 
-  // On mobile screens, smoothly scroll to summary so the traveler sees all confirmed details
   if (typeof window !== 'undefined' && window.innerWidth <= 900) {
     nextTick(() => {
       scrollToSummary();
@@ -1267,8 +1465,14 @@ function chooseAgreement(ag) {
   }
 }
 
-function openPassengerForm() {
-  if (!paxList.value || !paxList.value.length) {
+async function openPassengerForm() {
+  // Always fetch fresh balance from API before opening modal for B2B users
+  if (authStore.isLoggedIn) {
+    try {
+      await authStore.refreshUser();
+    } catch (_) {}
+  }
+  if (!roomsList.value || !roomsList.value.length) {
     buildPassengers();
   }
   showBookingForm.value = true;
@@ -1293,7 +1497,8 @@ async function submitBookingOrder() {
     hotelStore.selectedRoom.search_number = evaluation.value.search_number;
   }
 
-  const leadPax = paxList.value[0] || {};
+  const allPax = paxList.value;
+  const leadPax = allPax[0] || {};
   const fullGuestName = (guestInfo.value.name?.trim())
     || (`${leadPax.name || ''} ${leadPax.surname || ''}`.trim())
     || (authStore.User?.name || 'Client Invité');
@@ -1305,6 +1510,7 @@ async function submitBookingOrder() {
     || (authStore.User?.phone || '');
 
   const bookingPayload = {
+    rooms: roomsCount.value,
     remarks: selectedRemarks.value,
     payment_method: selectedPaymentMethod.value,
     guest_name: fullGuestName,
@@ -1312,7 +1518,7 @@ async function submitBookingOrder() {
     guest_phone: fullGuestPhone,
   };
 
-  const res = await hotelStore.bookRoom(paxList.value, bookingPayload);
+  const res = await hotelStore.bookRoom(allPax, bookingPayload);
 
   if (res) {
     showBookingForm.value = false;
@@ -1909,6 +2115,79 @@ useHead({
   gap: 8px;
 }
 
+/* No Offers Empty State */
+.no-offers-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--dt-card-bg);
+  border: 1px dashed var(--dt-card-border);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.empty-icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(212, 160, 60, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dt-gold);
+}
+.empty-state-svg {
+  width: 28px;
+  height: 28px;
+}
+.empty-state-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--dt-text-main);
+  margin: 0;
+}
+.empty-state-text {
+  font-size: 13px;
+  color: var(--dt-text-sub);
+  max-width: 480px;
+  line-height: 1.5;
+  margin: 0;
+}
+.empty-state-actions {
+  margin-top: 10px;
+}
+.empty-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--dt-box-bg);
+  border: 1px solid var(--dt-gold);
+  color: var(--dt-gold);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.empty-back-btn:hover {
+  background: var(--dt-gold);
+  color: #0b111e;
+}
+
+/* Sidebar loading state */
+.sb-loading-card {
+  border-left: 4px solid var(--dt-gold);
+  background: rgba(212, 160, 60, 0.05);
+}
+.total-loading-txt {
+  font-size: 14px;
+  color: var(--dt-gold);
+  font-weight: 600;
+  animation: pulse 1.5s infinite;
+}
+
 /* Filter & Sort bar for room offers */
 .offers-filter-bar {
   display: flex;
@@ -2442,12 +2721,204 @@ useHead({
   opacity: 0;
 }
 
-/* ── Passenger Form ── */
+/* ── Passenger Form & Multi-Chamber Layout ── */
 .passengers-form-body {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
+
+.chambers-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.chamber-card {
+  background: var(--dt-card-bg);
+  border: 1.5px solid var(--dt-card-border);
+  border-radius: 0 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.chamber-card:hover {
+  border-color: rgba(210, 167, 73, 0.45);
+}
+
+.chamber-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: var(--dt-box-bg);
+  border-bottom: 1.5px solid var(--dt-card-border);
+  gap: 12px;
+}
+
+.chamber-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chamber-icon-box {
+  width: 34px;
+  height: 34px;
+  background: rgba(210, 167, 73, 0.12);
+  border: 1px solid rgba(210, 167, 73, 0.3);
+  color: var(--dt-gold, #d2a749);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chamber-icon-box svg {
+  width: 18px;
+  height: 18px;
+}
+
+.chamber-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--dt-text-main);
+  line-height: 1.2;
+}
+
+.chamber-subtitle {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--dt-text-sub);
+  font-weight: 500;
+}
+
+.chamber-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 3px 9px;
+  background: var(--dt-card-bg);
+  border: 1px solid var(--dt-card-border);
+  color: var(--dt-gold, #d2a749);
+}
+
+.chamber-pax-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chamber-inner-pax {
+  background: var(--dt-box-bg);
+  border: 1px solid var(--dt-box-border);
+  padding: 14px 16px;
+  transition: all 0.2s ease;
+}
+
+.chamber-inner-pax:hover {
+  border-color: rgba(210, 167, 73, 0.35);
+}
+
+.remove-pax-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  padding: 3px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.remove-pax-btn:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: #ef4444;
+}
+
+.add-pax-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.add-pax-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px dashed var(--dt-gold, #d2a749);
+  color: var(--dt-gold, #d2a749);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-pax-btn:hover {
+  background: rgba(210, 167, 73, 0.1);
+  border-style: solid;
+}
+
+.add-child-btn {
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #3b82f6;
+}
+
+.add-child-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-style: solid;
+}
+
+/* ── Live Wallet Feedback ── */
+.wallet-warning-msg {
+  margin-top: 8px;
+  padding: 7px 12px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #d97706;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.wallet-success-msg {
+  margin-top: 8px;
+  padding: 7px 12px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.tag-green {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+.tag-warn {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #d97706 !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+.wallet-insufficient {
+  opacity: 0.95;
+}
+
 .pax-card-box {
   background: var(--dt-box-bg);
   border: 1px solid var(--dt-box-border);

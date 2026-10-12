@@ -381,12 +381,15 @@ export const useHotelStore = defineStore('hotel', {
       const cIn = this.searchForm.check_in || hotel?.check_in;
       const cOut = this.searchForm.check_out || hotel?.check_out;
       const ad = this.searchForm.adults || 2;
+      const rm = this.searchForm.rooms || 1;
       const pr = room?.raw_price || room?.final_price_dzd || 0;
+      const rType = room?.room_type_code || this.searchForm.room_type || 'dbl';
+      const nat = this.searchForm.nationality || 'DZ';
       try {
         const data = await evaluateHotelRoom(
-          this.searchResults.session_id || hotel.session_id || '',
+          room?.session_id || this.searchResults.session_id || hotel.session_id || '',
           hotel.hotel_code, agreementCode,
-          { check_in: cIn, check_out: cOut, adults: ad, price: pr }
+          { check_in: cIn, check_out: cOut, adults: ad, rooms: rm, price: pr, room_type: rType, nationality: nat, query_required: room?.query_required || 1 }
         );
         this.evaluationResult = data?.data ?? null;
         if (this.evaluationResult?.search_number) {
@@ -434,12 +437,21 @@ export const useHotelStore = defineStore('hotel', {
         check_out: this.searchForm.check_out || extraData.check_out,
         destination_code: this.searchForm.destination_code || this.selectedHotel.destination_code || this.selectedHotel.city || this.selectedHotel.hotel_city || 'DZ',
         destination_name: this.searchForm.destination_name || this.selectedHotel.destination_name || this.selectedHotel.hotel_city || 'Alger',
+        rooms: Number(this.searchForm.rooms || extraData.rooms || 1),
         adults: this.searchForm.adults,
         children: this.searchForm.children,
         children_ages: this.searchForm.children_ages,
         nationality: this.searchForm.nationality || 'DZ',
-        room_type: this.searchForm.room_type || 'dbl',
-        ns_price: Number(this.selectedRoom.raw_price || this.selectedRoom.ns_price || this.evaluationResult?.raw_price || (this.selectedRoom?.final_price_dzd ? (this.selectedRoom.final_price_dzd / (this.selectedRoom.exchange_rate || 1)) : 100)),
+        room_type: this.selectedRoom?.room_type_code || this.searchForm.room_type || 'dbl',
+        // ns_price = NET price in original currency (EUR/USD/DZD) — sent to NS for booking
+        // Priority: evaluate result raw_price > agreement raw_price > agreement ns_price > fallback
+        // NEVER divide final_price_dzd by exchange_rate (exchange_rate = DZD multiplier, not divisor)
+        ns_price: Number(
+          this.evaluationResult?.raw_price ||
+          this.selectedRoom.raw_price ||
+          this.selectedRoom.ns_price ||
+          0
+        ),
         ns_currency: this.selectedRoom.currency || this.selectedRoom.ns_currency || this.evaluationResult?.currency || 'DZD',
         exchange_rate: Number(this.selectedRoom.exchange_rate || 1),
         markup_percent: Number(this.selectedRoom.markup_percent || 10),

@@ -138,7 +138,11 @@ export const evaluateHotelRoom = async (sessionId, hotelCode, roomCode, extra = 
     check_in: extra.check_in,
     check_out: extra.check_out,
     adults: extra.adults,
+    rooms: extra.rooms,
     price: extra.price,
+    room_type: extra.room_type || '',
+    nationality: extra.nationality || '',
+    query_required: extra.query_required || 1,
   };
   const response = await sendApi('/hotels/evaluate', payload, 'POST');
   return response;

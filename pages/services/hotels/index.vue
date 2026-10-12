@@ -996,12 +996,20 @@ function clearAllRecentSearches() {
 async function triggerSearch() {
   if (!canSearch.value) return;
 
-  const firstRoom = rooms.value[0];
-  hotelStore.searchForm.adults        = firstRoom.adults;
-  hotelStore.searchForm.children      = firstRoom.children;
-  hotelStore.searchForm.children_ages = firstRoom.childrenAges;
-  hotelStore.searchForm.room_type     = firstRoom.type;
+  const totalAdults = rooms.value.reduce((sum, r) => sum + (Number(r.adults) || 1), 0);
+  const totalChildren = rooms.value.reduce((sum, r) => sum + (Number(r.children) || 0), 0);
+  const allChildrenAges = rooms.value.flatMap(r => r.childrenAges || []);
+  const firstRoom = rooms.value[0] || {};
+
+  hotelStore.searchForm.adults        = totalAdults;
+  hotelStore.searchForm.children      = totalChildren;
+  hotelStore.searchForm.children_ages = allChildrenAges;
+  hotelStore.searchForm.room_type     = firstRoom.type || 'dbl';
   hotelStore.searchForm.rooms         = rooms.value.length;
+
+  try {
+    sessionStorage.setItem('hotel_rooms_config', JSON.stringify(rooms.value));
+  } catch {}
 
   hotelStore.clearSearchResults();
 
@@ -1028,8 +1036,8 @@ async function triggerSearch() {
     destination_name: hotelStore.searchForm.destination_name,
     check_in: hotelStore.searchForm.check_in,
     check_out: hotelStore.searchForm.check_out,
-    adults: hotelStore.searchForm.adults,
-    children: hotelStore.searchForm.children,
+    adults: totalAdults,
+    children: totalChildren,
     rooms: rooms.value.length,
   };
   if (hotelStore.searchForm.children_ages?.length) {
@@ -1065,7 +1073,8 @@ function openHotelDetails(hotel) {
   const cOut   = hotelStore.searchForm.check_out || '';
   const ad     = hotelStore.searchForm.adults || 2;
   const ch     = hotelStore.searchForm.children || 0;
-  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}`);
+  const rm     = rooms.value.length || hotelStore.searchForm.rooms || 1;
+  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&rooms=${rm}`);
 }
 
 function onImageError(event, stars) {
