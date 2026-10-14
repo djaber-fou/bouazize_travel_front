@@ -131,6 +131,7 @@
           </div>
 
           <!-- Main Payment Selection Tabs & Forms -->
+          <div v-else class="space-y-6">
             <!-- Payment Mode: CCP / BaridiMob -->
             <div class="flex items-center gap-2.5 p-3.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl text-primary font-black text-xs sm:text-sm">
               <Icon name="heroicons:device-phone-mobile" class="w-5 h-5 text-primary" />
@@ -220,7 +221,7 @@
                 </div>
               </form>
             </div>
-          </template>
+          </div>
 
         </div>
       </div>
