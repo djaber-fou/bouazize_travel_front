@@ -5,10 +5,6 @@
 
             <!-- Text Content -->
             <div class="w-full lg:w-1/2 flex flex-col gap-4 text-center lg:text-left">
-                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/20 w-fit mx-auto lg:mx-0">
-                    <Icon name="i-heroicons-building-office-2" class="w-3.5 h-3.5" />
-                    Hébergements Mondiaux
-                </span>
                 <!-- Title -->
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-secondary dark:text-white uppercase tracking-tight leading-tight">
                     Trouvez l'hôtel <br/><span class="text-primary">Idéal</span>
@@ -45,7 +41,7 @@
 
                 <img
                     src="/images/services/hotels.jpg"
-                    alt="Hôtel de luxe"
+                    alt="Accueil et Hôtellerie de luxe"
                     class="w-full h-56 sm:h-72 lg:h-auto object-cover shadow-2xl rounded-2xl"
                     onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'"
                 />

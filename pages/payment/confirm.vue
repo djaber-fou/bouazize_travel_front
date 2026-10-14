@@ -58,7 +58,7 @@
             <Icon name="heroicons:shield-check" class="w-7 h-7 text-emerald-400" />
             <h1 class="text-xl sm:text-2xl font-black">Règlement Sécurisé de votre Réservation</h1>
           </div>
-          <p class="text-slate-400 text-xs sm:text-sm">Agence Bouazize Travel • Transactions certifiées SATIM & CCP</p>
+          <p class="text-slate-400 text-xs sm:text-sm">Agence Bouazize Travel • Transactions certifiées CCP &amp; BaridiMob</p>
           
           <div v-if="amount" class="mt-4 inline-flex items-center gap-2 bg-slate-800 border border-slate-700 px-5 py-2.5 rounded-xl">
             <span class="text-slate-400 text-xs uppercase tracking-wider font-semibold">Montant à régler :</span>
@@ -131,89 +131,14 @@
           </div>
 
           <!-- Main Payment Selection Tabs & Forms -->
-          <template v-else>
-            <!-- Payment Mode Tabs -->
-            <div class="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl">
-              <button
-                type="button"
-                @click="activeMethod = 'cib'"
-                class="py-3 px-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all"
-                :class="activeMethod === 'cib' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
-              >
-                <Icon name="heroicons:credit-card" class="w-5 h-5 text-emerald-500" />
-                <span>Carte CIB / Edahabia</span>
-                <span class="hidden sm:inline-block px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-600 text-[10px] font-black">
-                  Direct
-                </span>
-              </button>
-
-              <button
-                type="button"
-                @click="activeMethod = 'ccp'"
-                class="py-3 px-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all"
-                :class="activeMethod === 'ccp' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
-              >
-                <Icon name="heroicons:device-phone-mobile" class="w-5 h-5 text-primary" />
-                <span>Virement CCP / BaridiMob</span>
-              </button>
+            <!-- Payment Mode: CCP / BaridiMob -->
+            <div class="flex items-center gap-2.5 p-3.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl text-primary font-black text-xs sm:text-sm">
+              <Icon name="heroicons:device-phone-mobile" class="w-5 h-5 text-primary" />
+              <span>Règlement par Virement CCP / BaridiMob</span>
             </div>
 
-            <!-- OPTION 1: CIB & Edahabia Payment View -->
-            <div v-if="activeMethod === 'cib'" class="space-y-6 pt-2">
-              <div class="bg-slate-50 dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center gap-2">
-                    <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-black tracking-wider uppercase border border-emerald-200 dark:border-emerald-800">
-                      Confirmation Immédiate
-                    </span>
-                    <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-bold border border-amber-200 dark:border-amber-800">
-                      Mode Test
-                    </span>
-                  </div>
-                  <span class="text-xs text-slate-400 font-bold">SATIM • GIE</span>
-                </div>
-
-                <h3 class="text-base font-black text-slate-900 dark:text-white mb-1">Paiement Immédiat par Carte Bancaire</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
-                  Réglez instantanément avec votre carte <strong class="text-slate-700 dark:text-slate-300">CIB</strong> (toutes banques algériennes) ou votre carte <strong class="text-slate-700 dark:text-slate-300">Edahabia</strong> (Algérie Poste).
-                </p>
-
-                <!-- Cards Accepted -->
-                <div class="flex items-center gap-2 pt-3 border-t border-slate-200 dark:border-slate-700">
-                  <div class="flex items-center gap-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-lg text-xs font-black text-slate-700 dark:text-slate-200">
-                    <div class="w-4 h-4 rounded bg-blue-600 text-white flex items-center justify-center text-[8px]">CIB</div>
-                    <span>Carte CIB</span>
-                  </div>
-                  <div class="flex items-center gap-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-lg text-xs font-black text-slate-700 dark:text-slate-200">
-                    <div class="w-4 h-4 rounded bg-amber-500 text-slate-900 flex items-center justify-center text-[8px]">EP</div>
-                    <span>Edahabia</span>
-                  </div>
-                  <div class="ml-auto text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                    <Icon name="heroicons:bolt" class="w-4 h-4" />
-                    <span>Sans attente</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- CTA to Open CIB Modal -->
-              <button
-                type="button"
-                @click="isCibModalOpen = true"
-                class="w-full py-4 px-6 rounded-xl bg-primary hover:bg-primary-hover text-white font-black text-sm tracking-wide shadow-md transition-all flex items-center justify-center gap-3"
-              >
-                <Icon name="heroicons:credit-card" class="w-5 h-5" />
-                <span>Payer {{ formatPrice(amount) }} DZD par Carte CIB / Edahabia</span>
-                <Icon name="heroicons:arrow-right" class="w-4 h-4" />
-              </button>
-
-              <div class="text-center text-[11px] text-slate-400 flex items-center justify-center gap-2">
-                <Icon name="heroicons:lock-closed" class="w-3.5 h-3.5 text-emerald-500" />
-                <span>Paiement sécurisé 3D-Secure certifié SATIM • Algérie Poste</span>
-              </div>
-            </div>
-
-            <!-- OPTION 2: CCP / BaridiMob Payment View -->
-            <div v-else-if="activeMethod === 'ccp' && ccpSettings" class="space-y-6 pt-2">
+            <!-- CCP / BaridiMob Payment View -->
+            <div v-if="ccpSettings" class="space-y-6 pt-2">
               <!-- Agency CCP Info -->
               <div class="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-5 sm:p-6 border border-blue-100 dark:border-blue-800">
                 <h2 class="text-base font-black text-blue-900 dark:text-blue-300 mb-4 flex items-center gap-2">
@@ -337,8 +262,8 @@ const paymentSubmittedSuccess = ref(false)
 const isOrderPaid = ref(route.query.status === 'paid')
 const cibReceiptNumber = ref(route.query.receipt || null)
 
-const activeMethod = ref(route.query.method === 'baridimob' || route.query.method === 'ccp' ? 'ccp' : 'cib')
-const isCibModalOpen = ref(route.query.auto_open === '1' || (route.query.method === 'cib' && !isOrderPaid.value))
+const activeMethod = ref('ccp')
+const isCibModalOpen = ref(false)
 
 const isSubmitting = ref(false)
 const fileSelected = ref(null)

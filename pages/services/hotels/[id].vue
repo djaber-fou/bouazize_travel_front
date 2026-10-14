@@ -594,38 +594,7 @@
                         </div>
 
                         <div class="payment-options-grid">
-                          <!-- OPTION 1: SATIM / CIB / Edahabia (Automatic Instant Confirmation) -->
-                          <label
-                            class="pay-method-card"
-                            :class="{ active: selectedPaymentMethod === 'satim' }"
-                          >
-                            <input
-                              type="radio"
-                              value="satim"
-                              v-model="selectedPaymentMethod"
-                              name="hotel_payment_choice"
-                              class="pay-radio"
-                            />
-                            <div class="pay-method-content">
-                              <div class="pay-method-top">
-                                <div class="pay-badges-row">
-                                  <span class="pay-badge-auto">
-                                    <svg class="pay-badge-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                      <path d="M11.983 1.907a.75.75 0 00-1.292-.657l-8.5 9.5A.75.75 0 002.75 12h6.536l-1.269 6.093a.75.75 0 001.292.657l8.5-9.5A.75.75 0 0017.25 8h-6.536l1.269-6.093z" />
-                                    </svg>
-                                    Confirmation Automatique
-                                  </span>
-                                  <span class="pay-brand-tag">CIB • EDAHABIA</span>
-                                </div>
-                                <span class="pay-title">Carte CIB / Edahabia (SATIM)</span>
-                              </div>
-                              <p class="pay-desc">
-                                Paiement en ligne sécurisé 3D-Secure. Dès validation du paiement, votre réservation est <strong>instantanément confirmée et transmise à Netstorming / MyGo</strong>.
-                              </p>
-                            </div>
-                          </label>
-
-                          <!-- OPTION 2: BaridiMob / CCP (Manual Admin Confirmation) -->
+                          <!-- OPTION: BaridiMob / CCP (Manual Admin Confirmation) -->
                           <label
                             class="pay-method-card"
                             :class="{ active: selectedPaymentMethod === 'baridimob' }"
@@ -975,7 +944,7 @@ const hotelStore = useHotelStore();
 const authStore  = useAuthStore();
 const isDark     = useDark();
 
-const selectedPaymentMethod = ref('satim'); // 'satim' | 'baridimob' | 'wallet'
+const selectedPaymentMethod = ref('baridimob'); // 'baridimob' | 'wallet'
 const guestInfo             = ref({ name: '', email: '', phone: '' });
 
 // Number of rooms requested (from URL query, store, or default 1)
@@ -1428,7 +1397,7 @@ function buildPassengers() {
   if (canPayWithWallet.value && userWalletBalance.value >= currentPrice.value) {
     selectedPaymentMethod.value = 'wallet';
   } else {
-    selectedPaymentMethod.value = 'satim';
+    selectedPaymentMethod.value = 'baridimob';
   }
 }
 
@@ -1524,9 +1493,9 @@ async function submitBookingOrder() {
   if (res) {
     showBookingForm.value = false;
 
-    // Payment redirection flow (SATIM or BaridiMob)
+    // Payment redirection flow (BaridiMob / CCP)
     if (res.payment_redirect || res.requires_payment) {
-      const targetMethod = (selectedPaymentMethod.value === 'baridimob' || selectedPaymentMethod.value === 'ccp') ? 'ccp' : 'cib';
+      const targetMethod = 'ccp';
       const redirectUrl = res.payment_redirect
         ? `${res.payment_redirect}&method=${targetMethod}`
         : `/payment/confirm?order_id=${res.order_id}&type=hotel&amount=${res.price_dzd || currentPrice.value}&ref=${res.reference || ('BZZ-ORD-' + res.order_id)}&method=${targetMethod}`;

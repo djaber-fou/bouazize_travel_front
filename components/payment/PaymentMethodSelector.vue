@@ -11,53 +11,6 @@
     </div>
     
     <div class="grid gap-4" :class="gridColsClass">
-      <!-- CIB & Edahabia Online Instant Payment Option -->
-      <label 
-        v-if="showCib"
-        for="payment-method-cib"
-        class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all"
-        :class="modelValue === 'cib' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10 shadow-md' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
-      >
-        <input 
-          id="payment-method-cib"
-          type="radio" 
-          name="payment_method" 
-          value="cib" 
-          class="sr-only"
-          :checked="modelValue === 'cib'"
-          @change="$emit('update:modelValue', 'cib')"
-        >
-        <span class="flex flex-1 pr-8">
-          <span class="flex flex-col">
-            <span class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
-              <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold tracking-wider uppercase">
-                Instantané
-              </span>
-              <span>Carte CIB / Edahabia</span>
-            </span>
-            <span class="mt-1.5 text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
-              Paiement en ligne immédiat et sécurisé via SATIM & Algérie Poste. Confirmation de réservation et délivrance du voucher instantanées.
-            </span>
-            <span class="mt-2 flex items-center gap-2">
-              <span class="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400">
-                <Icon name="heroicons:bolt" class="w-4 h-4" />
-                Vérification Automatique 24h/7j
-              </span>
-              <span class="text-slate-300 dark:text-slate-600">•</span>
-              <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-                <Icon name="heroicons:shield-check" class="w-3.5 h-3.5 text-primary" />
-                3D-Secure
-              </span>
-            </span>
-          </span>
-        </span>
-        <Icon 
-          v-if="modelValue === 'cib'" 
-          name="heroicons:check-circle-solid" 
-          class="h-6 w-6 text-primary absolute top-5 right-5" 
-        />
-      </label>
-
       <!-- E-Payment Option (BaridiMob / CCP) -->
       <label 
         for="payment-method-ccp"
@@ -177,7 +130,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 
 const props = defineProps({
   modelValue: {
@@ -198,11 +151,17 @@ const props = defineProps({
   },
   showCib: {
     type: Boolean,
-    default: true
+    default: false
   }
 });
 
 const emit = defineEmits(['update:modelValue']);
+
+onMounted(() => {
+  if (props.modelValue === 'cib') {
+    emit('update:modelValue', 'ccp');
+  }
+});
 
 const gridColsClass = computed(() => {
   const visibleCount = (props.showCib ? 1 : 0) + 1 + (props.showCash ? 1 : 0) + (props.showCredit ? 1 : 0);

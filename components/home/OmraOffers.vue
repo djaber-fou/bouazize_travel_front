@@ -3,10 +3,6 @@
         <div class="max-w-7xl mx-auto">
             <!-- Section Header -->
             <div class="flex flex-col gap-3 items-center mb-14 text-center">
-                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
-                    <Icon name="i-heroicons-building-library" class="w-3.5 h-3.5" />
-                    Pèlerinage Sacré
-                </span>
                 <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-secondary dark:text-white uppercase tracking-tight">
                     Nos Offres <span class="text-primary">Omra</span>
                 </h2>
