@@ -50,7 +50,7 @@
       <div
         id="official-hotel-invoice-printable"
         ref="invoiceCardRef"
-        class="bg-white p-6 sm:p-8 md:p-10 border border-slate-200 rounded-xl shadow-sm text-slate-800 font-sans space-y-6"
+        class="document-paper-white pdf-content bg-white p-6 sm:p-8 md:p-10 border border-slate-200 rounded-xl shadow-sm text-slate-800 font-sans space-y-6"
         style="max-width: 820px; margin: 0 auto;"
       >
         
@@ -305,7 +305,9 @@ function formatDateShort(iso) {
 }
 
 function triggerPrint() {
-  if (typeof window !== 'undefined') {
+  if (invoiceCardRef.value) {
+    printDocumentElement(invoiceCardRef.value, `RELEVE_DE_COMPTE_HTL_${props.order?.id || 'DOSSIER'}`)
+  } else if (typeof window !== 'undefined') {
     window.print()
   }
 }
@@ -348,22 +350,29 @@ async function downloadPdf() {
 
 <style scoped>
 @media print {
+  html, body {
+    overflow: visible !important;
+    height: auto !important;
+    background: #ffffff !important;
+  }
   body * {
     visibility: hidden;
   }
-  #official-hotel-invoice-printable, #official-hotel-invoice-printable * {
-    visibility: visible;
+  #official-hotel-invoice-printable,
+  #official-hotel-invoice-printable * {
+    visibility: visible !important;
   }
   #official-hotel-invoice-printable {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 20px;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 24px !important;
     border: none !important;
     box-shadow: none !important;
-    background: white !important;
+    background: #ffffff !important;
   }
 }
 </style>

@@ -7,7 +7,7 @@
             </div>
         </template>
         <template #body>
-            <div ref="pdfContent" class="pdf-content w-3xl flex flex-col gap-10 bg-white text-slate-900 p-8 shadow-md rounded-none mx-auto" id="pdf">
+            <div ref="pdfContent" class="document-paper-white pdf-content w-3xl flex flex-col gap-10 bg-white text-slate-900 p-8 shadow-md rounded-none mx-auto" id="pdf">
                 <div class="flex flex-col gap-5">
                     <div class="flex flex-col gap-1 items-start">
                         <div class="w-full flex justify-between items-center">

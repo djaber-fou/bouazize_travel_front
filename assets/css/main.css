@@ -77,34 +77,34 @@
     color: var(--color-primary) !important;
 }
 
-/* Hardcoded Light Utility Overrides in Dark Mode (Excluding Invoices) */
-.dark .bg-neutral-100:not(.pdf-content *),
-.dark .bg-neutral-200:not(.pdf-content *),
-.dark .bg-gray-100:not(.pdf-content *),
-.dark .bg-gray-200:not(.pdf-content *),
-.dark .bg-slate-100:not(.pdf-content *),
-.dark .bg-slate-200:not(.pdf-content *) {
+/* Hardcoded Light Utility Overrides in Dark Mode (Excluding Invoices & Documents) */
+.dark .bg-neutral-100:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .bg-neutral-200:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .bg-gray-100:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .bg-gray-200:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .bg-slate-100:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .bg-slate-200:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *) {
     background-color: #1e293b !important;
     color: #ffffff !important;
     border-color: #334155 !important;
 }
 
-.dark .bg-white:not(.pdf-content):not(.pdf-content *) {
+.dark .bg-white:not(.pdf-content):not(.pdf-content *):not(.document-paper-white):not(.document-paper-white *):not(#official-hotel-voucher-printable):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable):not(#official-hotel-invoice-printable *) {
     background-color: #0f172a !important;
     color: #ffffff !important;
 }
 
-.dark .bg-gray-50:not(.pdf-content *),
-.dark .bg-slate-50:not(.pdf-content *) {
+.dark .bg-gray-50:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .bg-slate-50:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *) {
     background-color: #050617 !important;
 }
 
-.dark .border-gray-100:not(.pdf-content *),
-.dark .border-gray-200:not(.pdf-content *),
-.dark .border-slate-100:not(.pdf-content *),
-.dark .border-slate-200:not(.pdf-content *),
-.dark .border-neutral-200:not(.pdf-content *),
-.dark .border-neutral-300:not(.pdf-content *) {
+.dark .border-gray-100:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .border-gray-200:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .border-slate-100:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .border-slate-200:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .border-neutral-200:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
+.dark .border-neutral-300:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *) {
     border-color: #1e293b !important;
 }
 
@@ -155,16 +155,91 @@
     color: #cbd5e1 !important;
 }
 
-/* STRICT INVOICE LOCKDOWN: Lock Invoices to 100% Original Light Mode Styling */
+/* STRICT INVOICE & VOUCHER LOCKDOWN: Lock documents to 100% Original Light Mode Styling */
 html.dark .pdf-content,
-.pdf-content {
+html.dark .document-paper-white,
+html.dark #official-hotel-voucher-printable,
+html.dark #official-hotel-invoice-printable,
+.pdf-content,
+.document-paper-white,
+#official-hotel-voucher-printable,
+#official-hotel-invoice-printable {
     background-color: #ffffff !important;
-    color: #333333 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important;
 }
 
-html.dark .pdf-content *,
-.pdf-content * {
-    color: #333333 !important;
+html.dark .document-paper-white .bg-white,
+html.dark #official-hotel-voucher-printable .bg-white,
+html.dark #official-hotel-invoice-printable .bg-white {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+}
+
+html.dark .document-paper-white .bg-slate-50,
+html.dark .document-paper-white .bg-slate-50\/50,
+html.dark #official-hotel-voucher-printable .bg-slate-50,
+html.dark #official-hotel-voucher-printable .bg-slate-50\/50,
+html.dark #official-hotel-invoice-printable .bg-slate-50 {
+    background-color: #f8fafc !important;
+    background: #f8fafc !important;
+}
+
+html.dark .document-paper-white .bg-slate-100,
+html.dark #official-hotel-voucher-printable .bg-slate-100,
+html.dark #official-hotel-invoice-printable .bg-slate-100 {
+    background-color: #f1f5f9 !important;
+    background: #f1f5f9 !important;
+}
+
+html.dark .document-paper-white .text-slate-900,
+html.dark #official-hotel-voucher-printable .text-slate-900,
+html.dark #official-hotel-invoice-printable .text-slate-900 {
+    color: #0f172a !important;
+}
+
+html.dark .document-paper-white .text-slate-800,
+html.dark #official-hotel-voucher-printable .text-slate-800,
+html.dark #official-hotel-invoice-printable .text-slate-800 {
+    color: #1e293b !important;
+}
+
+html.dark .document-paper-white .text-slate-700,
+html.dark #official-hotel-voucher-printable .text-slate-700,
+html.dark #official-hotel-invoice-printable .text-slate-700 {
+    color: #334155 !important;
+}
+
+html.dark .document-paper-white .text-slate-600,
+html.dark #official-hotel-voucher-printable .text-slate-600,
+html.dark #official-hotel-invoice-printable .text-slate-600 {
+    color: #475569 !important;
+}
+
+html.dark .document-paper-white .text-slate-500,
+html.dark #official-hotel-voucher-printable .text-slate-500,
+html.dark #official-hotel-invoice-printable .text-slate-500 {
+    color: #64748b !important;
+}
+
+html.dark .document-paper-white .text-slate-400,
+html.dark #official-hotel-voucher-printable .text-slate-400,
+html.dark #official-hotel-invoice-printable .text-slate-400 {
+    color: #94a3b8 !important;
+}
+
+html.dark .document-paper-white .border-slate-200,
+html.dark #official-hotel-voucher-printable .border-slate-200,
+html.dark #official-hotel-invoice-printable .border-slate-200 {
+    border-color: #e2e8f0 !important;
+}
+
+html.dark .document-paper-white .border-slate-300,
+html.dark #official-hotel-voucher-printable .border-slate-300,
+html.dark #official-hotel-invoice-printable .border-slate-300 {
+    border-color: #cbd5e1 !important;
 }
 
 html.dark .pdf-content .invoice-date-label,

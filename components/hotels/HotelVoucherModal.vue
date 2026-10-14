@@ -50,20 +50,23 @@
       <div
         id="official-hotel-voucher-printable"
         ref="voucherCardRef"
-        class="bg-white p-6 sm:p-8 md:p-10 border border-slate-200 rounded-xl shadow-sm text-slate-800 font-sans space-y-5"
+        class="document-paper-white pdf-content bg-white p-6 sm:p-8 md:p-10 border border-slate-200 rounded-xl shadow-sm text-slate-800 font-sans space-y-5"
         style="max-width: 820px; margin: 0 auto;"
       >
         
-        <!-- ─── TOP SECTION: myGO Group Logo & SUPPLIER REFERENCE ──────────── -->
+        <!-- ─── TOP SECTION: Bouazize Travel Logo & SUPPLIER REFERENCE ──────────── -->
         <div class="flex justify-between items-start border-b border-slate-200 pb-3">
-          <!-- Left: Official myGO Group Logo -->
-          <div>
+          <!-- Left: Official Bouazize Travel Logo (SINGLE LOGO ON VOUCHER) -->
+          <div class="flex items-center gap-3">
             <img
-              src="/images/logo/mygo-logo.png"
-              alt="myGO Group"
-              class="h-10 sm:h-12 w-auto object-contain select-none"
+              src="/images/logo/bouazize-logo.png"
+              alt="Bouazize Travel"
+              class="h-12 sm:h-14 w-auto object-contain select-none rounded-full shadow-2xs"
             />
-            <p class="text-[11px] text-slate-600 mt-1 font-medium">Please present this voucher upon arrival</p>
+            <div>
+              <p class="font-black text-slate-900 tracking-wider text-base sm:text-lg uppercase">BOUAZIZE TRAVEL</p>
+              <p class="text-[11px] text-slate-600 font-medium">Please present this voucher upon arrival</p>
+            </div>
           </div>
 
           <!-- Right: Supplier Reference & Hotel QR Code Check -->
@@ -100,7 +103,7 @@
           </div>
         </div>
 
-        <!-- ─── SUBHEADER: Customer Reference & Bouazize Travel Info ────────── -->
+        <!-- ─── SUBHEADER: Customer Reference & Bouazize Travel Contact ────────── -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 py-2 border-b border-slate-200 text-xs">
           <div>
             <span class="text-[10px] text-slate-400 uppercase font-bold block">CUSTOMER'S REFERENCE</span>
@@ -110,17 +113,9 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-3">
-            <div class="text-left sm:text-right">
-              <p class="font-black text-slate-900 tracking-wide">BOUAZIZE TRAVEL</p>
-              <p class="text-[11px] text-slate-600 font-semibold">Telephone: 0770202084</p>
-            </div>
-            <!-- Agency Round Gold Logo -->
-            <img
-              src="/images/logo/bouazize-logo.png"
-              alt="Bouazize Travel"
-              class="w-11 h-11 object-contain rounded-full shadow-2xs"
-            />
+          <div class="text-left sm:text-right">
+            <p class="font-black text-slate-900 tracking-wide">BOUAZIZE TRAVEL</p>
+            <p class="text-[11px] text-slate-600 font-semibold">Tél : 0770202084 · contact@bouazizetravel.com</p>
           </div>
         </div>
 
@@ -406,7 +401,9 @@ function formatFullDateTime(val) {
 }
 
 function triggerPrint() {
-  if (typeof window !== 'undefined') {
+  if (voucherCardRef.value) {
+    printDocumentElement(voucherCardRef.value, `VOUCHER_${props.order?.ns_booking_reference || props.order?.id || 'HOTEL'}`)
+  } else if (typeof window !== 'undefined') {
     window.print()
   }
 }
@@ -450,22 +447,29 @@ async function downloadPdf() {
 
 <style scoped>
 @media print {
+  html, body {
+    overflow: visible !important;
+    height: auto !important;
+    background: #ffffff !important;
+  }
   body * {
     visibility: hidden;
   }
-  #official-hotel-voucher-printable, #official-hotel-voucher-printable * {
-    visibility: visible;
+  #official-hotel-voucher-printable,
+  #official-hotel-voucher-printable * {
+    visibility: visible !important;
   }
   #official-hotel-voucher-printable {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 20px;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 24px !important;
     border: none !important;
     box-shadow: none !important;
-    background: white !important;
+    background: #ffffff !important;
   }
 }
 </style>
