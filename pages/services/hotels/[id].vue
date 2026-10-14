@@ -535,8 +535,18 @@
                                   />
                                 </div>
 
-                                <!-- Email for global lead pax (Chambre 1, Voyageur 1) -->
-                                <div v-if="rIdx === 0 && pIdx === 0" class="input-item col-email">
+                                <!-- Child Age input (mandatory for child pax) -->
+                                <div v-if="pax.type === 'child'" class="input-item col-age">
+                                  <label :for="`child-age-${rIdx}-${pIdx}`" class="input-lbl">Âge de l'enfant <span class="req">*</span></label>
+                                  <select :id="`child-age-${rIdx}-${pIdx}`" v-model.number="pax.age" class="form-select-ctrl">
+                                    <option v-for="a in 18" :key="a - 1" :value="a - 1">{{ a - 1 }} ans</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              <!-- Email & Phone for global lead pax (Chambre 1, Voyageur 1) placed cleanly at the bottom -->
+                              <div v-if="rIdx === 0 && pIdx === 0" class="lead-contact-grid">
+                                <div class="input-item col-email">
                                   <label for="lead-email" class="input-lbl">Email de confirmation &amp; Voucher <span class="req">*</span></label>
                                   <input
                                     id="lead-email"
@@ -547,8 +557,7 @@
                                   />
                                 </div>
 
-                                <!-- Phone for global lead pax (Chambre 1, Voyageur 1) -->
-                                <div v-if="rIdx === 0 && pIdx === 0" class="input-item col-phone">
+                                <div class="input-item col-phone">
                                   <label for="lead-phone" class="input-lbl">Téléphone de contact (SMS / Appel) <span class="req">*</span></label>
                                   <input
                                     id="lead-phone"
@@ -557,14 +566,6 @@
                                     class="form-input-ctrl"
                                     placeholder="+213 550 00 00 00"
                                   />
-                                </div>
-
-                                <!-- Child Age input (mandatory for child pax) -->
-                                <div v-if="pax.type === 'child'" class="input-item col-age">
-                                  <label :for="`child-age-${rIdx}-${pIdx}`" class="input-lbl">Âge de l'enfant <span class="req">*</span></label>
-                                  <select :id="`child-age-${rIdx}-${pIdx}`" v-model.number="pax.age" class="form-select-ctrl">
-                                    <option v-for="a in 18" :key="a - 1" :value="a - 1">{{ a - 1 }} ans</option>
-                                  </select>
                                 </div>
                               </div>
                             </div>
@@ -2981,16 +2982,33 @@ useHead({
 .pax-inputs-grid {
   display: grid;
   grid-template-columns: 110px 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
 }
 @media (max-width: 640px) {
   .pax-inputs-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+.lead-contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--dt-card-border, rgba(226, 232, 240, 0.6));
+}
+@media (max-width: 640px) {
+  .lead-contact-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 }
 .col-email,
 .col-phone {
-  grid-column: span 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 .input-item {
   display: flex;
@@ -2998,28 +3016,33 @@ useHead({
   gap: 4px;
 }
 .input-lbl {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--dt-text-label);
+  letter-spacing: 0.3px;
 }
 .req {
   color: #ef4444;
 }
 .form-input-ctrl,
 .form-select-ctrl {
-  padding: 8px 10px;
-  font-size: 12px;
+  height: 42px;
+  padding: 8px 12px;
+  font-size: 13px;
   border-radius: 0 !important;
   border: 1px solid var(--dt-input-border);
   background: var(--dt-input-bg);
   color: var(--dt-input-text);
   outline: none;
-  transition: border-color 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .form-input-ctrl:focus,
 .form-select-ctrl:focus {
   border-color: var(--dt-gold, #d2a749) !important;
+  box-shadow: 0 0 0 1px var(--dt-gold, #d2a749);
 }
 .uppercase {
   text-transform: uppercase;
