@@ -8,10 +8,19 @@
           <span class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-xs">
             <UIcon name="i-heroicons-clipboard-document-list" class="w-6 h-6" />
           </span>
-          Mes Dossiers & Commandes
+          <span>Mes Dossiers & Commandes</span>
+          <UBadge
+            v-if="isBusiness"
+            color="primary"
+            variant="subtle"
+            size="sm"
+            class="font-bold ml-1"
+          >
+            Espace Partenaire B2B
+          </UBadge>
         </h1>
         <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Consultez et suivez l'état de vos réservations d'hôtels et demandes de visa en temps réel.
+          {{ isBusiness ? 'Gérez vos réservations d\'hôtels, suivez vos marges d\'agence et traitez vos dossiers clients.' : 'Consultez et suivez l\'état de vos réservations d\'hôtels et demandes de visa en temps réel.' }}
         </p>
       </div>
 
@@ -264,6 +273,16 @@
                   <div class="font-black text-primary text-sm whitespace-nowrap">
                     {{ formatCurrency(order.final_price_dzd) }} DZD
                   </div>
+                  <!-- B2B Agency Margin & Net Price Display -->
+                  <div v-if="isBusiness && (order.agency_profit_dzd || order.admin_price_dzd)" class="mt-1 flex flex-col gap-0.5">
+                    <span v-if="order.agency_profit_dzd > 0" class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      <UIcon name="i-heroicons-arrow-trending-up" class="w-3 h-3" />
+                      Gain: {{ formatCurrency(order.agency_profit_dzd) }} DZD
+                    </span>
+                    <span v-if="order.admin_price_dzd" class="text-[10px] text-slate-400">
+                      Net: {{ formatCurrency(order.admin_price_dzd) }} DZD
+                    </span>
+                  </div>
                 </td>
 
                 <!-- Booking Status -->
@@ -288,6 +307,12 @@
                   >
                     {{ getPaymentLabel(order.payment_status) }}
                   </UBadge>
+                  <div v-if="order.payment_method === 'wallet'" class="mt-1">
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                      <UIcon name="i-heroicons-wallet" class="w-3 h-3" />
+                      Portefeuille B2B
+                    </span>
+                  </div>
                 </td>
 
                 <!-- Actions -->
@@ -552,9 +577,20 @@
 
         <!-- Pricing Breakdown -->
         <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-2.5">
-          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-            Règlement & Tarifs
-          </h4>
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              Règlement & Tarifs
+            </h4>
+            <UBadge v-if="isBusiness" color="primary" variant="subtle" size="xs" class="font-bold">
+              Compte B2B
+            </UBadge>
+          </div>
+          <div class="flex justify-between items-center text-xs text-slate-500">
+            <span>Mode de règlement :</span>
+            <span class="font-semibold text-slate-700 dark:text-slate-300 capitalize">
+              {{ selectedHotelOrder.payment_method === 'wallet' ? 'Portefeuille B2B' : (selectedHotelOrder.payment_method || 'CCP / BaridiMob') }}
+            </span>
+          </div>
           <div class="flex justify-between items-center text-xs text-slate-500">
             <span>Statut du paiement :</span>
             <UBadge :color="getPaymentBadgeColor(selectedHotelOrder.payment_status)" variant="subtle" size="xs">
@@ -567,8 +603,27 @@
               {{ selectedHotelOrder.cancellation_deadline ? `Gratuite jusqu'au ${formatDateShort(selectedHotelOrder.cancellation_deadline)}` : 'Selon conditions de l\'hôtel' }}
             </span>
           </div>
+
+          <!-- B2B Financial Margin Details (Visible ONLY to B2B Agencies) -->
+          <div v-if="isBusiness && (selectedHotelOrder.agency_profit_dzd || selectedHotelOrder.admin_price_dzd)" class="p-3 my-2 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40 space-y-1.5 text-xs">
+            <div class="font-bold text-emerald-800 dark:text-emerald-300 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+              <UIcon name="i-heroicons-chart-pie" class="w-3.5 h-3.5" />
+              Rentabilité Agence B2B
+            </div>
+            <div class="flex justify-between text-slate-600 dark:text-slate-300 text-[11px]">
+              <span>Tarif Net Achat Agence :</span>
+              <span class="font-bold">{{ formatCurrency(selectedHotelOrder.admin_price_dzd || (selectedHotelOrder.final_price_dzd - (selectedHotelOrder.agency_profit_dzd || 0))) }} DZD</span>
+            </div>
+            <div class="flex justify-between text-emerald-700 dark:text-emerald-400 font-bold text-[11px]">
+              <span>Marge / Bénéfice Réalisé :</span>
+              <span>+{{ formatCurrency(selectedHotelOrder.agency_profit_dzd || 0) }} DZD</span>
+            </div>
+          </div>
+
           <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
-            <span class="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300">Total à payer :</span>
+            <span class="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              {{ isBusiness ? 'Prix Facturé au Client :' : 'Total à payer :' }}
+            </span>
             <span class="text-lg font-black text-primary">{{ formatCurrency(selectedHotelOrder.final_price_dzd) }} DZD</span>
           </div>
         </div>
@@ -941,10 +996,14 @@ import Confirmation from '~/components/modals/Confirmation.vue'
 import Invoice from '~/components/invoices/Invoice.vue'
 import html2canvas from 'html2canvas'
 import { sendApi } from '@/composables/api'
+import { useAuthStore } from '~/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const authStore = useAuthStore()
+
+const isBusiness = computed(() => authStore.isBusiness)
 
 // ─── ACTIVE SERVICE TAB ──────────────────────────────────────────────────────
 const activeTab = ref(route.query.tab === 'visa' ? 'visa' : 'hotels')
