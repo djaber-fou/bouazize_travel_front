@@ -61,7 +61,8 @@
             <img
               src="/images/logo/bouazize-logo.png"
               alt="Bouazize Travel"
-              class="w-16 h-16 object-contain rounded-full shadow-xs shrink-0"
+              class="w-14 h-14 object-contain rounded-full shadow-xs shrink-0"
+              style="width: 52px !important; height: 52px !important; min-width: 52px !important; max-width: 52px !important; object-fit: contain !important;"
             />
             <div>
               <h2 class="text-2xl font-black text-primary tracking-wide">BOUAZIZE TRAVEL</h2>
@@ -214,7 +215,8 @@
               <img
                 src="/images/cachet-bouazize.png"
                 alt="Cachet Officiel Bouazize Travel"
-                class="h-28 sm:h-32 w-auto object-contain select-none pointer-events-none drop-shadow-xs"
+                class="h-24 sm:h-28 w-auto object-contain select-none pointer-events-none drop-shadow-xs"
+                style="height: 100px !important; max-height: 100px !important; width: auto !important; object-fit: contain !important;"
               />
             </div>
           </div>

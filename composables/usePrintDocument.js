@@ -50,7 +50,7 @@ export function printDocumentElement(element, docTitle = 'Document') {
         <style>
           @page {
             size: A4 portrait;
-            margin: 8mm 8mm 8mm 8mm;
+            margin: 6mm 8mm 6mm 8mm;
           }
           *, *::before, *::after {
             box-sizing: border-box !important;
@@ -62,12 +62,12 @@ export function printDocumentElement(element, docTitle = 'Document') {
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
-            min-height: 100% !important;
+            height: auto !important;
             background-color: #ffffff !important;
             background: #ffffff !important;
             color: #0f172a !important;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            font-size: 11.5px;
+            font-size: 11px;
             line-height: 1.35;
           }
           #print-root {
@@ -78,16 +78,20 @@ export function printDocumentElement(element, docTitle = 'Document') {
             border: none !important;
             box-shadow: none !important;
             background: #ffffff !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
           #print-root > * {
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 !important;
-            padding: 18px 24px !important;
+            padding: 16px 20px !important;
             border: 1px solid #e2e8f0 !important;
             border-radius: 8px !important;
             box-shadow: none !important;
             background: #ffffff !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
           /* Print-color-adjust fallbacks */
           .bg-white { background-color: #ffffff !important; }
@@ -115,10 +119,24 @@ export function printDocumentElement(element, docTitle = 'Document') {
           .border-rose-200 { border-color: #fecdd3 !important; }
           img {
             max-width: 100%;
-            height: auto;
             display: inline-block;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          /* Explicit print rules for voucher & invoice images */
+          img[src*="bouazize-logo"] {
+            width: 52px !important;
+            height: 52px !important;
+            min-width: 52px !important;
+            max-width: 52px !important;
+            object-fit: contain !important;
+            border-radius: 9999px !important;
+          }
+          img[src*="cachet-bouazize"] {
+            height: 95px !important;
+            max-height: 95px !important;
+            width: auto !important;
+            object-fit: contain !important;
           }
           /* Hide interactive or unwanted elements */
           .print\\:hidden, button, [role="button"] {

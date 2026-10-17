@@ -61,7 +61,8 @@
             <img
               src="/images/logo/bouazize-logo.png"
               alt="Bouazize Travel"
-              class="h-12 sm:h-14 w-auto object-contain select-none rounded-full shadow-2xs"
+              class="h-12 sm:h-14 w-12 sm:w-14 object-contain select-none rounded-full shadow-2xs shrink-0"
+              style="width: 52px !important; height: 52px !important; min-width: 52px !important; max-width: 52px !important; object-fit: contain !important;"
             />
             <div>
               <p class="font-black text-slate-900 tracking-wider text-base sm:text-lg uppercase">BOUAZIZE TRAVEL</p>
@@ -84,12 +85,13 @@
               </div>
 
               <!-- Top Right Hotel Verification QR (Instant client-side generated) -->
-              <div class="w-14 h-14 bg-white p-0.5 border border-slate-300 rounded shrink-0 flex items-center justify-center overflow-hidden">
+              <div class="w-14 h-14 bg-white p-0.5 border border-slate-300 rounded shrink-0 flex items-center justify-center overflow-hidden" style="width: 56px !important; height: 56px !important; min-width: 56px !important; max-width: 56px !important;">
                 <img
                   v-if="hotelCheckQrDataUrl"
                   :src="hotelCheckQrDataUrl"
                   alt="QR Hotel"
                   class="w-full h-full object-contain"
+                  style="width: 100% !important; height: 100% !important; object-fit: contain !important;"
                 />
                 <img
                   v-else
@@ -97,6 +99,7 @@
                   alt="QR Hotel"
                   class="w-full h-full object-contain"
                   crossorigin="anonymous"
+                  style="width: 100% !important; height: 100% !important; object-fit: contain !important;"
                 />
               </div>
             </div>
@@ -144,6 +147,7 @@
                   :src="hotelMapQrDataUrl"
                   alt="Hotel Map QR"
                   class="w-10 h-10 mx-auto mt-0.5 border border-slate-200 rounded bg-white p-0.5"
+                  style="width: 40px !important; height: 40px !important; min-width: 40px !important; max-width: 40px !important; object-fit: contain !important;"
                 />
                 <img
                   v-else
@@ -151,6 +155,7 @@
                   alt="Hotel Map QR"
                   class="w-10 h-10 mx-auto mt-0.5 border border-slate-200 rounded bg-white p-0.5"
                   crossorigin="anonymous"
+                  style="width: 40px !important; height: 40px !important; min-width: 40px !important; max-width: 40px !important; object-fit: contain !important;"
                 />
               </div>
             </div>
@@ -281,7 +286,8 @@
               <img
                 src="/images/cachet-bouazize.png"
                 alt="Cachet Officiel & Signature Bouazize Travel"
-                class="h-28 sm:h-32 w-auto object-contain select-none pointer-events-none drop-shadow-xs"
+                class="h-24 sm:h-28 w-auto object-contain select-none pointer-events-none drop-shadow-xs"
+                style="height: 100px !important; max-height: 100px !important; width: auto !important; object-fit: contain !important;"
               />
             </div>
           </div>
