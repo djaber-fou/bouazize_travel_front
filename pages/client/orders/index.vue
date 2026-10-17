@@ -1679,26 +1679,3 @@ const onPageChange = async (page) => {
 }
 </script>
 
-<style scoped>
-@media print {
-  body * {
-    visibility: hidden !important;
-  }
-  #official-hotel-voucher-printable, #official-hotel-voucher-printable * {
-    visibility: visible !important;
-  }
-  #official-hotel-voucher-printable {
-    position: fixed !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100vw !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 15mm !important;
-    background: white !important;
-    color: black !important;
-    z-index: 999999 !important;
-    box-shadow: none !important;
-  }
-}
-</style>

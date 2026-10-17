@@ -1,55 +1,74 @@
 /**
- * Universal print helper for clean, unclipped document printing (Vouchers & Invoices)
- * Renders document in a dedicated hidden iframe to bypass modal overflow-y / body lock clipping.
+ * Universal print helper for clean, high-fidelity document printing (Hotel Vouchers & Invoices)
+ * Clones current Nuxt stylesheets into an isolated A4-dimensioned iframe, waits for all images/fonts,
+ * and triggers window.print() without clipping or premature DOM destruction.
  */
 export function printDocumentElement(element, docTitle = 'Document') {
   if (!element || typeof window === 'undefined') return;
 
-  // Remove existing print iframe if any
+  // 1. Remove any previous print iframe to ensure a clean slate
   const oldIframe = document.getElementById('bzz-print-iframe');
   if (oldIframe) {
     oldIframe.remove();
   }
 
+  // 2. Create isolated print iframe with realistic A4 dimensions
+  // Chromium requires non-zero dimensions to compute layout and avoid viewport-clipped prints
   const iframe = document.createElement('iframe');
   iframe.id = 'bzz-print-iframe';
+  iframe.setAttribute('aria-hidden', 'true');
   iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
+  iframe.style.left = '-9999px';
+  iframe.style.top = '0';
+  iframe.style.width = '210mm';
+  iframe.style.minHeight = '297mm';
   iframe.style.border = '0';
   iframe.style.opacity = '0';
   iframe.style.pointerEvents = 'none';
+  iframe.style.zIndex = '-9999';
   document.body.appendChild(iframe);
 
-  const doc = iframe.contentWindow.document;
-  doc.open();
-  doc.write(`
+  const iframeWin = iframe.contentWindow;
+  if (!iframeWin) return;
+  const iframeDoc = iframeWin.document;
+
+  // 3. Collect all active stylesheets and inline style tags from parent document
+  const headStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+    .map(el => el.outerHTML)
+    .join('\n');
+
+  // 4. Assemble complete standalone HTML document with A4 page rules
+  iframeDoc.open();
+  iframeDoc.write(`
     <!DOCTYPE html>
     <html lang="fr">
       <head>
         <meta charset="utf-8" />
         <title>${docTitle}</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+        <base href="${window.location.origin}/" />
+        ${headStyles}
         <style>
           @page {
             size: A4 portrait;
-            margin: 10mm 8mm 10mm 8mm;
+            margin: 8mm 8mm 8mm 8mm;
           }
           *, *::before, *::after {
-            box-sizing: border-box;
+            box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
           html, body {
             margin: 0 !important;
             padding: 0 !important;
+            width: 100% !important;
+            min-height: 100% !important;
+            background-color: #ffffff !important;
             background: #ffffff !important;
             color: #0f172a !important;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
+            font-size: 11.5px;
+            line-height: 1.35;
           }
           #print-root {
             width: 100% !important;
@@ -60,18 +79,51 @@ export function printDocumentElement(element, docTitle = 'Document') {
             box-shadow: none !important;
             background: #ffffff !important;
           }
-          /* Ensure backgrounds print correctly */
+          #print-root > * {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 18px 24px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+          }
+          /* Print-color-adjust fallbacks */
+          .bg-white { background-color: #ffffff !important; }
           .bg-slate-50, .bg-slate-50\\/50 { background-color: #f8fafc !important; }
           .bg-slate-100 { background-color: #f1f5f9 !important; }
-          .bg-white { background-color: #ffffff !important; }
+          .bg-slate-200, .bg-slate-200\\/80 { background-color: #e2e8f0 !important; }
+          .bg-rose-50, .bg-rose-50\\/40 { background-color: #fff1f2 !important; }
+          .bg-rose-100 { background-color: #ffe4e6 !important; }
+          .bg-emerald-50 { background-color: #ecfdf5 !important; }
+          .bg-amber-50 { background-color: #fffbeb !important; }
           .text-slate-900 { color: #0f172a !important; }
           .text-slate-800 { color: #1e293b !important; }
           .text-slate-700 { color: #334155 !important; }
           .text-slate-600 { color: #475569 !important; }
           .text-slate-500 { color: #64748b !important; }
-          .border-slate-200 { border-color: #e2e8f0 !important; }
+          .text-slate-400 { color: #94a3b8 !important; }
+          .text-rose-700 { color: #be123c !important; }
+          .text-rose-800 { color: #9f1239 !important; }
+          .text-rose-900 { color: #881337 !important; }
+          .text-emerald-700 { color: #047857 !important; }
+          .text-amber-700 { color: #b45309 !important; }
+          .border-slate-200, .border-slate-200\\/80 { border-color: #e2e8f0 !important; }
           .border-slate-300 { border-color: #cbd5e1 !important; }
-          img { max-width: 100%; display: inline-block; }
+          .border-rose-600 { border-color: #e11d48 !important; }
+          .border-rose-200 { border-color: #fecdd3 !important; }
+          img {
+            max-width: 100%;
+            height: auto;
+            display: inline-block;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          /* Hide interactive or unwanted elements */
+          .print\\:hidden, button, [role="button"] {
+            display: none !important;
+          }
         </style>
       </head>
       <body>
@@ -81,20 +133,51 @@ export function printDocumentElement(element, docTitle = 'Document') {
       </body>
     </html>
   `);
-  doc.close();
+  iframeDoc.close();
 
-  // Wait for images inside iframe to load before printing
-  setTimeout(() => {
+  // 5. Cleanup handler — trigger only when printing has completed or cancelled
+  const cleanup = () => {
     try {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-    } catch (e) {
-      console.warn('Iframe print error, falling back to window.print():', e);
-      window.print();
-    } finally {
-      setTimeout(() => {
+      if (iframe && iframe.parentNode) {
         iframe.remove();
-      }, 1500);
+      }
+    } catch (_) {}
+  };
+
+  iframeWin.onafterprint = cleanup;
+  // Safety timeout: 2 minutes (never premature 1.5s!)
+  setTimeout(cleanup, 120000);
+
+  // 6. Ensure all images and fonts are loaded before triggering print dialog
+  const executePrint = () => {
+    try {
+      iframeWin.focus();
+      iframeWin.print();
+    } catch (err) {
+      console.warn('Iframe print error, falling back to window.print():', err);
+      window.print();
     }
-  }, 450);
+  };
+
+  const images = Array.from(iframeDoc.images);
+  const imgPromises = images.map(img => {
+    if (img.complete && img.naturalHeight !== 0) {
+      return Promise.resolve();
+    }
+    return new Promise(resolve => {
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+    });
+  });
+
+  const fontPromise = iframeDoc.fonts ? iframeDoc.fonts.ready : Promise.resolve();
+
+  Promise.all([...imgPromises, fontPromise])
+    .then(() => {
+      // Small tick to ensure browser layout engine has painted all DOM nodes
+      setTimeout(executePrint, 180);
+    })
+    .catch(() => {
+      setTimeout(executePrint, 250);
+    });
 }
