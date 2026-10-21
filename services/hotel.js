@@ -143,6 +143,8 @@ export const evaluateHotelRoom = async (sessionId, hotelCode, roomCode, extra = 
     room_type: extra.room_type || '',
     nationality: extra.nationality || '',
     query_required: extra.query_required || 1,
+    children: extra.children || 0,
+    children_ages: extra.children_ages || [],
   };
   const response = await sendApi('/hotels/evaluate', payload, 'POST');
   return response;

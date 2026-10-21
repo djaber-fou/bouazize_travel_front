@@ -442,8 +442,14 @@ export const useHotelStore = defineStore('hotel', {
       try {
         const data = await evaluateHotelRoom(
           room?.session_id || this.searchResults.session_id || hotel.session_id || '',
-          hotel.hotel_code, agreementCode,
-          { check_in: cIn, check_out: cOut, adults: ad, rooms: rm, price: pr, room_type: rType, nationality: nat, query_required: room?.query_required || 1 }
+          hotel.hotel_code,
+          agreementCode,
+          { 
+            check_in: cIn, check_out: cOut, adults: ad, rooms: rm, price: pr, 
+            room_type: rType, nationality: nat, query_required: room?.query_required || 1,
+            children: this.searchForm.children || 0,
+            children_ages: this.searchForm.children_ages || []
+          }
         );
         this.evaluationResult = data?.data ?? null;
         if (this.evaluationResult?.search_number) {
