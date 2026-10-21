@@ -254,8 +254,8 @@
             <p class="font-semibold text-slate-700">
               {{ order.room_basis_name || 'SINGLE STANDARD ROOM' }}
             </p>
-            <p v-if="order.admin_notes" class="text-slate-500 italic">
-              {{ order.admin_notes }}
+            <p v-if="order.remarks" class="text-slate-600">
+              {{ order.remarks }}
             </p>
           </div>
         </div>
