@@ -876,18 +876,22 @@
 
             <!-- Primary Action Button -->
             <div class="summary-cta-wrap">
+              <div v-if="evaluation && evaluation.is_available === false" class="sb-unavail-alert" style="background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:10px;line-height:1.4;">
+                ⚠️ Cette chambre n'est plus disponible ou n'accepte pas la combinaison voyageurs demandée (enfants / lits d'appoint). Veuillez choisir une autre offre ci-contre.
+              </div>
               <button
                 v-if="!hotelStore.bookingConfirmation"
                 id="sidebar-book-btn"
                 type="button"
                 class="sidebar-action-gold-btn"
                 :class="{ loading: hotelStore.loadingEvaluation || loadingOffersAndImages }"
-                :disabled="loadingOffersAndImages || !selectedAgreement || hotelStore.loadingEvaluation"
+                :disabled="loadingOffersAndImages || !selectedAgreement || hotelStore.loadingEvaluation || (evaluation && evaluation.is_available === false)"
                 @click="openPassengerForm"
               >
                 <span v-if="hotelStore.loadingEvaluation || loadingOffersAndImages" class="btn-spinner"></span>
                 <span v-if="loadingOffersAndImages">CHARGEMENT DES OFFRES...</span>
                 <span v-else-if="hotelStore.loadingEvaluation">VÉRIFICATION EN COURS...</span>
+                <span v-else-if="evaluation && evaluation.is_available === false">OFFRE NON DISPONIBLE</span>
                 <span v-else-if="!selectedAgreement">AUCUNE CHAMBRE DISPONIBLE</span>
                 <span v-else>SAISIR LES COORDONNÉES DES VOYAGEURS</span>
               </button>
@@ -1142,15 +1146,23 @@ onMounted(async () => {
   const rooms    = Number(route.query.rooms    || hotelStore.searchForm.rooms    || 1);
   const sessId   = String(route.query.session  || hotelStore.searchResults.session_id || cached?.session_id || '');
 
+  let childrenAges = [];
+  if (route.query.children_ages) {
+    childrenAges = String(route.query.children_ages).split(',').map(Number).filter(n => !isNaN(n));
+  } else if (Array.isArray(hotelStore.searchForm.children_ages) && hotelStore.searchForm.children_ages.length) {
+    childrenAges = [...hotelStore.searchForm.children_ages];
+  }
+
   // Sync resolved values back into the store so the summary sidebar shows correct info
   hotelStore.searchForm.check_in  = checkIn;
   hotelStore.searchForm.check_out = checkOut;
   hotelStore.searchForm.adults    = adults;
   hotelStore.searchForm.children  = children;
+  hotelStore.searchForm.children_ages = childrenAges;
   hotelStore.searchForm.rooms     = rooms;
 
   // 3. Fetch full hotel static details AND live room agreements
-  //    Pass rooms so Netstorming searches for the correct number of rooms
+  //    Pass rooms and children_ages so Netstorming searches for the correct occupancy
   loadingOffersAndImages.value = true;
   try {
     const res = await fetchHotelDetails(hotelId, {
@@ -1158,6 +1170,7 @@ onMounted(async () => {
       check_out: checkOut,
       adults,
       children,
+      children_ages: childrenAges,
       rooms,
       session_id: sessId,
     });
@@ -1187,6 +1200,9 @@ onMounted(async () => {
 
       initPhotos(hotel.value);
       initAgreement(hotel.value);
+      if (selectedAgreement.value) {
+        evaluateCurrentOffer();
+      }
     }
   } catch (err) {
     console.warn('Could not load live hotel offers:', err);
@@ -1488,6 +1504,15 @@ function chooseAgreement(ag) {
 }
 
 async function openPassengerForm() {
+  if (evaluation.value && evaluation.value.is_available === false) {
+    return;
+  }
+  if (!evaluation.value && hotel.value) {
+    await evaluateCurrentOffer();
+    if (evaluation.value && evaluation.value.is_available === false) {
+      return;
+    }
+  }
   // Always fetch fresh balance from API before opening modal for B2B users
   if (authStore.isLoggedIn) {
     try {
@@ -1516,6 +1541,7 @@ async function evaluateCurrentOffer() {
 
 async function submitBookingOrder() {
   if (!paxFormValid.value) return;
+  if (evaluation.value && evaluation.value.is_available === false) return;
   hotelStore.selectedRoom = selectedAgreement.value;
   if (evaluation.value?.search_number && hotelStore.selectedRoom) {
     hotelStore.selectedRoom.search_number = evaluation.value.search_number;

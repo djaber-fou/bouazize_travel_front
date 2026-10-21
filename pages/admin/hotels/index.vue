@@ -403,16 +403,30 @@
                 <UIcon name="i-heroicons-signal" class="w-4 h-4 text-blue-600" />
                 Statut Système Netstorming
               </span>
-              <UButton
-                size="xs"
-                color="blue"
-                variant="soft"
-                icon="i-heroicons-arrow-path"
-                :loading="trackingLoading"
-                @click="trackBookingNetstorming"
-              >
-                Vérifier En Direct
-              </UButton>
+              <div class="flex items-center gap-2">
+                <UButton
+                  v-if="!selectedOrder.ns_booking_reference || selectedOrder.status === 'failed'"
+                  size="xs"
+                  color="amber"
+                  variant="solid"
+                  icon="i-heroicons-bolt"
+                  :loading="retryingBooking"
+                  @click="retryBookingNetstorming"
+                >
+                  Relancer sur Netstorming
+                </UButton>
+                <UButton
+                  v-if="selectedOrder.ns_booking_reference"
+                  size="xs"
+                  color="blue"
+                  variant="soft"
+                  icon="i-heroicons-arrow-path"
+                  :loading="trackingLoading"
+                  @click="trackBookingNetstorming"
+                >
+                  Vérifier En Direct
+                </UButton>
+              </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3 text-xs">
@@ -424,10 +438,18 @@
               </div>
               <div>
                 <span class="text-slate-400 block text-[10px]">Statut Netstorming:</span>
-                <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 uppercase">
-                  {{ selectedOrder.ns_booking_status || 'Inconnu' }}
+                <span class="font-mono font-bold uppercase" :class="selectedOrder.status === 'failed' ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'">
+                  {{ selectedOrder.ns_booking_status || (selectedOrder.status === 'failed' ? 'Échoué' : 'Inconnu') }}
                 </span>
               </div>
+            </div>
+
+            <div v-if="selectedOrder.admin_notes" class="p-3 bg-red-50 dark:bg-red-950/30 rounded-lg text-xs border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-300">
+              <p class="font-bold text-red-800 dark:text-red-200 mb-1 flex items-center gap-1.5">
+                <UIcon name="i-heroicons-exclamation-triangle" class="w-4 h-4 text-red-600" />
+                Détail Diagnostic / Note Système :
+              </p>
+              <pre class="text-[11px] whitespace-pre-wrap font-mono">{{ selectedOrder.admin_notes }}</pre>
             </div>
 
             <div v-if="trackingResult" class="p-2.5 bg-white dark:bg-slate-900 rounded-lg text-xs border border-blue-100 dark:border-blue-900 text-slate-700 dark:text-slate-300">
@@ -1229,6 +1251,33 @@ async function trackBookingNetstorming() {
     console.error('Failed to track on Netstorming:', e);
   } finally {
     trackingLoading.value = false;
+  }
+}
+
+const retryingBooking = ref(false);
+async function retryBookingNetstorming() {
+  if (!selectedOrder.value) return;
+  if (!confirm(`Relancer la réservation du dossier #${selectedOrder.value.id} (${selectedOrder.value.hotel_name}) auprès de Netstorming ?`)) {
+    return;
+  }
+  retryingBooking.value = true;
+  try {
+    const res = await sendApi(`/admin/hotels/orders/${selectedOrder.value.id}/retry`, null, 'POST');
+    if (res?.data) {
+      selectedOrder.value.ns_booking_reference = res.data.ns_booking_reference;
+      selectedOrder.value.ns_booking_status = res.data.ns_booking_status;
+      selectedOrder.value.status = res.data.status;
+      if (editForm.value) {
+        editForm.value.status = res.data.status;
+      }
+    }
+    await Promise.all([fetchOrders(), fetchStats()]);
+    alert(res?.message || 'Réservation relancée et confirmée sur Netstorming avec succès !');
+  } catch (e) {
+    console.error('Failed to retry booking on Netstorming:', e);
+    alert('Erreur: ' + (e?.response?.data?.message || e?.message || 'Échec de la relance Netstorming'));
+  } finally {
+    retryingBooking.value = false;
   }
 }
 

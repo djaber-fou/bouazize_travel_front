@@ -11,6 +11,15 @@ export default defineNuxtConfig({
   experimental: {
     appManifest: false,
   },
+  nitro: {
+    routeRules: {
+      '/**': {
+        headers: {
+          'Content-Security-Policy': "default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https:; font-src 'self' https: data:; img-src 'self' https: data: blob: https://pictures.netstorming.net https://images.unsplash.com; connect-src 'self' https: http: ws: wss:; frame-src 'self' https:; object-src 'none';",
+        },
+      },
+    },
+  },
   devtools: { enabled: true },
   modules: [
     '@nuxt/fonts',

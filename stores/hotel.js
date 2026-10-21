@@ -458,9 +458,11 @@ export const useHotelStore = defineStore('hotel', {
         }
         return this.evaluationResult;
       } catch (err) {
-        console.warn('Evaluation fallback:', err);
+        console.warn('[HotelStore] Evaluation call failed:', err);
         this.evaluationResult = {
-          status: 'ok', is_available: true,
+          status: 'not_available',
+          is_available: false,
+          message: err?.response?.data?.message || "Cette offre n'est plus disponible auprès du fournisseur ou la combinaison de voyageurs n'est pas autorisée.",
           price: room?.final_price_dzd || hotel?.lowest_price_dzd || 0,
           cancellation_deadline: room?.deadline,
         };
@@ -502,7 +504,7 @@ export const useHotelStore = defineStore('hotel', {
         children: this.searchForm.children,
         children_ages: this.searchForm.children_ages,
         nationality: this.searchForm.nationality || 'DZ',
-        room_type: this.selectedRoom?.room_type_code || this.searchForm.room_type || 'dbl',
+        room_type: this.selectedRoom?.room_type_code || this.evaluationResult?.room_type_code || this.searchForm.room_type || 'dbl',
         // ns_price = NET price in original currency (EUR/USD/DZD) — sent to NS for booking
         // Priority: evaluate result raw_price > agreement raw_price > agreement ns_price > fallback
         // NEVER divide final_price_dzd by exchange_rate (exchange_rate = DZD multiplier, not divisor)

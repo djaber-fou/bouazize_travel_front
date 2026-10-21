@@ -1074,7 +1074,10 @@ function openHotelDetails(hotel) {
   const ad     = hotelStore.searchForm.adults || 2;
   const ch     = hotelStore.searchForm.children || 0;
   const rm     = rooms.value.length || hotelStore.searchForm.rooms || 1;
-  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&rooms=${rm}`);
+  const chAges = Array.isArray(hotelStore.searchForm.children_ages)
+    ? hotelStore.searchForm.children_ages.join(',')
+    : (hotelStore.searchForm.children_ages || '');
+  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&children_ages=${encodeURIComponent(chAges)}&rooms=${rm}`);
 }
 
 function onImageError(event, stars) {
