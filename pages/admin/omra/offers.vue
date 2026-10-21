@@ -13,7 +13,7 @@
                 />
                 <UButton @click="openForm" :ui="{leadingIcon:'text-neutral'}" class="font-bold shadow-md" icon="i-material-symbols-add-2" label="Ajouter une Offre Omra"/>
             </div>
-            <div>
+            <div class="overflow-x-auto bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm">
                 <UTable
                 :sticky="true"
                 ref="table"
@@ -22,8 +22,9 @@
                 :columns="columns"
                 :loading="loading && !data.length"
                 :empty="loading?'chargement en cours...':'Données non trouvées'"
-                class="flex-1 h-full shadow-sm rounded-none border border-gray-100 dark:border-slate-800"
+                class="w-full"
                 />
+            </div>
         
                 <div class="flex justify-center border-t border-default pt-4">
                     <UPagination
@@ -34,7 +35,6 @@
                     />
                 </div>
             </div>
-        </div>
 
         <USlideover fullscreen v-model:open="open" 
         :title="action==='Ajouter'?'Ajouter une Offre Omra':'Modifier l\'Offre Omra'" 
@@ -270,6 +270,7 @@ import { h, resolveComponent, ref, watch, onMounted } from 'vue'
 import { refDebounced } from '#imports'
 import { UIcon } from '#components'
 import { uploadToCloudinary } from '~/composables/useCloudinaryUpload'
+import ExpandableTitle from '~/components/common/ExpandableTitle.vue'
 
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
@@ -333,16 +334,12 @@ const columns = [
         header: 'Offre Omra',
         cell:({row})=>{
             const offerImg = row.original.image || row.original.country?.flag
-            return h('div',{class:'flex items-center gap-3'},[
-                h(UAvatar,{
-                    src: offerImg,
-                    size: 'xl',
-                }),
-                h('div',{},[
-                    h('div',{class:'font-bold text-base'},row.original.name),
-                    h('div',{class:'text-xs text-gray-500'}, row.original.country?.name || '')
-                ])
-            ])
+            return h(ExpandableTitle, {
+                title: row.original.name,
+                subtitle: row.original.country?.name || '',
+                avatar: offerImg,
+                avatarSize: 'xl'
+            })
         }
     },
     {

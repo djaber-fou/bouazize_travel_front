@@ -18,7 +18,7 @@
                 </div>
                 <UButton @click="openForm" :ui="{leadingIcon:'text-neutral'}" class="font-bold shadow-md" icon="i-material-symbols-add-2" label="Ajouter un Voyage Organisé"/>
             </div>
-            <div>
+            <div class="overflow-x-auto bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm">
                 <UTable
                 :sticky="true"
                 ref="table"
@@ -27,8 +27,9 @@
                 :columns="columns"
                 :loading="loading && !data.length"
                 :empty="loading?'chargement en cours...':'Données non trouvées'"
-                class="flex-1 h-full shadow-sm rounded-none border border-gray-100 dark:border-slate-800"
+                class="w-full"
                 />
+            </div>
         
                 <div class="flex justify-center border-t border-default pt-4">
                     <UPagination
@@ -39,7 +40,6 @@
                     />
                 </div>
             </div>
-        </div>
 
         <USlideover fullscreen v-model:open="open" 
         :title="action==='Ajouter'?'Ajouter un Voyage Organisé':'Modifier le Voyage Organisé'" 
@@ -198,21 +198,6 @@
                                     </UFormField>
                                 </div>
 
-                                <!-- Children and Babies Pricing for this room -->
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-none mb-3">
-                                    <UFormField :ui="{label:'text-xs font-medium text-amber-900 dark:text-amber-300'}" label="Max Bébés (0-2 ans)">
-                                        <UInput size="sm" type="number" min="0" max="3" v-model.number="room.max_babies"/>
-                                    </UFormField>
-                                    <UFormField :ui="{label:'text-xs font-medium text-amber-900 dark:text-amber-300'}" label="Prix Bébé (DZD)">
-                                        <UInput size="sm" type="number" min="0" placeholder="0.00" v-model.number="room.baby_price"/>
-                                    </UFormField>
-                                    <UFormField :ui="{label:'text-xs font-medium text-amber-900 dark:text-amber-300'}" label="Max Enfants (2-12 ans)">
-                                        <UInput size="sm" type="number" min="0" max="5" v-model.number="room.max_children"/>
-                                    </UFormField>
-                                    <UFormField :ui="{label:'text-xs font-medium text-amber-900 dark:text-amber-300'}" label="Prix Enfant (DZD)">
-                                        <UInput size="sm" type="number" min="0" placeholder="0.00" v-model.number="room.child_price"/>
-                                    </UFormField>
-                                </div>
 
                                 <!-- Active Adult Places Selection - ONLY for 4 and 5 Places Rooms -->
                                 <div v-if="Number(room.capacity || room.type) >= 4" class="p-3.5 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-none flex items-center justify-between gap-4">
@@ -250,6 +235,192 @@
                                 <UFormField :ui="{label:'text-secondary font-bold'}" label="Prix individuel de base" name="individual_price">
                                     <UInput placeholder="0.00" v-model="offer.b2c_price" class="w-full"/>
                                 </UFormField>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ═══════════════════════════════════════════════════════════ -->
+                    <!-- Children & Babies Configuration Card (Système Enfants & Bébés) -->
+                    <!-- ═══════════════════════════════════════════════════════════ -->
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 dark:border-slate-800 pb-3">
+                            <div>
+                                <div class="font-bold text-lg text-secondary dark:text-white flex items-center gap-2">
+                                    <UIcon name="i-heroicons-user-group" class="text-primary w-5 h-5"/>
+                                    <span>Configuration des Enfants & Bébés</span>
+                                    <UBadge color="primary" variant="subtle" size="xs" class="font-bold">
+                                        {{ (offer.children_tiers || []).length }} Catégorie{{ (offer.children_tiers || []).length > 1 ? 's' : '' }}
+                                    </UBadge>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Définissez les tranches d'âge (Bébés / Enfants), les 3 prix (Achat, B2B, B2C) et appliquez-les à toutes les chambres ou par sélection.
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <UButton size="xs" color="sky" variant="soft" icon="i-heroicons-heart" label="+ Ajouter Bébé (0-2 ans)" @click="addPredefinedTier('bebe')"/>
+                                <UButton size="xs" color="emerald" variant="soft" icon="i-heroicons-user-group" label="+ Ajouter Enfant (2-12 ans)" @click="addPredefinedTier('enfant')"/>
+                                <UButton size="xs" color="primary" variant="outline" icon="i-heroicons-plus" label="+ Catégorie Personnalisée" @click="addPredefinedTier('custom')"/>
+                            </div>
+                        </div>
+
+                        <!-- Tiers List -->
+                        <div v-if="offer.children_tiers && offer.children_tiers.length > 0" class="space-y-4">
+                            <div 
+                                v-for="(tier, tIndex) in offer.children_tiers" 
+                                :key="tier.id || tIndex"
+                                class="p-4 bg-gray-50/70 dark:bg-slate-800/40 border border-gray-200 dark:border-slate-700/80 rounded-none space-y-4 transition-all"
+                            >
+                                <!-- Tier Header Bar -->
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200 dark:border-slate-700">
+                                    <div class="flex items-center gap-2.5 flex-wrap">
+                                        <!-- Type selector buttons -->
+                                        <div class="inline-flex rounded-none p-0.5 bg-gray-200 dark:bg-slate-700">
+                                            <button
+                                                type="button"
+                                                @click="setTierType(tier, 'bebe')"
+                                                :class="[
+                                                    'px-2.5 py-1 text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
+                                                    tier.type === 'bebe' ? 'bg-sky-500 text-white shadow-xs' : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
+                                                ]"
+                                            >
+                                                <UIcon name="i-heroicons-heart" class="w-3.5 h-3.5" />
+                                                Bébé
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="setTierType(tier, 'enfant')"
+                                                :class="[
+                                                    'px-2.5 py-1 text-xs font-bold transition-all cursor-pointer flex items-center gap-1',
+                                                    tier.type === 'enfant' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
+                                                ]"
+                                            >
+                                                <UIcon name="i-heroicons-user-group" class="w-3.5 h-3.5" />
+                                                Enfant
+                                            </button>
+                                        </div>
+
+                                        <UBadge :color="tier.type === 'bebe' ? 'info' : 'emerald'" variant="subtle" size="xs" class="font-bold">
+                                            {{ tier.age_min }} à {{ tier.age_max }} ans
+                                        </UBadge>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 self-end sm:self-auto">
+                                        <UButton size="xs" color="rose" variant="ghost" icon="i-heroicons-trash" label="Supprimer cette catégorie" @click="removeTier(tIndex)"/>
+                                    </div>
+                                </div>
+
+                                <!-- Tier Main Configuration (Label, Ages, Capacity) -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                    <UFormField :ui="{label:'text-xs font-bold text-gray-700 dark:text-gray-300'}" label="Intitulé de la catégorie">
+                                        <UInput size="sm" v-model="tier.label" placeholder="Ex: Enfant sans lit / Bébé"/>
+                                    </UFormField>
+
+                                    <UFormField :ui="{label:'text-xs font-bold text-gray-700 dark:text-gray-300'}" label="Âge minimum (ans)">
+                                        <UInput size="sm" type="number" min="0" max="17" v-model.number="tier.age_min"/>
+                                    </UFormField>
+
+                                    <UFormField :ui="{label:'text-xs font-bold text-gray-700 dark:text-gray-300'}" label="Âge maximum (ans)">
+                                        <UInput size="sm" type="number" min="0" max="17" v-model.number="tier.age_max"/>
+                                    </UFormField>
+
+                                    <UFormField :ui="{label:'text-xs font-bold text-gray-700 dark:text-gray-300'}" label="Max autorisé par chambre">
+                                        <UInput size="sm" type="number" min="1" max="10" v-model.number="tier.max_per_room" placeholder="Ex: 2"/>
+                                    </UFormField>
+                                </div>
+
+                                <!-- 3-Tier Pricing (Achat, B2B, B2C) -->
+                                <div class="p-3.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-none space-y-2">
+                                    <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                                        <UIcon name="i-heroicons-banknotes" class="w-3.5 h-3.5 text-primary" />
+                                        <span>Tarification pour cette catégorie (DZD)</span>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <UFormField :ui="{label:'text-xs font-bold text-primary'}" label="Prix d'achat (DZD)">
+                                            <UInput size="sm" type="number" placeholder="0.00" v-model.number="tier.purchase_price"/>
+                                        </UFormField>
+                                        <UFormField :ui="{label:'text-xs font-bold text-primary'}" label="Prix Entreprise / B2B (DZD)">
+                                            <UInput size="sm" type="number" placeholder="0.00" v-model.number="tier.b2b_price"/>
+                                        </UFormField>
+                                        <UFormField :ui="{label:'text-xs font-bold text-primary'}" label="Prix Client / B2C (DZD)">
+                                            <UInput size="sm" type="number" placeholder="0.00" v-model.number="tier.b2c_price"/>
+                                        </UFormField>
+                                    </div>
+                                </div>
+
+                                <!-- Chamber Applicability Section -->
+                                <div class="p-3.5 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 rounded-none space-y-3">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <div class="space-y-0.5">
+                                            <span class="text-xs font-bold text-blue-950 dark:text-blue-200 flex items-center gap-1.5">
+                                                <UIcon name="i-heroicons-home" class="w-4 h-4 text-primary" />
+                                                Attribution aux chambres de cette offre
+                                            </span>
+                                            <p class="text-[11px] text-blue-800/80 dark:text-blue-300">
+                                                Choisissez si ce tarif s'applique à toutes les chambres configurées ou seulement à des chambres spécifiques.
+                                            </p>
+                                        </div>
+
+                                        <div class="inline-flex rounded-none p-0.5 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 shrink-0">
+                                            <button
+                                                type="button"
+                                                @click="tier.applies_to_all = true"
+                                                :class="[
+                                                    'px-3 py-1 text-xs font-bold transition-all cursor-pointer',
+                                                    tier.applies_to_all ? 'bg-primary text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-primary'
+                                                ]"
+                                            >
+                                                Toutes les chambres (Par défaut)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="tier.applies_to_all = false"
+                                                :class="[
+                                                    'px-3 py-1 text-xs font-bold transition-all cursor-pointer',
+                                                    !tier.applies_to_all ? 'bg-primary text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-primary'
+                                                ]"
+                                            >
+                                                Par sélection
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Specific Rooms Selector (shown when !tier.applies_to_all) -->
+                                    <div v-if="!tier.applies_to_all" class="pt-2 border-t border-blue-200/60 dark:border-blue-900/40">
+                                        <div v-if="offer.rooms && offer.rooms.length > 0" class="flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                v-for="(r, rIdx) in offer.rooms"
+                                                :key="r.id || rIdx"
+                                                @click="toggleTierRoom(tier, r)"
+                                                :class="[
+                                                    'px-3 py-1.5 text-xs font-bold rounded-none border transition-all cursor-pointer flex items-center gap-1.5',
+                                                    isRoomSelectedInTier(tier, r)
+                                                        ? 'bg-primary text-white border-primary shadow-xs'
+                                                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-gray-300 dark:border-slate-700 hover:border-primary/50'
+                                                ]"
+                                            >
+                                                <UIcon :name="isRoomSelectedInTier(tier, r) ? 'i-heroicons-check-circle' : 'i-heroicons-plus-circle'" class="w-4 h-4" />
+                                                <span>{{ r.name || `Chambre ${r.capacity || r.type} places` }}</span>
+                                                <span class="text-[10px] opacity-80">({{ r.capacity || r.type }} pl.)</span>
+                                            </button>
+                                        </div>
+                                        <p v-else class="text-xs text-amber-600 dark:text-amber-400 italic">
+                                            Aucune chambre configurée ci-dessus. Veuillez d'abord ajouter des chambres.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty state for tiers -->
+                        <div v-else class="text-center py-6 border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-none bg-gray-50/50 dark:bg-slate-900/40">
+                            <UIcon name="i-heroicons-user-group" class="w-10 h-10 text-gray-400 mx-auto mb-2"/>
+                            <div class="text-secondary dark:text-white font-bold text-sm">Aucune catégorie d'enfant ou bébé configurée</div>
+                            <div class="text-xs text-gray-500 mb-3">Ajoutez des tranches personnalisées avec tarification Achat / B2B / B2C.</div>
+                            <div class="flex justify-center gap-2">
+                                <UButton size="xs" color="sky" variant="soft" icon="i-heroicons-heart" label="Ajouter Bébé (0-2 ans)" @click="addPredefinedTier('bebe')"/>
+                                <UButton size="xs" color="emerald" variant="soft" icon="i-heroicons-user-group" label="Ajouter Enfant (2-12 ans)" @click="addPredefinedTier('enfant')"/>
                             </div>
                         </div>
                     </div>
@@ -298,6 +469,7 @@ import { h, resolveComponent, ref, watch, onMounted } from 'vue'
 import { refDebounced } from '#imports'
 import { UIcon } from '#components'
 import { uploadToCloudinary } from '~/composables/useCloudinaryUpload'
+import ExpandableTitle from '~/components/common/ExpandableTitle.vue'
 
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
@@ -361,16 +533,12 @@ const columns = [
         header: 'Voyage Organisé',
         cell:({row})=>{
             const offerImg = row.original.image || row.original.country?.flag
-            return h('div',{class:'flex items-center gap-3'},[
-                h(UAvatar,{
-                    src: offerImg,
-                    size: 'xl',
-                }),
-                h('div',{},[
-                    h('div',{class:'font-bold text-base'},row.original.name),
-                    h('div',{class:'text-xs text-gray-500'}, row.original.country?.name || '')
-                ])
-            ])
+            return h(ExpandableTitle, {
+                title: row.original.name,
+                subtitle: row.original.country?.name || '',
+                avatar: offerImg,
+                avatarSize: 'xl'
+            })
         }
     },
     {
@@ -519,6 +687,34 @@ const openForm = ()=>{
         rooms:[
             createDefaultRoom(2, "Chambre Double (غرفة ثنائية)")
         ],
+        children_tiers: [
+            {
+                id: "tier_bebe_default",
+                type: 'bebe',
+                label: 'Bébé (0 - 2 ans)',
+                age_min: 0,
+                age_max: 2,
+                max_per_room: 1,
+                purchase_price: 25000,
+                b2b_price: 30000,
+                b2c_price: 35000,
+                applies_to_all: true,
+                applicable_room_ids: []
+            },
+            {
+                id: "tier_enfant_default",
+                type: 'enfant',
+                label: 'Enfant (2 - 12 ans)',
+                age_min: 2,
+                age_max: 12,
+                max_per_room: 2,
+                purchase_price: 75000,
+                b2b_price: 85000,
+                b2c_price: 95000,
+                applies_to_all: true,
+                applicable_room_ids: []
+            }
+        ],
         documents:[
             "Passeport biométrique",
             "Photo d'identité sur fond blanc",
@@ -538,10 +734,6 @@ const createDefaultRoom = (capacity, name) => {
         purchase_price: 130000,
         b2b_price: 145000,
         b2c_price: 160000,
-        max_babies: 1,
-        baby_price: 30000,
-        max_children: 2,
-        child_price: 85000,
         notes: ''
     }
 }
@@ -576,6 +768,102 @@ const syncMinPrices = () => {
         if (purchases.length) offer.value.purchase_price = Math.min(...purchases)
         if (b2bs.length) offer.value.b2b_price = Math.min(...b2bs)
         if (b2cs.length) offer.value.b2c_price = Math.min(...b2cs)
+    }
+}
+
+// ─── Children & Babies Tiers Methods ─────────────────────────────────────────
+const addPredefinedTier = (kind) => {
+    if (!offer.value.children_tiers) {
+        offer.value.children_tiers = []
+    }
+    const id = 'tier_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)
+    if (kind === 'bebe') {
+        offer.value.children_tiers.push({
+            id,
+            type: 'bebe',
+            label: 'Bébé (0 - 2 ans)',
+            age_min: 0,
+            age_max: 2,
+            max_per_room: 1,
+            purchase_price: 25000,
+            b2b_price: 30000,
+            b2c_price: 35000,
+            applies_to_all: true,
+            applicable_room_ids: [],
+            notes: ''
+        })
+    } else if (kind === 'enfant') {
+        offer.value.children_tiers.push({
+            id,
+            type: 'enfant',
+            label: 'Enfant (2 - 12 ans)',
+            age_min: 2,
+            age_max: 12,
+            max_per_room: 2,
+            purchase_price: 75000,
+            b2b_price: 85000,
+            b2c_price: 95000,
+            applies_to_all: true,
+            applicable_room_ids: [],
+            notes: ''
+        })
+    } else {
+        offer.value.children_tiers.push({
+            id,
+            type: 'enfant',
+            label: 'Catégorie Personnalisée',
+            age_min: 2,
+            age_max: 6,
+            max_per_room: 2,
+            purchase_price: 50000,
+            b2b_price: 60000,
+            b2c_price: 70000,
+            applies_to_all: true,
+            applicable_room_ids: [],
+            notes: ''
+        })
+    }
+}
+
+const removeTier = (index) => {
+    offer.value.children_tiers.splice(index, 1)
+}
+
+const setTierType = (tier, type) => {
+    tier.type = type
+    if (type === 'bebe' && (!tier.label || tier.label.includes('Enfant'))) {
+        tier.label = 'Bébé (0 - 2 ans)'
+        tier.age_min = 0
+        tier.age_max = 2
+        tier.max_per_room = 1
+    } else if (type === 'enfant' && (!tier.label || tier.label.includes('Bébé'))) {
+        tier.label = 'Enfant (2 - 12 ans)'
+        tier.age_min = 2
+        tier.age_max = 12
+        tier.max_per_room = 2
+    }
+}
+
+const getRoomIdentifier = (room) => {
+    return String(room.id || room.type || room.capacity || room.name)
+}
+
+const isRoomSelectedInTier = (tier, room) => {
+    if (!tier.applicable_room_ids || !Array.isArray(tier.applicable_room_ids)) return false
+    const id = getRoomIdentifier(room)
+    return tier.applicable_room_ids.includes(id)
+}
+
+const toggleTierRoom = (tier, room) => {
+    if (!tier.applicable_room_ids || !Array.isArray(tier.applicable_room_ids)) {
+        tier.applicable_room_ids = []
+    }
+    const id = getRoomIdentifier(room)
+    const idx = tier.applicable_room_ids.indexOf(id)
+    if (idx > -1) {
+        tier.applicable_room_ids.splice(idx, 1)
+    } else {
+        tier.applicable_room_ids.push(id)
     }
 }
 
@@ -678,6 +966,36 @@ const getOffer = async (id)=>{
             b2c_price: res.individual_price,
             image: res.image || null,
             rooms: res.rooms && Array.isArray(res.rooms) ? res.rooms : [],
+            children_tiers: (res.children_tiers && Array.isArray(res.children_tiers) && res.children_tiers.length > 0)
+                ? res.children_tiers
+                : [
+                    {
+                        id: "tier_bebe_default",
+                        type: 'bebe',
+                        label: 'Bébé (0 - 2 ans)',
+                        age_min: 0,
+                        age_max: 2,
+                        max_per_room: 1,
+                        purchase_price: 25000,
+                        b2b_price: 30000,
+                        b2c_price: 35000,
+                        applies_to_all: true,
+                        applicable_room_ids: []
+                    },
+                    {
+                        id: "tier_enfant_default",
+                        type: 'enfant',
+                        label: 'Enfant (2 - 12 ans)',
+                        age_min: 2,
+                        age_max: 12,
+                        max_per_room: 2,
+                        purchase_price: 75000,
+                        b2b_price: 85000,
+                        b2c_price: 95000,
+                        applies_to_all: true,
+                        applicable_room_ids: []
+                    }
+                ],
             documents: (res.documents || []).map(doc => doc.name || doc)
         }
 
@@ -742,6 +1060,21 @@ const buildOfferPayload = (imageUrl) => {
             const val = room[key]
             if (val !== undefined && val !== null) {
                 fd.append(`rooms[${index}][${key}]`, typeof val === 'boolean' ? (val ? '1' : '0') : val)
+            }
+        })
+    })
+
+    ;(offer.value.children_tiers || []).forEach((tier, index) => {
+        Object.keys(tier).forEach(key => {
+            const val = tier[key]
+            if (val !== undefined && val !== null) {
+                if (Array.isArray(val)) {
+                    val.forEach((subVal, subIdx) => {
+                        fd.append(`children_tiers[${index}][${key}][${subIdx}]`, subVal)
+                    })
+                } else {
+                    fd.append(`children_tiers[${index}][${key}]`, typeof val === 'boolean' ? (val ? '1' : '0') : val)
+                }
             }
         })
     })

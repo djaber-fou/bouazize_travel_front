@@ -29,8 +29,8 @@
           icon="i-heroicons-arrow-path"
           variant="outline"
           color="gray"
-          :loading="activeTab === 'hotels' ? hotelLoading : loading"
-          @click="activeTab === 'hotels' ? fetchHotelOrders(hotelPagination.current_page) : getOrders(pagination.pageIndex + 1)"
+          :loading="activeTab === 'hotels' ? hotelLoading : (activeTab === 'omra' ? omraLoading : (activeTab === 'voyage' ? voyageLoading : loading))"
+          @click="refreshCurrentTab"
         >
           Actualiser
         </UButton>
@@ -53,7 +53,7 @@
         <UIcon name="i-heroicons-building-office-2" class="w-5 h-5" />
         <span>Hôtels (Netstorming)</span>
         <UBadge
-          v-if="hotelOrders.length > 0"
+          v-if="hotelOrders.length > 0 || hotelPagination.total > 0"
           :color="activeTab === 'hotels' ? 'white' : 'primary'"
           variant="subtle"
           size="xs"
@@ -77,13 +77,61 @@
         <UIcon name="i-heroicons-identification" class="w-5 h-5" />
         <span>Demandes de Visa</span>
         <UBadge
-          v-if="data.length > 0"
+          v-if="data.length > 0 || pagination.totalItems > 0"
           :color="activeTab === 'visa' ? 'white' : 'primary'"
           variant="subtle"
           size="xs"
           class="font-mono font-bold ml-1"
         >
           {{ pagination.totalItems || data.length }}
+        </UBadge>
+      </button>
+
+      <!-- Omra Tab -->
+      <button
+        type="button"
+        @click="switchTab('omra')"
+        :class="[
+          'px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2.5 cursor-pointer whitespace-nowrap shadow-xs',
+          activeTab === 'omra'
+            ? 'bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/20'
+            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200/80 dark:border-slate-700/50'
+        ]"
+      >
+        <UIcon name="i-heroicons-moon" class="w-5 h-5" />
+        <span>Omra (العمرة)</span>
+        <UBadge
+          v-if="omraOrders.length > 0 || omraPagination.total > 0"
+          :color="activeTab === 'omra' ? 'white' : 'primary'"
+          variant="subtle"
+          size="xs"
+          class="font-mono font-bold ml-1"
+        >
+          {{ omraPagination.total || omraOrders.length }}
+        </UBadge>
+      </button>
+
+      <!-- Voyages Organisés Tab -->
+      <button
+        type="button"
+        @click="switchTab('voyage')"
+        :class="[
+          'px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-2.5 cursor-pointer whitespace-nowrap shadow-xs',
+          activeTab === 'voyage'
+            ? 'bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/20'
+            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200/80 dark:border-slate-700/50'
+        ]"
+      >
+        <UIcon name="i-heroicons-globe-americas" class="w-5 h-5" />
+        <span>Voyages Organisés</span>
+        <UBadge
+          v-if="voyageOrders.length > 0 || voyagePagination.total > 0"
+          :color="activeTab === 'voyage' ? 'white' : 'primary'"
+          variant="subtle"
+          size="xs"
+          class="font-mono font-bold ml-1"
+        >
+          {{ voyagePagination.total || voyageOrders.length }}
         </UBadge>
       </button>
     </div>
@@ -443,6 +491,84 @@
               :items-per-page="table?.tableApi?.getState().pagination.pageSize"
               :total="table?.tableApi?.getState().pagination.totalItems"
               @update:page="onPageChange"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  TAB 3: COMMANDES OMRA (العمرة)                                         -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div v-show="activeTab === 'omra'" class="space-y-4 animate-in fade-in duration-200">
+      <div class="flex flex-col gap-5">
+        <div class="flex items-center gap-3">
+          <UInput 
+            v-model="omraSearch"
+            icon="i-lucide-search" 
+            size="md" 
+            variant="outline"
+            placeholder="Rechercher par offre Omra, type de chambre, référence..."
+            class="w-full sm:max-w-md"
+            @update:model-value="debounceOmraFetch"
+          />
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs overflow-hidden">
+          <UTable
+            :sticky="true"
+            :data="omraOrders"
+            :columns="omraColumns"
+            :loading="omraLoading && !omraOrders.length"
+            :empty="omraLoading ? 'Chargement des commandes d\'Omra...' : 'Aucune réservation d\'Omra trouvée'"
+            class="flex-1 h-full"
+          />
+
+          <div v-if="omraPagination.total > omraPagination.per_page" class="flex justify-center border-t border-slate-100 dark:border-slate-700 p-4">
+            <UPagination
+              :default-page="omraPagination.current_page"
+              :items-per-page="omraPagination.per_page"
+              :total="omraPagination.total"
+              @update:page="fetchOmraOrders"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  TAB 4: VOYAGES ORGANISÉS                                               -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div v-show="activeTab === 'voyage'" class="space-y-4 animate-in fade-in duration-200">
+      <div class="flex flex-col gap-5">
+        <div class="flex items-center gap-3">
+          <UInput 
+            v-model="voyageSearch"
+            icon="i-lucide-search" 
+            size="md" 
+            variant="outline"
+            placeholder="Rechercher par voyage organisé, destination, formule..."
+            class="w-full sm:max-w-md"
+            @update:model-value="debounceVoyageFetch"
+          />
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs overflow-hidden">
+          <UTable
+            :sticky="true"
+            :data="voyageOrders"
+            :columns="voyageColumns"
+            :loading="voyageLoading && !voyageOrders.length"
+            :empty="voyageLoading ? 'Chargement des réservations de voyages...' : 'Aucune réservation de voyage organisé trouvée'"
+            class="flex-1 h-full"
+          />
+
+          <div v-if="voyagePagination.total > voyagePagination.per_page" class="flex justify-center border-t border-slate-100 dark:border-slate-700 p-4">
+            <UPagination
+              :default-page="voyagePagination.current_page"
+              :items-per-page="voyagePagination.per_page"
+              :total="voyagePagination.total"
+              @update:page="fetchVoyageOrders"
             />
           </div>
         </div>
@@ -985,6 +1111,176 @@
       </template>
     </UModal>
 
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  SLIDEOVER: OMRA / VOYAGE PACKAGE DETAILS                               -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <USlideover
+      v-model:open="showPackageDetails"
+      :close="false"
+      :ui="{ content: 'sm:max-w-xl max-w-full bg-white dark:bg-slate-900 shadow-2xl' }"
+    >
+      <template #content="{ close }">
+        <div v-if="selectedPackageOrder" class="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-100px)]">
+          <!-- Header Status & Offer -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-primary">#{{ selectedPackageOrder.service_type === 'omra' ? 'OMRA' : 'VOYAGE' }}-{{ selectedPackageOrder.id }}</span>
+              <div class="flex items-center gap-2">
+                <UBadge :color="getPackageStatusColor(selectedPackageOrder.status)" variant="subtle" size="sm" class="font-bold uppercase">
+                  {{ getPackageStatusLabel(selectedPackageOrder.status) }}
+                </UBadge>
+                <UButton size="xs" color="gray" variant="ghost" icon="i-heroicons-x-mark" @click="showPackageDetails = false" />
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-white flex items-center justify-center">
+                <img v-if="selectedPackageOrder.offer?.flag" :src="selectedPackageOrder.offer.flag" class="w-full h-full object-cover" />
+                <UIcon v-else :name="selectedPackageOrder.service_type === 'omra' ? 'i-heroicons-moon' : 'i-heroicons-globe-americas'" class="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 class="font-black text-slate-900 dark:text-white text-base leading-snug">{{ selectedPackageOrder.offer?.name || '-' }}</h3>
+                <p class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                  <UIcon name="i-heroicons-map-pin" class="w-3.5 h-3.5 text-primary" />
+                  <span>{{ selectedPackageOrder.offer?.country || (selectedPackageOrder.service_type === 'omra' ? 'Arabie Saoudite' : 'Destination') }}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formula & Room Details -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-3 text-xs">
+            <h4 class="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <UIcon name="i-heroicons-home" class="w-4 h-4 text-primary" />
+              Chambre & Formule
+            </h4>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-slate-400 block text-[11px]">Type de chambre :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200 capitalize">
+                  {{ selectedPackageOrder.room_type || selectedPackageOrder.room_details?.name || 'Standard' }}
+                </span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">Date de réservation :</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ formatDate(selectedPackageOrder.created_at) }}</span>
+              </div>
+              <div v-if="selectedPackageOrder.departure_date">
+                <span class="text-slate-400 block text-[11px]">Date de départ :</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ selectedPackageOrder.departure_date }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">Date limite réponse :</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ formatDateShort(selectedPackageOrder.response_by_date) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Passengers Manifest -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-3">
+            <h4 class="font-bold text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <UIcon name="i-heroicons-users" class="w-4 h-4 text-primary" />
+              Répartition des Voyageurs
+            </h4>
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+                <span class="text-xs text-slate-400 block">Adultes</span>
+                <span class="text-base font-black text-slate-800 dark:text-slate-200">{{ selectedPackageOrder.members || 1 }}</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+                <span class="text-xs text-slate-400 block">Enfants</span>
+                <span class="text-base font-black text-emerald-600 dark:text-emerald-400">{{ selectedPackageOrder.children_count || 0 }}</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+                <span class="text-xs text-slate-400 block">Bébés</span>
+                <span class="text-base font-black text-sky-600 dark:text-sky-400">{{ selectedPackageOrder.babies_count || 0 }}</span>
+              </div>
+            </div>
+
+            <!-- Documents count button -->
+            <div v-if="selectedPackageOrder.documents && selectedPackageOrder.documents.length > 0" class="pt-2">
+              <UButton
+                block
+                size="xs"
+                variant="soft"
+                color="primary"
+                icon="i-heroicons-document-duplicate"
+                @click="openTravelerDocs(selectedPackageOrder)"
+              >
+                Consulter les {{ selectedPackageOrder.documents.length }} document(s) des voyageurs
+              </UButton>
+            </div>
+          </div>
+
+          <!-- Pricing & Payment -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-2.5">
+            <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center justify-between">
+              <span>Tarification & Règlement</span>
+              <UBadge :color="selectedPackageOrder.payment_status === 'paid' ? 'emerald' : 'rose'" variant="subtle" size="xs">
+                {{ selectedPackageOrder.payment_status === 'paid' ? 'Payé' : 'Non Payé' }}
+              </UBadge>
+            </h4>
+            <div class="flex justify-between items-center text-xs text-slate-500">
+              <span>Prix unitaire (adulte) :</span>
+              <span class="font-semibold text-slate-700 dark:text-slate-300">{{ formatCurrency(selectedPackageOrder.unit_price) }} DZD</span>
+            </div>
+            <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <span class="font-bold text-xs uppercase text-slate-700 dark:text-slate-300">Montant Total :</span>
+              <span class="text-lg font-black text-primary">{{ formatCurrency(selectedPackageOrder.total_price) }} DZD</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="space-y-2.5">
+            <UButton
+              v-if="selectedPackageOrder.attachment"
+              block
+              color="primary"
+              icon="i-heroicons-arrow-down-tray"
+              class="font-bold"
+              @click="openUrl(selectedPackageOrder.attachment)"
+            >
+              Télécharger le document officiel attaché
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </USlideover>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!--  MODAL: DOCUMENTS DES VOYAGEURS                                         -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <UModal v-model:open="showDocsModal" title="Documents des voyageurs">
+      <template #body>
+        <div v-if="selectedDocs && selectedDocs.length > 0" class="space-y-3">
+          <div 
+            v-for="(doc, dIdx) in selectedDocs" 
+            :key="dIdx" 
+            class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
+          >
+            <div class="flex items-center gap-2.5">
+              <UIcon name="i-heroicons-document-text" class="w-5 h-5 text-primary shrink-0" />
+              <div>
+                <span class="font-bold text-slate-800 dark:text-slate-200 block">{{ doc.name || `Document ${dIdx + 1}` }}</span>
+                <span class="text-[11px] text-slate-400">{{ doc.type || 'Fichier joint' }}</span>
+              </div>
+            </div>
+            <UButton
+              v-if="doc.file || doc.path || doc.url"
+              size="xs"
+              variant="outline"
+              color="primary"
+              icon="i-heroicons-arrow-top-right-on-square"
+              @click="openUrl(doc.file || doc.path || doc.url)"
+            >
+              Voir
+            </UButton>
+          </div>
+        </div>
+        <p v-else class="text-xs text-slate-400 italic text-center py-4">Aucun document spécifique trouvé pour cette commande.</p>
+      </template>
+    </UModal>
+
   </div>
 </template>
 
@@ -997,6 +1293,7 @@ import Invoice from '~/components/invoices/Invoice.vue'
 import html2canvas from 'html2canvas'
 import { sendApi } from '@/composables/api'
 import { useAuthStore } from '~/stores/auth'
+import ExpandableTitle from '~/components/common/ExpandableTitle.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -1006,7 +1303,8 @@ const authStore = useAuthStore()
 const isBusiness = computed(() => authStore.isBusiness)
 
 // ─── ACTIVE SERVICE TAB ──────────────────────────────────────────────────────
-const activeTab = ref(route.query.tab === 'visa' ? 'visa' : 'hotels')
+const validTabs = ['hotels', 'visa', 'omra', 'voyage']
+const activeTab = ref(validTabs.includes(route.query.tab) ? route.query.tab : 'hotels')
 
 function switchTab(tab) {
   activeTab.value = tab
@@ -1015,6 +1313,22 @@ function switchTab(tab) {
     fetchHotelOrders(1)
   } else if (tab === 'visa') {
     getOrders(1)
+  } else if (tab === 'omra') {
+    fetchOmraOrders(1)
+  } else if (tab === 'voyage') {
+    fetchVoyageOrders(1)
+  }
+}
+
+function refreshCurrentTab() {
+  if (activeTab.value === 'hotels') {
+    fetchHotelOrders(hotelPagination.value.current_page || 1)
+  } else if (activeTab.value === 'visa') {
+    getOrders(pagination.value.pageIndex + 1 || 1)
+  } else if (activeTab.value === 'omra') {
+    fetchOmraOrders(omraPagination.value.current_page || 1)
+  } else if (activeTab.value === 'voyage') {
+    fetchVoyageOrders(voyagePagination.value.current_page || 1)
   }
 }
 
@@ -1426,15 +1740,12 @@ const columns = [
     accessorKey: 'offer',
     header: 'Visa',
     cell: ({ row }) => {
-      return h('div', { class: 'flex items-center gap-3' }, [
-        h(UAvatar, {
-          src: row.original?.offer?.flag,
-          size: 'xl',
-        }),
-        h('div', undefined, [
-          h('div', { class: '' }, row.original.offer.name),
-        ])
-      ])
+      return h(ExpandableTitle, {
+        title: row.original?.offer?.name || '-',
+        avatar: row.original?.offer?.flag,
+        avatarSize: 'xl',
+        maxChars: 35
+      })
     }
   },
   {
@@ -1557,9 +1868,15 @@ const searchDebounce = refDebounced(search, 200)
 onMounted(() => {
   if (activeTab.value === 'hotels') {
     fetchHotelOrders(1)
-  } else {
+  } else if (activeTab.value === 'visa') {
     getOrders(1)
+  } else if (activeTab.value === 'omra') {
+    fetchOmraOrders(1)
+  } else if (activeTab.value === 'voyage') {
+    fetchVoyageOrders(1)
   }
+
+  preFetchAllTabCounts()
 })
 
 const onFileChange = (event) => {
@@ -1676,6 +1993,402 @@ const createInvoice = async () => {
 
 const onPageChange = async (page) => {
   await getOrders(page)
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  OMRA & VOYAGE STATE, COLUMNS & METHODS
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Package Slideover & Docs Modal State
+const showPackageDetails = ref(false)
+const selectedPackageOrder = ref(null)
+const showDocsModal = ref(false)
+const selectedDocs = ref([])
+
+function openPackageDrawer(order, serviceType) {
+  selectedPackageOrder.value = { ...order, service_type: serviceType }
+  showPackageDetails.value = true
+}
+
+function openTravelerDocs(order) {
+  selectedDocs.value = order?.documents || []
+  showDocsModal.value = true
+}
+
+function openUrl(url) {
+  if (!url) return
+  window.open(url, '_blank')
+}
+
+function getPackageStatusColor(status) {
+  switch (status) {
+    case 'accepted':
+    case 'confirmed':
+    case 'completed': return 'emerald'
+    case 'pending':
+    case 'option': return 'amber'
+    case 'rejected':
+    case 'cancelled':
+    case 'failed': return 'rose'
+    default: return 'gray'
+  }
+}
+
+function getPackageStatusLabel(status) {
+  switch (status) {
+    case 'accepted': return 'Accepté'
+    case 'confirmed': return 'Confirmé'
+    case 'completed': return 'Terminé'
+    case 'pending': return 'En attente'
+    case 'rejected': return 'Rejeté'
+    case 'cancelled': return 'Annulé'
+    case 'failed': return 'Échoué'
+    case 'option': return 'En option'
+    default: return status || 'En attente'
+  }
+}
+
+// ─── OMRA LOGIC ─────────────────────────────────────────────────────────────
+const omraOrders = ref([])
+const omraLoading = ref(false)
+const omraSearch = ref('')
+const omraPagination = ref({
+  current_page: 1,
+  per_page: 10,
+  total: 0,
+  last_page: 1
+})
+
+let omraDebounceTimer = null
+function debounceOmraFetch() {
+  clearTimeout(omraDebounceTimer)
+  omraDebounceTimer = setTimeout(() => {
+    fetchOmraOrders(1)
+  }, 350)
+}
+
+async function fetchOmraOrders(page = 1) {
+  omraLoading.value = true
+  try {
+    let url = `/client/omra/orders?page=${page}&per_page=10`
+    if (omraSearch.value && omraSearch.value.trim()) {
+      url += `&search=${encodeURIComponent(omraSearch.value.trim())}`
+    }
+    const res = await sendApi(url, null, 'GET', { silent: true })
+    if (res?.data && Array.isArray(res.data)) {
+      omraOrders.value = res.data
+      if (res.pagination) {
+        omraPagination.value = {
+          current_page: res.pagination.current_page || page,
+          per_page: res.pagination.per_page || 10,
+          total: res.pagination.total_items || res.data.length,
+          last_page: res.pagination.total_pages || 1
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching Omra orders:', err)
+  } finally {
+    omraLoading.value = false
+  }
+}
+
+const omraColumns = [
+  {
+    accessorKey: 'offer',
+    header: "Programme d'Omra",
+    cell: ({ row }) => {
+      return h(ExpandableTitle, {
+        title: row.original?.offer?.name || '-',
+        avatar: row.original?.offer?.flag,
+        avatarSize: 'xl',
+        maxChars: 30
+      })
+    }
+  },
+  {
+    accessorKey: 'room_type',
+    header: 'Chambre',
+    cell: ({ row }) => {
+      const type = row.original?.room_type || row.original?.room_details?.name || 'Standard'
+      return h(UBadge, { variant: 'soft', color: 'primary', class: 'capitalize font-bold text-xs' }, type)
+    }
+  },
+  {
+    accessorKey: 'created_at',
+    header: 'Réservé le',
+    cell: ({ row }) => {
+      return h('div', { class: 'text-xs text-slate-600 dark:text-slate-300' }, h(NuxtTime, {
+        datetime: row.original.created_at,
+        locale: 'fr-FR',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }))
+    }
+  },
+  {
+    accessorKey: 'members',
+    header: 'Voyageurs',
+    cell: ({ row }) => {
+      const adults = row.original.members || 1
+      const kids = row.original.children_count || 0
+      const babies = row.original.babies_count || 0
+      let text = `${adults} Ad.`
+      if (kids > 0) text += `, ${kids} Enf.`
+      if (babies > 0) text += `, ${babies} Béb.`
+      return h('span', { class: 'text-xs font-semibold text-slate-700 dark:text-slate-300' }, text)
+    }
+  },
+  {
+    accessorKey: 'unit_price',
+    header: 'Prix Unit.',
+    cell: ({ row }) => `${formatCurrency(row.original.unit_price)} DZD`
+  },
+  {
+    accessorKey: 'total_price',
+    header: 'Prix Total',
+    cell: ({ row }) => h('span', { class: 'font-black text-primary text-xs md:text-sm' }, `${formatCurrency(row.original.total_price)} DZD`)
+  },
+  {
+    accessorKey: 'status',
+    header: 'Statut',
+    cell: ({ row }) => {
+      const st = row.original.status || 'pending'
+      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: getPackageStatusColor(st) }, getPackageStatusLabel(st))
+    }
+  },
+  {
+    accessorKey: 'payment_status',
+    header: 'Paiement',
+    cell: ({ row }) => {
+      const paid = row.original.payment_status === 'paid'
+      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: paid ? 'emerald' : 'rose' }, paid ? 'Payé' : 'Non payé')
+    }
+  },
+  {
+    id: 'actions',
+    header: 'Actions',
+    cell: ({ row }) => {
+      const icons = []
+      icons.push(
+        h(UIcon, {
+          name: 'i-heroicons-eye',
+          class: 'w-4 h-4 text-primary hover:text-primary-hover cursor-pointer transition-colors',
+          title: 'Voir les détails de la réservation',
+          onClick: () => openPackageDrawer(row.original, 'omra')
+        })
+      )
+      if (row.original?.documents && row.original.documents.length > 0) {
+        icons.push(
+          h(UIcon, {
+            name: 'i-heroicons-folder-open',
+            class: 'w-4 h-4 text-emerald-600 hover:text-emerald-700 cursor-pointer transition-colors',
+            title: `Voir les ${row.original.documents.length} document(s) des voyageurs`,
+            onClick: () => openTravelerDocs(row.original)
+          })
+        )
+      }
+      if (row.original?.attachment) {
+        icons.push(
+          h(UIcon, {
+            name: 'i-teenyicons-attachment-solid',
+            class: 'w-4 h-4 text-sky-600 hover:text-sky-700 cursor-pointer transition-colors',
+            title: 'Télécharger la pièce jointe',
+            onClick: () => openUrl(row.original.attachment)
+          })
+        )
+      }
+      return h('div', { class: 'flex items-center gap-2 justify-center' }, icons)
+    }
+  }
+]
+
+// ─── VOYAGE ORGANISÉ LOGIC ──────────────────────────────────────────────────
+const voyageOrders = ref([])
+const voyageLoading = ref(false)
+const voyageSearch = ref('')
+const voyagePagination = ref({
+  current_page: 1,
+  per_page: 10,
+  total: 0,
+  last_page: 1
+})
+
+let voyageDebounceTimer = null
+function debounceVoyageFetch() {
+  clearTimeout(voyageDebounceTimer)
+  voyageDebounceTimer = setTimeout(() => {
+    fetchVoyageOrders(1)
+  }, 350)
+}
+
+async function fetchVoyageOrders(page = 1) {
+  voyageLoading.value = true
+  try {
+    let url = `/client/voyage_organise/orders?page=${page}&per_page=10`
+    if (voyageSearch.value && voyageSearch.value.trim()) {
+      url += `&search=${encodeURIComponent(voyageSearch.value.trim())}`
+    }
+    const res = await sendApi(url, null, 'GET', { silent: true })
+    if (res?.data && Array.isArray(res.data)) {
+      voyageOrders.value = res.data
+      if (res.pagination) {
+        voyagePagination.value = {
+          current_page: res.pagination.current_page || page,
+          per_page: res.pagination.per_page || 10,
+          total: res.pagination.total_items || res.data.length,
+          last_page: res.pagination.total_pages || 1
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching Voyage Organisé orders:', err)
+  } finally {
+    voyageLoading.value = false
+  }
+}
+
+const voyageColumns = [
+  {
+    accessorKey: 'offer',
+    header: 'Voyage Organisé',
+    cell: ({ row }) => {
+      return h(ExpandableTitle, {
+        title: row.original?.offer?.name || '-',
+        avatar: row.original?.offer?.flag,
+        avatarSize: 'xl',
+        maxChars: 30
+      })
+    }
+  },
+  {
+    accessorKey: 'room_type',
+    header: 'Chambre',
+    cell: ({ row }) => {
+      const type = row.original?.room_type || row.original?.room_details?.name || 'Standard'
+      return h(UBadge, { variant: 'soft', color: 'primary', class: 'capitalize font-bold text-xs' }, type)
+    }
+  },
+  {
+    accessorKey: 'created_at',
+    header: 'Réservé le',
+    cell: ({ row }) => {
+      return h('div', { class: 'text-xs text-slate-600 dark:text-slate-300' }, h(NuxtTime, {
+        datetime: row.original.created_at,
+        locale: 'fr-FR',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }))
+    }
+  },
+  {
+    accessorKey: 'members',
+    header: 'Voyageurs',
+    cell: ({ row }) => {
+      const adults = row.original.members || 1
+      const kids = row.original.children_count || 0
+      const babies = row.original.babies_count || 0
+      let text = `${adults} Ad.`
+      if (kids > 0) text += `, ${kids} Enf.`
+      if (babies > 0) text += `, ${babies} Béb.`
+      return h('span', { class: 'text-xs font-semibold text-slate-700 dark:text-slate-300' }, text)
+    }
+  },
+  {
+    accessorKey: 'unit_price',
+    header: 'Prix Unit.',
+    cell: ({ row }) => `${formatCurrency(row.original.unit_price)} DZD`
+  },
+  {
+    accessorKey: 'total_price',
+    header: 'Prix Total',
+    cell: ({ row }) => h('span', { class: 'font-black text-primary text-xs md:text-sm' }, `${formatCurrency(row.original.total_price)} DZD`)
+  },
+  {
+    accessorKey: 'status',
+    header: 'Statut',
+    cell: ({ row }) => {
+      const st = row.original.status || 'pending'
+      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: getPackageStatusColor(st) }, getPackageStatusLabel(st))
+    }
+  },
+  {
+    accessorKey: 'payment_status',
+    header: 'Paiement',
+    cell: ({ row }) => {
+      const paid = row.original.payment_status === 'paid'
+      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: paid ? 'emerald' : 'rose' }, paid ? 'Payé' : 'Non payé')
+    }
+  },
+  {
+    id: 'actions',
+    header: 'Actions',
+    cell: ({ row }) => {
+      const icons = []
+      icons.push(
+        h(UIcon, {
+          name: 'i-heroicons-eye',
+          class: 'w-4 h-4 text-primary hover:text-primary-hover cursor-pointer transition-colors',
+          title: 'Voir les détails de la réservation',
+          onClick: () => openPackageDrawer(row.original, 'voyage')
+        })
+      )
+      if (row.original?.documents && row.original.documents.length > 0) {
+        icons.push(
+          h(UIcon, {
+            name: 'i-heroicons-folder-open',
+            class: 'w-4 h-4 text-emerald-600 hover:text-emerald-700 cursor-pointer transition-colors',
+            title: `Voir les ${row.original.documents.length} document(s) des voyageurs`,
+            onClick: () => openTravelerDocs(row.original)
+          })
+        )
+      }
+      if (row.original?.attachment) {
+        icons.push(
+          h(UIcon, {
+            name: 'i-teenyicons-attachment-solid',
+            class: 'w-4 h-4 text-sky-600 hover:text-sky-700 cursor-pointer transition-colors',
+            title: 'Télécharger la pièce jointe',
+            onClick: () => openUrl(row.original.attachment)
+          })
+        )
+      }
+      return h('div', { class: 'flex items-center gap-2 justify-center' }, icons)
+    }
+  }
+]
+
+// ─── BACKGROUND PRE-FETCH FOR TAB COUNT BADGES ──────────────────────────────
+async function preFetchAllTabCounts() {
+  try {
+    // Hotel count
+    sendApi('/hotels/orders?page=1&per_page=1', null, 'GET', { silent: true }).then(res => {
+      if (res?.data?.total !== undefined) hotelPagination.value.total = res.data.total
+      else if (Array.isArray(res?.data)) hotelPagination.value.total = res.data.length
+    }).catch(() => {})
+
+    // Visa count
+    sendApi('/client/visa/orders?page=1&per_page=1', null, 'GET', { silent: true }).then(res => {
+      if (res?.pagination?.total_items !== undefined) pagination.value.totalItems = res.pagination.total_items
+      else if (Array.isArray(res?.data)) pagination.value.totalItems = res.data.length
+    }).catch(() => {})
+
+    // Omra count
+    sendApi('/client/omra/orders?page=1&per_page=1', null, 'GET', { silent: true }).then(res => {
+      if (res?.pagination?.total_items !== undefined) omraPagination.value.total = res.pagination.total_items
+      else if (Array.isArray(res?.data)) omraPagination.value.total = res.data.length
+    }).catch(() => {})
+
+    // Voyage Organisé count
+    sendApi('/client/voyage_organise/orders?page=1&per_page=1', null, 'GET', { silent: true }).then(res => {
+      if (res?.pagination?.total_items !== undefined) voyagePagination.value.total = res.pagination.total_items
+      else if (Array.isArray(res?.data)) voyagePagination.value.total = res.data.length
+    }).catch(() => {})
+  } catch (e) {
+    // silent fallback
+  }
 }
 </script>
 

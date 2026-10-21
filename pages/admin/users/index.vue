@@ -74,9 +74,26 @@
         <UModal class="" v-model:open="openBalance" title="Gestion du solde">
             <template #body>
                 <div class="flex flex-col gap-5">
-                    <div class="flex justify-between gap-2">
-                        <div class="text-success w-full flex justify-center font-bold">{{ user?.balance?.account_balance }} DZD</div>
-                        <div class="text-error w-full flex justify-center font-bold">{{ user?.balance?.debts }} DZD</div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="border border-success/30 bg-success/5 p-3 flex flex-col items-center">
+                            <span class="text-xs text-gray-500">Solde disponible</span>
+                            <span class="text-success font-bold text-lg">{{ fmt(user?.balance?.available) }} DZD</span>
+                        </div>
+                        <div class="border border-error/30 bg-error/5 p-3 flex flex-col items-center">
+                            <span class="text-xs text-gray-500">Dettes</span>
+                            <span class="text-error font-bold text-lg">{{ fmt(user?.balance?.debts) }} DZD</span>
+                        </div>
+                        <div class="flex flex-col items-center text-xs text-gray-600">
+                            <span>Crédit restant</span>
+                            <span class="font-semibold">{{ fmt(user?.balance?.credit_available) }} DZD</span>
+                        </div>
+                        <div class="flex flex-col items-center text-xs text-gray-600">
+                            <span>Prépayé restant</span>
+                            <span class="font-semibold">{{ fmt(user?.balance?.prepaid_available) }} DZD</span>
+                        </div>
+                        <div class="col-span-2 text-center text-xs text-gray-400">
+                            Total autorisé : {{ fmt(user?.balance?.account_balance) }} DZD · Consommé (prépayé) : {{ fmt(user?.balance?.consumed_amount) }} DZD
+                        </div>
                     </div>
                     <div class="flex justify-between gap-1">
                         <div
@@ -103,23 +120,9 @@
                                 </template>
                             </UInput>
                         </UFormField>
-                        <div class="flex flex-col-reverse">
-                            <UFormField :class="{'opacity-50':!enableDebts}" :ui="{label:'text-secondary'}" label="Dettes">
-                                <UInput v-model="userBalance.debts" :disabled="!enableDebts" placeholder="0.00">
-                                    <template #trailing>
-                                        <div
-                                            id="character-count"
-                                            class="text-xs text-muted tabular-nums"
-                                            aria-live="polite"
-                                            role="status"
-                                        >
-                                            DZD
-                                        </div>
-                                    </template>
-                                </UInput>
-                            </UFormField>
-                            <USwitch v-model="enableDebts" class="flex justify-end"/>
-                        </div>
+                        <UFormField :ui="{label:'text-secondary'}" label="Type de solde" class="w-full" :help="userBalance.type === 'credit' ? 'Crédit : chaque commande crée une dette à régler plus tard (ex. 2000 → commande 200 = solde 1800, dette 200).' : 'Prépayé : montant déjà encaissé, aucune dette générée.'">
+                            <USelect v-model="userBalance.type" value-key="value" :items="balanceTypes" class="w-full" />
+                        </UFormField>
                         <div class="flex gap-2">
                             <UButton @click="setUserBalance(user.id)" label="Ajouter" class="font-bold w-fit"/>
                             <UButton @click="openReset = true" label="Réinitialiser" class="font-bold w-fit"/>
@@ -523,8 +526,14 @@ const userRole = ref('individual')
 const userBalance = ref({
     amount:null,
     debts:null,
-    payment:null
+    payment:null,
+    type:'credit'
 })
+const balanceTypes = [
+    { label: 'Crédit (paiement différé → dette)', value: 'credit' },
+    { label: 'Prépayé (déjà payé, sans dette)', value: 'prepaid' },
+]
+const fmt = (v) => Number(v || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const pagination = ref({
   pageIndex: undefined,
@@ -595,15 +604,17 @@ const updateRole = async(id,role)=>{
 }
 
 const setUserBalance = async(id)=>{
-    const data = ref({
-        amount:userBalance.value.amount ===  null ? Number.parseFloat(0).toFixed(2) : Number.parseFloat(userBalance.value.amount).toFixed(2),
-        unpaid_amount: userBalance.value.debts ===  null ? Number.parseFloat(0).toFixed(2) : Number.parseFloat(userBalance.value.debts).toFixed(2)
-    })
-    sendApi(`/admin/users/${id}/set-balance`,data.value,'PUT').then(response=>{
-        getUser(id)
+    const amount = Number.parseFloat(userBalance.value.amount)
+    if (!Number.isFinite(amount) || amount <= 0) {
+        useToast().add({ title: 'Veuillez saisir un montant valide', color: 'red' })
+        return
+    }
+    const payload = { amount: amount.toFixed(2), type: userBalance.value.type || 'credit' }
+    const response = await sendApi(`/admin/users/${id}/set-balance`, payload, 'PUT')
+    if (response) {
         userBalance.value.amount = null
-        userBalance.value.debts = null
-    })
+        await getUser(id)
+    }
 }
 
 const manageUserDebts = async (id)=>{

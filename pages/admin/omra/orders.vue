@@ -8,12 +8,11 @@
                 size="md" 
                 variant="outline" 
                 placeholder="Rechercher..."
-                @update:model-value="getOrders"
                 class="w-full sm:w-72"
                 />
                 <USelect v-model="orderStatusValue" value-key="id" :items="orderStatusItems" class="w-full sm:w-48" placeholder="Sélectionner" />
             </div>
-            <div>
+            <div class="overflow-x-auto bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm">
                 <UTable
                 :sticky="true"
                 ref="table"
@@ -22,8 +21,9 @@
                 :columns="columns"
                 :loading="loading && !data.length"
                 :empty="loading?'chargement en cours...':'Données non trouvées'"
-                class="flex-1 h-full"
+                class="w-full"
                 />
+            </div>
         
                 <div class="flex justify-center border-t border-default pt-4">
                     <UPagination
@@ -35,7 +35,6 @@
                     />
                 </div>
             </div>
-        </div>
         <USlideover fullscreen v-model:open="open"  
         close-icon="i-lucide-arrow-right" :close="{
         color: 'secondary',
@@ -44,8 +43,11 @@
             <template #header>
                 <div class="flex flex-col gap-2">
                     <div class="font-bold text-secondary">
-                        <div>
-                            {{ order?.user?.name }}
+                        <div class="text-base">
+                            {{ order?.user?.name || order?.guest_name || 'Client' }}
+                        </div>
+                        <div v-if="order?.user?.email || order?.user?.phone" class="text-xs font-normal text-gray-500">
+                            {{ [order?.user?.email, order?.user?.phone].filter(Boolean).join(' • ') }}
                         </div>
                     </div>
                     <UBadge class="w-fit font-bold" variant="subtle" :color="offerStatus?.color || 'primary'" :label="offerStatus?.label || 'En attente'"/>
@@ -148,24 +150,30 @@
                     <div class="flex justify-center">
                         <label v-if="!uploadedFile.url" for="file">
                             <div 
-                            class="cursor-pointer flex flex-col gap-2 justify-center items-center w-[200px] h-[100px] border-solid border-1 border-primary bg-primary/5 rounded-none">
+                            class="cursor-pointer flex flex-col gap-2 justify-center items-center w-[220px] h-[110px] border-dashed border-2 border-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors p-3 text-center">
                                 <UIcon name="i-lineicons-upload" class="text-primary" size="30"/>
                                 <div class="text-primary text-sm font-bold">Télécharger un document</div>
+                                <div class="text-xs text-gray-500">PDF, Word, Excel, Images... (max 20Mo)</div>
                             </div>
-                            <UInput type="file" class="hidden" id="file" @change="onFileChange"/>
+                            <input type="file" class="hidden" id="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.bmp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.txt,.rtf,.zip,.rar,.7z" @change="onFileChange"/>
                         </label>
-                        <div v-else class="flex items-start" style="margin-top: 20px;">
-                            <ULink :to="uploadedFile.url">
-                                <UIcon name="i-teenyicons-pdf-solid" class="text-secondary" size="100"/>
-                            </ULink>
-                            <UIcon 
-                            name="i-material-symbols-cancel" 
-                            class="cursor-pointer text-error"
-                            @click="()=>{
-                                uploadedFile.url = null
-                                uploadedFile.file = null 
-                            }"
-                            />
+                        <div v-else class="flex flex-col items-center gap-2 mt-3">
+                            <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 max-w-sm">
+                                <ULink :to="uploadedFile.url" target="_blank" class="flex items-center gap-2 truncate">
+                                    <UIcon :name="uploadedFileIcon" class="text-primary shrink-0" size="36"/>
+                                    <div class="flex flex-col truncate text-left">
+                                        <span class="text-sm font-semibold text-secondary dark:text-white truncate" :title="uploadedFileName">{{ uploadedFileName }}</span>
+                                        <span class="text-xs text-gray-400">Cliquez pour prévisualiser</span>
+                                    </div>
+                                </ULink>
+                                <UIcon 
+                                name="i-material-symbols-cancel" 
+                                class="cursor-pointer text-error shrink-0 hover:opacity-80"
+                                size="24"
+                                title="Supprimer le fichier"
+                                @click="resetUploadedFile"
+                                />
+                            </div>
                         </div>
                     </div>
                     <div class="flex justify-center">
@@ -248,6 +256,7 @@ import axios from 'axios'
 import { useAuthStore } from '#imports'
 import JSZip from 'jszip'
 import pkg from 'file-saver'
+import ExpandableTitle from '~/components/common/ExpandableTitle.vue'
 const { saveAs } = pkg
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
@@ -407,30 +416,38 @@ const columns = [
         accessorKey: 'name',
         header: 'Utilisateur',
         cell: ({ row }) => {
+            const userName = row.original?.user?.name || row.original?.guest_name || 'Invité'
+            const userSub = row.original?.user?.email || row.original?.user?.phone || ''
             return h('div', { class: 'flex items-center gap-3' }, [
                 h(UAvatar, {
-                src:row.original?.user?.image,
-                size: 'xl',
-                icon:row.original?.user?.image ? null : "i-lucide-user-round"
+                    src: row.original?.user?.image,
+                    size: 'md',
+                    icon: row.original?.user?.image ? null : "i-lucide-user-round"
                 }),
-                h('div', undefined, [
-                    h('div', { class: '' }, row.original.user.name),
+                h('div', { class: 'flex flex-col' }, [
+                    h('div', { class: 'font-medium text-gray-900 dark:text-white' }, userName),
+                    userSub ? h('div', { class: 'text-xs text-gray-500' }, userSub) : null
                 ])
             ])
         }
     },
     {
         accessorKey: 'country',
-        header: 'Pay',
+        header: 'Pays',
         cell:({row})=>{
-            return h('div',undefined,row.original.Omra.country.name)
+            return h('div', { class: 'font-medium' }, row.original?.Omra?.country?.name || '-')
         }
     },
     {
         accessorKey: 'Omra',
         header: 'Offre',
         cell:({row})=>{
-            return h('div',undefined,row.original.Omra.name)
+            return h(ExpandableTitle, {
+                title: row.original?.Omra?.name || '-',
+                avatar: row.original?.Omra?.image,
+                avatarSize: 'md',
+                maxChars: 35
+            })
         }
     },
     {
@@ -544,31 +561,62 @@ onMounted(()=>{
     getOrders(1);
 })
 
-const onFileChange = (event)=> {
-      const file = event.target.files[0];
-      if (file && file.type.startsWith('application/pdf')) {
-        uploadedFile.value.url = URL.createObjectURL(file);
-        uploadedFile.value.file = file
-        console.log(uploadedFile.value.url)
-      } else {
-        uploadedFile.value = null;
-      }
+const uploadedFileName = computed(() => uploadedFile.value?.file?.name || 'Document')
+const uploadedFileIcon = computed(() => {
+    const n = uploadedFileName.value.toLowerCase()
+    if (/\.(jpe?g|png|gif|webp|heic|bmp)$/.test(n)) return 'i-lucide-image'
+    if (/\.pdf$/.test(n)) return 'i-teenyicons-pdf-solid'
+    if (/\.(docx?|odt|rtf|txt)$/.test(n)) return 'i-lucide-file-text'
+    if (/\.(xlsx?)$/.test(n)) return 'i-lucide-file-spreadsheet'
+    if (/\.(pptx?)$/.test(n)) return 'i-lucide-presentation'
+    if (/\.(zip|rar|7z)$/.test(n)) return 'i-lucide-file-archive'
+    return 'i-lucide-file'
+})
+
+const resetUploadedFile = () => {
+    if (uploadedFile.value?.url) {
+        URL.revokeObjectURL(uploadedFile.value.url)
+    }
+    uploadedFile.value = { url: null, file: null }
 }
 
-const getOrders = async (page=1)=>{
+const onFileChange = (event)=> {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+        useToast().add({ title: "Le fichier dépasse la taille maximale autorisée (20 Mo)", color: 'red' });
+        return;
+    }
+    if (uploadedFile.value?.url) {
+        URL.revokeObjectURL(uploadedFile.value.url);
+    }
+    uploadedFile.value = {
+        url: URL.createObjectURL(file),
+        file: file
+    };
+}
+
+const getOrders = async (page = 1) => {
+    const pageNum = typeof page === 'number' ? page : 1
     loading.value = true
-    sendApi(`/admin/omra/orders?page=${page}&per_page=10&search=${search.value}&status=${orderStatusValue.value}`,null,'GET').then(response=>{
-        data.value = response.data.data
-        pagination.value = {
-            pageIndex:response.pagination.current_page - 1,
-            pageSize:response.pagination.per_page,
-            totalItems:response.pagination.total_items,
-            totalPages:response.pagination.total_pages
+    try {
+        const response = await sendApi(`/admin/omra/orders?page=${pageNum}&per_page=10&search=${encodeURIComponent(search.value || '')}&status=${orderStatusValue.value}`, null, 'GET')
+        data.value = response?.data?.data || response?.data || []
+        if (response?.pagination) {
+            pagination.value = {
+                pageIndex: (response.pagination.current_page || 1) - 1,
+                pageSize: response.pagination.per_page || 10,
+                totalItems: response.pagination.total_items ?? data.value.length,
+                totalPages: response.pagination.total_pages || 1
+            }
         }
-        console.log(response)
-        console.log(pagination.value)
+    } catch (err) {
+        console.error('Error fetching omra orders:', err)
+        data.value = []
+    } finally {
         loading.value = false
-    })
+    }
 }
 
 const getOrder = async (id)=>{
@@ -599,45 +647,66 @@ const getOrder = async (id)=>{
 }
 
 const acceptOrder = async ()=>{
+    if (!uploadedFile.value?.file) {
+        useToast().add({ title: 'Veuillez joindre un document avant d\'accepter', color: 'red' })
+        return
+    }
     loadingAction.value = "accept" 
-    const formData = new FormData()
-    formData.append('file', uploadedFile.value.file)
-    formData.append('_method','PUT')
-    sendApi(`/admin/omra/orders/${order.value.id}/accept`,formData,'POST').then(()=>{
-        getOrder(order.value.id)
-        getOrders(pagination.value.pageIndex + 1)
-        openAccept.value = false
-        orderAction.value = null
-        uploadedFile.value.url = null
-        uploadedFile.value.file = null
+    try {
+        const formData = new FormData()
+        formData.append('file', uploadedFile.value.file)
+        formData.append('_method','PUT')
+        const response = await sendApi(`/admin/omra/orders/${order.value.id}/accept`, formData, 'POST')
+        if (response) {
+            openAccept.value = false
+            orderAction.value = null
+            resetUploadedFile()
+            await Promise.all([
+                getOrder(order.value.id),
+                getOrders((pagination.value.pageIndex ?? 0) + 1)
+            ])
+        }
+    } finally {
         loadingAction.value = null
-
-    })
+    }
 }
 
 const markAsPaid = async ()=>{
     loadingAction.value = "paid"
-    sendApi(`/admin/omra/orders/${order.value.id}/paid`,null,'PUT').then(()=>{
-        getOrder(order.value.id)
-        getOrders(pagination.value.pageIndex + 1)
+    try {
+        const response = await sendApi(`/admin/omra/orders/${order.value.id}/paid`, null, 'PUT')
+        if (response) {
+            await Promise.all([
+                getOrder(order.value.id),
+                getOrders((pagination.value.pageIndex ?? 0) + 1)
+            ])
+        }
+    } finally {
         loadingAction.value = null
-    })
+    }
 }
 
 const rejectOrder = async ()=>{
     loadingAction.value = "reject" 
-    const formData = new FormData()
-    if(uploadedFile.value.file){
-        formData.append('file', uploadedFile.value.file)
-    }
-    formData.append('_method','PUT')
-    sendApi(`/admin/omra/orders/${order.value.id}/reject`,formData,'POST').then(()=>{
-        getOrder(order.value.id)
-        getOrders(pagination.value.pageIndex + 1)
-        openAccept.value = false
-        orderAction.value = null
+    try {
+        const formData = new FormData()
+        if(uploadedFile.value?.file){
+            formData.append('file', uploadedFile.value.file)
+        }
+        formData.append('_method','PUT')
+        const response = await sendApi(`/admin/omra/orders/${order.value.id}/reject`, formData, 'POST')
+        if (response) {
+            openAccept.value = false
+            orderAction.value = null
+            resetUploadedFile()
+            await Promise.all([
+                getOrder(order.value.id),
+                getOrders((pagination.value.pageIndex ?? 0) + 1)
+            ])
+        }
+    } finally {
         loadingAction.value = null
-    })
+    }
 }
 
 const deleteOrder = async (id)=>{
@@ -672,7 +741,10 @@ const onPageChange = async (page)=>{
     await getOrders(page)
 }
 
-watch(orderStatusValue, async (newVal)=>{
+watch(orderStatusValue, async ()=>{
+    await getOrders(1)
+})
+watch(searchDebounce, async ()=>{
     await getOrders(1)
 })
 </script>

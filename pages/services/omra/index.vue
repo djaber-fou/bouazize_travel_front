@@ -138,7 +138,7 @@
                     </template>
                     <template #default>
                         <div class="flex flex-col gap-2">
-                            <h3 class="text-xl font-bold text-secondary dark:text-white line-clamp-2 leading-tight group-hover:text-primary transition-colors" :title="offer?.name">{{ truncate(offer?.name ,50) }}</h3>
+                            <h3 class="text-xl font-bold text-secondary dark:text-white line-clamp-2 leading-tight group-hover:text-primary transition-colors cursor-pointer" :title="offer?.name">{{ offer?.name }}</h3>
                             <div class="flex items-center gap-2 text-gray-500 text-sm mt-1">
                                 <UIcon name="i-heroicons-clock" class="w-4 h-4 text-primary" />
                                 <span>{{ truncate(offer?.duration || 'Séjour complet', 30) }}</span>

@@ -18,18 +18,23 @@
                 <div class="flex gap-1">
                     <UIcon name="i-hugeicons-money-bag-02" class="text-green-600" size="25"/>
                     <div class="flex gap-2">
-                        <div class="text-secondary font-bold">Solde:</div>
-                        <p><span class="text-green-600">{{ user?.balance?.balance }} DZD</span></p>
+                        <div class="text-secondary font-bold">Solde disponible:</div>
+                        <p><span class="text-green-600 font-bold">{{ formatMoney(user?.balance?.available ?? user?.balance?.balance) }} DZD</span></p>
                     </div>
                 </div>
                 <div class="flex gap-1">
                     <UIcon name="i-material-symbols-trending-down" class="text-error" size="25"/>
                     <div class="flex gap-2">
                         <div class="text-secondary font-bold">Dettes:</div>
-                        <p><span class="text-error">{{ user?.balance?.debts }} DZD</span></p>
+                        <p><span class="text-error font-bold">{{ formatMoney(user?.balance?.debts) }} DZD</span></p>
                     </div>
                 </div>
+                <div class="text-xs text-gray-500 pl-1 flex flex-col gap-0.5">
+                    <span>Total autorisé : {{ formatMoney(user?.balance?.account_balance) }} DZD</span>
+                    <span>Déjà consommé (prépayé) : {{ formatMoney(user?.balance?.consumed_amount) }} DZD</span>
+                </div>
             </div>
+
         </div>
         <div class="col-span-2 flex flex-col gap-10">
             <div class="flex overflow-x-auto hide-scrollbar gap-2 md:gap-6 border-b border-gray-100 dark:border-slate-800">
@@ -68,6 +73,7 @@ import { getProfile } from '~/services/profile';
 // Tabs handle natively without Swiper
 
 const authStore = useAuthStore()
+const formatMoney = (v) => Number(v || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const token = computed(() => authStore.Authorization.token)
 const user = ref(null)
 const userImage = ref({})

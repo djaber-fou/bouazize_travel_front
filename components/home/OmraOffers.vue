@@ -31,7 +31,7 @@
                                     </UBadge>
                                 </div>
 
-                                <h3 class="text-xl font-bold text-white uppercase tracking-wider mb-2 line-clamp-2" :title="offer?.name">{{ truncate(offer?.name ,50) }}</h3>
+                                <h3 class="text-xl font-bold text-white uppercase tracking-wider mb-2 line-clamp-2" :title="offer?.name">{{ offer?.name }}</h3>
                                 
                                 <div class="flex flex-col gap-1 items-center mt-2 mb-4 text-gray-200 text-sm">
                                     <div class="flex items-center gap-2">

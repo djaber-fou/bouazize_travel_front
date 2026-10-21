@@ -12,7 +12,7 @@
                 />
                 <UButton @click="openForm" :ui="{leadingIcon:'text-neutral'}" class="font-bold" icon="i-material-symbols-add-2" label="Ajouter"/>
             </div>
-            <div>
+            <div class="overflow-x-auto bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm">
                 <UTable
                 :sticky="true"
                 ref="table"
@@ -21,8 +21,9 @@
                 :columns="columns"
                 :loading="loading && !data.length"
                 :empty="loading?'chargement en cours...':'Données non trouvées'"
-                class="flex-1 h-full"
+                class="w-full"
                 />
+            </div>
         
                 <div class="flex justify-center border-t border-default pt-4">
                     <UPagination
@@ -34,7 +35,6 @@
                     />
                 </div>
             </div>
-        </div>
         <USlideover fullscreen v-model:open="open" 
         :title="action==='Ajouter'?'Ajouter un Pay':'Modifier le Pay'" 
         close-icon="i-lucide-arrow-right" :close="{
@@ -116,6 +116,7 @@
 import { h, resolveComponent } from 'vue'
 import { refDebounced } from '#imports'
 import { UIcon } from '#components'
+import ExpandableTitle from '~/components/common/ExpandableTitle.vue'
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
 definePageMeta({
@@ -182,13 +183,12 @@ const columns = [
         accessorKey: 'name',
         header: 'Offre',
         cell:({row})=>{
-            return h('div',{class:'flex items-center gap-3'},[
-                h(UAvatar,{
-                    src:row.original.country.flag,
-                    size: 'xl',
-                }),
-                h('div',{class:'font-bold'},row.original.name)
-            ])
+            return h(ExpandableTitle, {
+                title: row.original.name,
+                subtitle: row.original.country?.name || '',
+                avatar: row.original.country?.flag,
+                avatarSize: 'xl'
+            })
         }
     },
     {

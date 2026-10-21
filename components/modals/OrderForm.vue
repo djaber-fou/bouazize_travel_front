@@ -4,8 +4,8 @@
             <div class="w-full flex justify-between items-center">
                 <div class="flex gap-4 items-center">
                     <UButton color="gray" variant="ghost" icon="i-lucide-arrow-left" @click="emit('close',true)" class="rounded-none w-10 h-10 flex justify-center items-center hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"/>
-                    <div>
-                        <div class="font-bold text-2xl text-secondary">{{ offer?.name }}</div>
+                    <div class="min-w-0 flex-1">
+                        <div class="font-bold text-xl sm:text-2xl text-secondary dark:text-white break-words leading-tight" :title="offer?.name">{{ offer?.name }}</div>
                         <div v-if="offer?.departure_date" class="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
                             <UIcon name="i-heroicons-calendar" class="w-3.5 h-3.5 text-primary"/>
                             <span>Départ: {{ offer?.departure_date }}</span>
@@ -201,10 +201,17 @@
 
                                         <!-- Sub options (Children / Babies availability) -->
                                         <div class="flex items-center gap-3 text-xs text-gray-500 pt-0.5 flex-wrap">
-                                            <span v-if="room.max_children > 0" class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                                            <span v-if="getRoomChildTier(room)" class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                                                <UIcon name="i-heroicons-check" class="w-3.5 h-3.5"/> Max {{ getRoomChildTier(room).max_per_room || 2 }} enfant(s) ({{ formatPrice(isBusiness ? (getRoomChildTier(room).b2b_price || getRoomChildTier(room).price) : (getRoomChildTier(room).b2c_price || getRoomChildTier(room).price)) }} DZD)
+                                            </span>
+                                            <span v-else-if="room.max_children > 0" class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
                                                 <UIcon name="i-heroicons-check" class="w-3.5 h-3.5"/> Max {{ room.max_children }} enfant(s) ({{ formatPrice(room.child_price) }} DZD)
                                             </span>
-                                            <span v-if="room.max_babies > 0" class="flex items-center gap-1 text-sky-600 dark:text-sky-400 font-medium">
+
+                                            <span v-if="getRoomBabyTier(room)" class="flex items-center gap-1 text-sky-600 dark:text-sky-400 font-medium">
+                                                <UIcon name="i-heroicons-check" class="w-3.5 h-3.5"/> Max {{ getRoomBabyTier(room).max_per_room || 1 }} bébé(s) ({{ formatPrice(isBusiness ? (getRoomBabyTier(room).b2b_price || getRoomBabyTier(room).price) : (getRoomBabyTier(room).b2c_price || getRoomBabyTier(room).price)) }} DZD)
+                                            </span>
+                                            <span v-else-if="room.max_babies > 0" class="flex items-center gap-1 text-sky-600 dark:text-sky-400 font-medium">
                                                 <UIcon name="i-heroicons-check" class="w-3.5 h-3.5"/> Max {{ room.max_babies }} bébé(s) ({{ formatPrice(room.baby_price) }} DZD)
                                             </span>
                                         </div>
@@ -513,7 +520,30 @@ const unitAdultPrice = computed(() => {
     return Number(offer.value?.price || 0)
 })
 
+const getRoomChildTier = (room) => {
+    if (!room || !offer.value?.children_tiers || !Array.isArray(offer.value.children_tiers)) return null
+    const roomId = String(room.id || room.type || room.capacity || '')
+    return offer.value.children_tiers.find(t => 
+        (t.type === 'enfant' || (!t.type && Number(t.age_max || 0) > 2)) && 
+        (t.applies_to_all || (t.applicable_room_ids && t.applicable_room_ids.includes(roomId)))
+    ) || null
+}
+
+const getRoomBabyTier = (room) => {
+    if (!room || !offer.value?.children_tiers || !Array.isArray(offer.value.children_tiers)) return null
+    const roomId = String(room.id || room.type || room.capacity || '')
+    return offer.value.children_tiers.find(t => 
+        t.type === 'bebe' && 
+        (t.applies_to_all || (t.applicable_room_ids && t.applicable_room_ids.includes(roomId)))
+    ) || null
+}
+
 const unitChildPrice = computed(() => {
+    const tier = getRoomChildTier(selectedRoom.value)
+    if (tier) {
+        if (isBusiness.value && tier.b2b_price) return Number(tier.b2b_price)
+        return Number(tier.b2c_price || tier.price || 0)
+    }
     if (selectedRoom.value && selectedRoom.value.child_price) {
         return Number(selectedRoom.value.child_price)
     }
@@ -521,6 +551,11 @@ const unitChildPrice = computed(() => {
 })
 
 const unitBabyPrice = computed(() => {
+    const tier = getRoomBabyTier(selectedRoom.value)
+    if (tier) {
+        if (isBusiness.value && tier.b2b_price) return Number(tier.b2b_price)
+        return Number(tier.b2c_price || tier.price || 0)
+    }
     if (selectedRoom.value && selectedRoom.value.baby_price) {
         return Number(selectedRoom.value.baby_price)
     }
@@ -535,6 +570,10 @@ const currentMaxAdults = computed(() => {
 })
 
 const currentMaxChildren = computed(() => {
+    const tier = getRoomChildTier(selectedRoom.value)
+    if (tier) {
+        return Number(tier.max_per_room || 2)
+    }
     if (selectedRoom.value && selectedRoom.value.max_children !== undefined) {
         return Number(selectedRoom.value.max_children)
     }
@@ -542,6 +581,10 @@ const currentMaxChildren = computed(() => {
 })
 
 const currentMaxBabies = computed(() => {
+    const tier = getRoomBabyTier(selectedRoom.value)
+    if (tier) {
+        return Number(tier.max_per_room || 1)
+    }
     if (selectedRoom.value && selectedRoom.value.max_babies !== undefined) {
         return Number(selectedRoom.value.max_babies)
     }
@@ -650,7 +693,8 @@ const disableCredit = computed(() => {
     const balanceInfo = authStore.User?.balance;
     if (!balanceInfo) return true;
     
-    const available = (balanceInfo.balance || 0) - (balanceInfo.debts || 0);
+    // `available` is computed server-side (authorised - debts - consumed) and is always fresh after refreshUser().
+    const available = balanceInfo.available ?? ((balanceInfo.balance || 0) - (balanceInfo.debts || 0));
     return available < grandTotalPrice.value;
 });
 
@@ -689,6 +733,8 @@ const guaranteeColor = (value)=>{
 
 onMounted(()=>{
     getOffer()
+    // Make sure the displayed/checked balance is the live one, not the one cached at login.
+    if (!isGuest.value) authStore.refreshUser?.().catch?.(() => {})
 })
 
 const fileInput = ref(null)
@@ -827,6 +873,9 @@ const submitOrder = async ()=>{
                     sendApi(`/${props.service}/orders/${orderId}/sync`, null, 'POST').catch(()=>{});
                 }
                 
+                // Balance/debt just changed on the server: refresh the cached user (B2B dashboard, header...)
+                if (!isGuest.value) authStore.refreshUser?.().catch?.(() => {})
+
                 reset()
                 emit('close')
                 
