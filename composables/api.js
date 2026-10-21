@@ -96,6 +96,13 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
         return response.data
     }).catch(error=>{
         console.error('API Error:', error)
+
+        // Flow control: If unverified account requires email verification code, do not show generic error toast.
+        // Return response payload directly so the UI switches to the EmailVerification component seamlessly.
+        if (error.response?.data?.requires_verification || error.response?.data?.status === 'unverified') {
+            return error.response.data
+        }
+
         const toast = useToast()
         
         let errorMsg = "Une erreur est survenue."

@@ -67,10 +67,12 @@ export const useHotelStore = defineStore('hotel', {
     searchError: null,
     filters: {
       maxPrice: null,
+      minPrice: null,
       minStars: null,
       mealBasis: '',
       searchName: '',
-      refundableOnly: false,
+      cancellationPolicy: 'all', // 'all' | 'refundable' | 'non_refundable'
+      refundableOnly: false,      // backward compatibility
     },
     sortBy: 'price_asc',
     selectedHotel: null,
@@ -105,9 +107,13 @@ export const useHotelStore = defineStore('hotel', {
         });
       }
 
+      if (state.filters.minPrice) {
+        list = list.filter((h) => (h.lowest_price_dzd || h.final_price_dzd || 0) >= state.filters.minPrice);
+      }
       if (state.filters.maxPrice) {
         list = list.filter((h) => (h.lowest_price_dzd || h.final_price_dzd || 0) <= state.filters.maxPrice);
       }
+
       if (state.filters.minStars) {
         const stars = state.filters.minStars;
         list = list.filter((h) => {
@@ -115,18 +121,60 @@ export const useHotelStore = defineStore('hotel', {
           return cat >= stars;
         });
       }
+
+      // Meal plan / Régime filter (Section 31 & 88: RO, RB, RD, FB, AI)
       if (state.filters.mealBasis) {
-        list = list.filter((h) => h.meal_basis_code === state.filters.mealBasis);
-      }
-      if (state.filters.refundableOnly) {
+        const target = state.filters.mealBasis.toUpperCase();
         list = list.filter((h) => {
-          return Boolean(
-            h.is_fully_refundable ||
-            h.has_free_cancellation ||
-            h.cancellation_deadline ||
-            (Array.isArray(h.agreements) && h.agreements.some((a) => a.is_fully_refundable || a.has_free_cancellation || a.cancellation_deadline || a.deadline)) ||
-            (Array.isArray(h.rooms) && h.rooms.some((r) => r.is_fully_refundable || r.has_free_cancellation || r.deadline))
-          );
+          const matchMeal = (item) => {
+            if (!item) return false;
+            const rb = (item.room_basis_code || item.room_basis || '').toUpperCase();
+            const mb = (item.meal_basis_code || item.meal_basis || '').toUpperCase();
+            const mn = (item.meal_basis_name || '').toLowerCase();
+            if (target === 'RO') return rb === 'RO' || mb === 'X' || mn.includes('seule') || mn.includes('sans petit');
+            if (target === 'RB') return rb === 'RB' || mb === 'H' || mb === 'B' || mb === 'C' || mb === 'A' || mb === 'E' || mb === 'J' || mn.includes('petit-déjeuner') || mn.includes('petit dejeuner');
+            if (target === 'RD') return rb === 'RD' || rb === 'RL' || rb === 'D' || mn.includes('demi-pension') || mn.includes('demi pension');
+            if (target === 'FB') return rb === 'FB' || mn.includes('pension complète') || mn.includes('pension complete');
+            if (target === 'AI') return rb === 'AI' || mn.includes('tout compris') || mn.includes('all inclusive');
+            return rb === target || mb === target;
+          };
+          return matchMeal(h) ||
+            (Array.isArray(h.agreements) && h.agreements.some(matchMeal)) ||
+            (Array.isArray(h.rooms) && h.rooms.some(matchMeal));
+        });
+      }
+
+      // Cancellation policy filter (myGO spec)
+      const policy = state.filters.cancellationPolicy || (state.filters.refundableOnly ? 'refundable' : 'all');
+      if (policy === 'refundable') {
+        list = list.filter((h) => {
+          const isItemRefundable = (item) => {
+            if (!item) return false;
+            if (item.is_fully_refundable === true) return true;
+            if (item.deadline) {
+              const d = new Date(item.deadline);
+              return !isNaN(d.getTime()) && d > new Date();
+            }
+            return false;
+          };
+          return isItemRefundable(h) ||
+            (Array.isArray(h.agreements) && h.agreements.some(isItemRefundable)) ||
+            (Array.isArray(h.rooms) && h.rooms.some(isItemRefundable));
+        });
+      } else if (policy === 'non_refundable') {
+        list = list.filter((h) => {
+          const isItemNonRefundable = (item) => {
+            if (!item) return true;
+            if (item.is_fully_refundable === false) return true;
+            if (item.deadline) {
+              const d = new Date(item.deadline);
+              return isNaN(d.getTime()) || d <= new Date();
+            }
+            return true;
+          };
+          return isItemNonRefundable(h) ||
+            (Array.isArray(h.agreements) && h.agreements.some(isItemNonRefundable)) ||
+            (Array.isArray(h.rooms) && h.rooms.some(isItemNonRefundable));
         });
       }
 
@@ -233,10 +281,12 @@ export const useHotelStore = defineStore('hotel', {
 
     resetFilters() {
       this.filters = {
+        minPrice: null,
         maxPrice: null,
         minStars: null,
         mealBasis: '',
         searchName: '',
+        cancellationPolicy: 'all',
         refundableOnly: false,
       };
       this.sortBy = 'price_asc';

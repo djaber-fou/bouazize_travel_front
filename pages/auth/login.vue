@@ -13,6 +13,7 @@
             <Transition name="login" mode="out-in">
                 <Login 
                     v-if="defaultComponent === 'login'" 
+                    :initial-email="prefillEmail"
                     @getComponent="showComponent"
                     @requireVerification="handleVerification"
                 />
@@ -52,13 +53,17 @@ definePageMeta({
 })
 const defaultComponent = ref('login')
 const verificationEmail = ref('')
+const prefillEmail = ref('')
 
-const showComponent = (value) => {
+const showComponent = (value, email = '') => {
     defaultComponent.value = value
+    if (email) {
+        prefillEmail.value = email
+    }
 }
 
 const handleVerification = (email) => {
-    verificationEmail.value = email
+    verificationEmail.value = email || prefillEmail.value || ''
     defaultComponent.value = 'verification'
 }
 </script>

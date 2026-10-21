@@ -235,7 +235,7 @@ const startCooldown = () => {
 onUnmounted(() => clearInterval(timer))
 
 const showLogin = () => {
-    emit('getComponent','login')
+    emit('getComponent', 'login', submittedEmail.value || emailState.value.email || '')
 }
 
 // === STEP 1: Email ===

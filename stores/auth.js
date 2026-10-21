@@ -15,6 +15,23 @@ export const useAuthStore = defineStore('auth',{
         async login(data){
             try {
                 const response = await sendApi('/auth/login', data, 'POST')
+                if (!response) {
+                    return { success: false }
+                }
+
+                // Check if account requires email verification code
+                if (response?.requires_verification || response?.status === 'unverified') {
+                    return { 
+                        requiresVerification: true, 
+                        email: response.email || data.email,
+                        message: response.message 
+                    }
+                }
+
+                if (!response.user || !response.authorization) {
+                    return { success: false }
+                }
+
                 this.User = response.user
                 this.Authorization = response.authorization 
                 
@@ -43,7 +60,7 @@ export const useAuthStore = defineStore('auth',{
                 const response = await sendApi('/auth/register', data, 'POST')
                 
                 // Check if registration requires email verification
-                if (response.requires_verification) {
+                if (response?.requires_verification) {
                     return { 
                         requiresVerification: true, 
                         email: response.email,
@@ -63,6 +80,9 @@ export const useAuthStore = defineStore('auth',{
 
         async verifyEmail(email, code) {
             const response = await sendApi('/auth/verify-email', { email, code }, 'POST')
+            if (!response || !response.user) {
+                throw new Error(response?.message || 'Code de confirmation invalide ou expiré.')
+            }
             this.User = response.user
             this.Authorization = response.authorization
             

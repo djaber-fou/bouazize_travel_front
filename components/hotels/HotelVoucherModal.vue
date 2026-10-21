@@ -189,7 +189,7 @@
             </div>
             <div class="pt-2 border-t border-slate-200/80">
               <span class="text-slate-400 text-[10px] uppercase font-bold block">Treatment</span>
-              <p class="font-bold text-slate-900">{{ order.meal_basis_name || 'Hébergement et Petit Déjeuner' }}</p>
+              <p class="font-bold text-slate-900">{{ order.meal_basis_name || 'Petit-déjeuner inclus' }}</p>
             </div>
 
             <div>
@@ -198,7 +198,7 @@
             </div>
             <div>
               <span class="text-slate-400 text-[10px] uppercase font-bold block">Breakfast Type</span>
-              <p class="font-semibold text-slate-800">{{ order.breakfast_type || 'Continental' }}</p>
+              <p class="font-semibold text-slate-800">{{ order.breakfast_type || (order.meal_basis_name && !order.meal_basis_name.toLowerCase().includes('sans') ? 'Buffet chaud / Continental' : 'Non inclus') }}</p>
             </div>
 
             <!-- Passenger list -->

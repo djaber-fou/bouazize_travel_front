@@ -242,37 +242,48 @@
             </div>
 
             <div class="filter-box">
-              <div class="filter-head">Prix maximum (DZD)</div>
-              <input
-                id="filter-max-price"
-                v-model.number="hotelStore.filters.maxPrice"
-                type="number"
-                class="form-ctrl"
-                placeholder="Ex: 80 000"
-              />
+              <div class="filter-head">Fourchette de prix (DZD)</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <input
+                  id="filter-min-price"
+                  v-model.number="hotelStore.filters.minPrice"
+                  type="number"
+                  class="form-ctrl"
+                  placeholder="Min (DZD)"
+                />
+                <input
+                  id="filter-max-price"
+                  v-model.number="hotelStore.filters.maxPrice"
+                  type="number"
+                  class="form-ctrl"
+                  placeholder="Max (DZD)"
+                />
+              </div>
             </div>
 
             <div class="filter-box">
               <div class="filter-head">Régime de repas</div>
               <select id="filter-meal-basis" v-model="hotelStore.filters.mealBasis" class="form-ctrl">
                 <option value="">Tous les régimes</option>
-                <option value="RO">Chambre seule</option>
-                <option value="RB">Petit-déjeuner inclus</option>
-                <option value="FB">Pension complète</option>
-                <option value="AI">Tout compris</option>
+                <option value="RO">Chambre seule (RO)</option>
+                <option value="RB">Petit-déjeuner inclus (BB)</option>
+                <option value="RD">Demi-pension (HB)</option>
+                <option value="FB">Pension complète (FB)</option>
+                <option value="AI">Tout compris (AI)</option>
               </select>
             </div>
 
             <div class="filter-box">
-              <label class="filter-checkbox-label" for="filter-refundable-only">
-                <input
-                  id="filter-refundable-only"
-                  v-model="hotelStore.filters.refundableOnly"
-                  type="checkbox"
-                  class="custom-check"
-                />
-                <span class="filter-checkbox-text">Tarifs remboursables uniquement</span>
-              </label>
+              <div class="filter-head">Conditions d'annulation</div>
+              <select
+                id="filter-cancellation-policy"
+                v-model="hotelStore.filters.cancellationPolicy"
+                class="form-ctrl"
+              >
+                <option value="all">Tous les tarifs</option>
+                <option value="refundable">Annulation gratuite / Remboursable</option>
+                <option value="non_refundable">Non remboursable uniquement</option>
+              </select>
             </div>
 
             <button
@@ -353,36 +364,46 @@
                     </div>
 
                     <div class="filter-box">
-                      <div class="filter-head">Prix maximum (DZD)</div>
-                      <input
-                        v-model.number="hotelStore.filters.maxPrice"
-                        type="number"
-                        class="form-ctrl"
-                        placeholder="Ex: 80 000"
-                      />
+                      <div class="filter-head">Fourchette de prix (DZD)</div>
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <input
+                          v-model.number="hotelStore.filters.minPrice"
+                          type="number"
+                          class="form-ctrl"
+                          placeholder="Min (DZD)"
+                        />
+                        <input
+                          v-model.number="hotelStore.filters.maxPrice"
+                          type="number"
+                          class="form-ctrl"
+                          placeholder="Max (DZD)"
+                        />
+                      </div>
                     </div>
 
                     <div class="filter-box">
                       <div class="filter-head">Régime de repas</div>
                       <select v-model="hotelStore.filters.mealBasis" class="form-ctrl">
                         <option value="">Tous les régimes</option>
-                        <option value="RO">Chambre seule</option>
-                        <option value="RB">Petit-déjeuner inclus</option>
-                        <option value="FB">Pension complète</option>
-                        <option value="AI">Tout compris</option>
+                        <option value="RO">Chambre seule (RO)</option>
+                        <option value="RB">Petit-déjeuner inclus (BB)</option>
+                        <option value="RD">Demi-pension (HB)</option>
+                        <option value="FB">Pension complète (FB)</option>
+                        <option value="AI">Tout compris (AI)</option>
                       </select>
                     </div>
 
                     <div class="filter-box">
-                      <label class="filter-checkbox-label" for="drawer-filter-refundable-only">
-                        <input
-                          id="drawer-filter-refundable-only"
-                          v-model="hotelStore.filters.refundableOnly"
-                          type="checkbox"
-                          class="custom-check"
-                        />
-                        <span class="filter-checkbox-text">Tarifs remboursables uniquement</span>
-                      </label>
+                      <div class="filter-head">Conditions d'annulation</div>
+                      <select
+                        id="drawer-filter-cancellation-policy"
+                        v-model="hotelStore.filters.cancellationPolicy"
+                        class="form-ctrl"
+                      >
+                        <option value="all">Tous les tarifs</option>
+                        <option value="refundable">Annulation gratuite / Remboursable</option>
+                        <option value="non_refundable">Non remboursable uniquement</option>
+                      </select>
                     </div>
                   </div>
 

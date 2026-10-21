@@ -76,6 +76,13 @@
 import * as z from 'zod'
 import { useAuthStore } from '#imports';
 
+const props = defineProps({
+    initialEmail: {
+        type: String,
+        default: ''
+    }
+})
+
 const authStore = useAuthStore()
 const emit = defineEmits(['getComponent', 'requireVerification'])
 const toast = useToast()
@@ -98,9 +105,13 @@ const schema = z.object({
 })
 
 const state = ref({
-  email: undefined,
+  email: props.initialEmail || undefined,
   password: undefined
 })
+
+watch(() => props.initialEmail, (newVal) => {
+    if (newVal) state.value.email = newVal
+}, { immediate: true })
 
 const onSubmit = async () => {
     loading.value = true
@@ -109,16 +120,28 @@ const onSubmit = async () => {
         
         // Check if email verification is required
         if (result?.requiresVerification) {
-            emit('requireVerification', result.email)
+            const targetEmail = result.email || state.value.email
+            emit('requireVerification', targetEmail)
             toast.add({ 
-                title: result.message || 'Veuillez confirmer votre e-mail', 
+                title: result.message || 'Veuillez confirmer votre adresse e-mail', 
                 color: 'orange', 
                 timeout: 5000 
             })
             return
         }
     } catch(err) {
-        const msg = err?.data?.message || err?.response?.data?.message || "Erreur de connexion"
+        const resData = err?.data || err?.response?.data || err
+        if (resData?.requires_verification || resData?.status === 'unverified' || err?.requiresVerification) {
+            const targetEmail = resData?.email || err?.email || state.value?.email
+            emit('requireVerification', targetEmail)
+            toast.add({ 
+                title: resData?.message || 'Veuillez confirmer votre adresse e-mail', 
+                color: 'orange', 
+                timeout: 5000 
+            })
+            return
+        }
+        const msg = resData?.message || err?.message || "Erreur de connexion"
         toast.add({ title: msg, color: 'red', timeout: 5000 })
     } finally {
         loading.value = false
