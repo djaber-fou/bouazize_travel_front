@@ -132,14 +132,42 @@
 
           <!-- Main Payment Selection Tabs & Forms -->
           <div v-else class="space-y-6">
-            <!-- Payment Mode: CCP / BaridiMob -->
-            <div class="flex items-center gap-2.5 p-3.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl text-primary font-black text-xs sm:text-sm">
-              <Icon name="heroicons:device-phone-mobile" class="w-5 h-5 text-primary" />
-              <span>Règlement par Virement CCP / BaridiMob</span>
+            <!-- Payment Method Switcher Tabs -->
+            <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+              <button
+                type="button"
+                @click="activeMethod = 'cib'"
+                class="flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2"
+                :class="activeMethod === 'cib' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+              >
+                <Icon name="heroicons:credit-card" class="w-4 h-4 text-emerald-500" />
+                <span>Carte CIB / EDAHABIA</span>
+                <span class="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold">Immédiat</span>
+              </button>
+
+              <button
+                type="button"
+                @click="activeMethod = 'ccp'"
+                class="flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2"
+                :class="activeMethod === 'ccp' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
+              >
+                <Icon name="heroicons:device-phone-mobile" class="w-4 h-4 text-blue-500" />
+                <span>Virement CCP / BaridiMob</span>
+              </button>
             </div>
 
-            <!-- CCP / BaridiMob Payment View -->
-            <div v-if="ccpSettings" class="space-y-6 pt-2">
+            <!-- View 1: Certified SATIM CIB / EDAHABIA Gateway Component -->
+            <div v-if="activeMethod === 'cib'">
+              <SatimPaymentCard
+                :amount="amount"
+                :order-id="orderId"
+                :order-type="orderType"
+                :order-reference="bookingRef || ('BOUAZIZE-' + orderId)"
+              />
+            </div>
+
+            <!-- View 2: CCP / BaridiMob Payment View -->
+            <div v-else-if="ccpSettings" class="space-y-6 pt-2">
               <!-- Agency CCP Info -->
               <div class="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-5 sm:p-6 border border-blue-100 dark:border-blue-800">
                 <h2 class="text-base font-black text-blue-900 dark:text-blue-300 mb-4 flex items-center gap-2">
@@ -226,17 +254,6 @@
         </div>
       </div>
     </div>
-
-    <!-- CIB Payment Interactive Modal -->
-    <CibPaymentModal
-      :is-open="isCibModalOpen"
-      :order-id="orderId"
-      :order-type="orderType"
-      :order-reference="bookingRef || ('BOUAZIZE-' + orderId)"
-      :amount="amount"
-      @close="isCibModalOpen = false"
-      @success="handleCibSuccess"
-    />
   </div>
 </template>
 
@@ -244,7 +261,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '#imports'
-import CibPaymentModal from '~/components/payment/CibPaymentModal.vue'
+import SatimPaymentCard from '~/components/payment/SatimPaymentCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -263,7 +280,7 @@ const paymentSubmittedSuccess = ref(false)
 const isOrderPaid = ref(route.query.status === 'paid')
 const cibReceiptNumber = ref(route.query.receipt || null)
 
-const activeMethod = ref('ccp')
+const activeMethod = ref(route.query.method === 'ccp' ? 'ccp' : 'cib')
 const isCibModalOpen = ref(false)
 
 const isSubmitting = ref(false)

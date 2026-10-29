@@ -70,8 +70,8 @@
 
                 <!-- Stars overlay -->
                 <div class="hero-stars-badge" v-if="hotel.stars">
-                  <span v-for="s in hotel.stars" :key="s" class="star-on">★</span>
-                  <span v-for="s in (5 - hotel.stars)" :key="'off'+s" class="star-off">★</span>
+                  <UIcon v-for="s in hotel.stars" :key="s" name="i-heroicons-star-20-solid" class="w-4 h-4 text-amber-400 inline" />
+                  <UIcon v-for="s in (5 - hotel.stars)" :key="'off'+s" name="i-heroicons-star-20-solid" class="w-4 h-4 text-slate-300 dark:text-slate-600 inline" />
                 </div>
 
                 <!-- Category badge -->
@@ -178,46 +178,168 @@
 
             <!-- Offers Filter & Sort Bar -->
             <div class="offers-filter-bar">
+              <!-- Left: Filter Pills Group -->
               <div class="filter-pills-group">
                 <button
                   type="button"
                   class="filter-pill"
-                  :class="{ active: offersFilter === 'all' }"
-                  @click="offersFilter = 'all'"
+                  :class="{ active: offersFilter === 'all' && viewFilter === 'all' && selectedMealPlan === 'all' && availabilityFilter === 'all' }"
+                  @click="resetOffersFilters"
                 >
                   Toutes les offres ({{ availableAgreements.length }})
+                </button>
+
+                <!-- Immediate Confirmation Filter Pill -->
+                <button
+                  type="button"
+                  class="filter-pill filter-pill-immediate"
+                  :class="{ active: availabilityFilter === 'immediate' }"
+                  @click="toggleAvailabilityFilter('immediate')"
+                >
+                  <UIcon name="i-heroicons-bolt" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 inline mr-1" />
+                  <span>Immédiat</span>
+                  <span v-if="immediateRoomsCount > 0" class="pill-count-tag">
+                    ({{ immediateRoomsCount }})
+                  </span>
+                </button>
+
+                <!-- On Request Filter Pill -->
+                <button
+                  type="button"
+                  class="filter-pill filter-pill-on-request"
+                  :class="{ active: availabilityFilter === 'on_request' }"
+                  @click="toggleAvailabilityFilter('on_request')"
+                >
+                  <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 inline mr-1" />
+                  <span>Sur demande</span>
+                  <span v-if="onRequestRoomsCount > 0" class="pill-count-tag">
+                    ({{ onRequestRoomsCount }})
+                  </span>
+                </button>
+
+                <!-- Kaaba / Haram View Filter Pill -->
+                <button
+                  type="button"
+                  class="filter-pill filter-pill-kaaba"
+                  :class="{ active: viewFilter === 'kaaba_haram' || viewFilter === 'kaaba' || viewFilter === 'haram' }"
+                  @click="toggleViewFilter('kaaba_haram')"
+                  :title="'Filtrer les chambres avec vue sur la Kaaba ou le Haram'"
+                >
+                  <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 inline mr-1" />
+                  <span>Vue Kaaba &amp; Haram</span>
+                  <span v-if="kaabaHaramRoomsCount > 0" class="pill-count-tag">
+                    ({{ kaabaHaramRoomsCount }})
+                  </span>
+                </button>
+
+                <!-- Quick Meal Filters -->
+                <button
+                  type="button"
+                  class="filter-pill"
+                  :class="{ active: selectedMealPlan === 'RB' || offersFilter === 'breakfast' }"
+                  @click="toggleMealFilter('RB')"
+                >
+                  <svg class="w-3.5 h-3.5 text-portal-gold inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>
+                  <span>Petit-déjeuner (BB)</span>
                 </button>
                 <button
                   type="button"
                   class="filter-pill"
-                  :class="{ active: offersFilter === 'breakfast' }"
-                  @click="offersFilter = 'breakfast'"
+                  :class="{ active: selectedMealPlan === 'RD' || offersFilter === 'half_board' }"
+                  @click="toggleMealFilter('RD')"
                 >
-                  🥐 Avec Petit-déjeuner
+                  <svg class="w-3.5 h-3.5 text-portal-gold inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v20M2 12h16M18 2a5 5 0 0 0-5 5v5h5V2zM2 2v6a4 4 0 0 0 4 4h4V2"/></svg>
+                  <span>Demi-pension (HB)</span>
+                </button>
+                <button
+                  type="button"
+                  class="filter-pill"
+                  :class="{ active: selectedMealPlan === 'FB' || offersFilter === 'full_board' }"
+                  @click="toggleMealFilter('FB')"
+                >
+                  <svg class="w-3.5 h-3.5 text-portal-gold inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/></svg>
+                  <span>Pension complète (FB)</span>
+                </button>
+                <button
+                  type="button"
+                  class="filter-pill"
+                  :class="{ active: selectedMealPlan === 'RO' || offersFilter === 'room_only' }"
+                  @click="toggleMealFilter('RO')"
+                >
+                  <UIcon name="i-heroicons-home" class="w-3.5 h-3.5 text-slate-500 inline mr-1" />
+                  <span>Logement seul (RO)</span>
                 </button>
                 <button
                   type="button"
                   class="filter-pill"
                   :class="{ active: offersFilter === 'refundable' }"
-                  @click="offersFilter = 'refundable'"
+                  @click="offersFilter = (offersFilter === 'refundable' ? 'all' : 'refundable')"
                 >
-                  ✓ Annulation Gratuite
+                  <UIcon name="i-heroicons-check-circle" class="w-3.5 h-3.5 text-emerald-500 inline mr-1" />
+                  <span>Annulation Gratuite</span>
                 </button>
               </div>
 
-              <!-- Orders Selection List with Pricing -->
-              <div class="offers-sort-wrap">
-                <label for="offers-sort-select" class="offers-sort-label">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="sort-icon">
-                    <path fill-rule="evenodd" d="M2.24 6.8a.75.75 0 001.06-.04l1.95-2.1v8.59a.75.75 0 001.5 0V4.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0L2.2 5.74a.75.75 0 00.04 1.06zm8 6.4a.75.75 0 00-.04 1.06l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V6.75a.75.75 0 00-1.5 0v8.59l-1.95-2.1a.75.75 0 00-1.06-.04z" clip-rule="evenodd" />
-                  </svg>
-                  Trier par :
-                </label>
-                <select id="offers-sort-select" v-model="offersSortOrder" class="offers-sort-select">
-                  <option value="price_asc">Prix : du moins cher au plus cher (DZD ↑)</option>
-                  <option value="price_desc">Prix : du plus cher au moins cher (DZD ↓)</option>
-                  <option value="name_asc">Type de chambre (A - Z)</option>
-                </select>
+              <!-- Right: Detailed Selectors (Régime de repas + View selector + Sort) -->
+              <div class="offers-selectors-group">
+                <!-- Régime de repas Dropdown -->
+                <div class="offers-select-item">
+                  <label for="offers-meal-select" class="offers-select-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-portal-gold">
+                      <path fill-rule="evenodd" d="M2 3.75A.75.75 0 012.75 3h11.5a.75.75 0 010 1.5H2.75A.75.75 0 012 3.75zM2 7.5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 7.5zm0 3.75a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75zM2.75 14.25a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Régime :</span>
+                  </label>
+                  <select id="offers-meal-select" v-model="selectedMealPlan" class="offers-custom-select">
+                    <option value="all">Tous les régimes</option>
+                    <option value="RO">Chambre seule (RO)</option>
+                    <option value="RB">Petit-déjeuner inclus (BB / RB)</option>
+                    <option value="RD">Demi-pension (HB / RD)</option>
+                    <option value="FB">Pension complète (FB)</option>
+                    <option value="AI">Tout compris (AI)</option>
+                  </select>
+                </div>
+
+                <!-- Disponibilité Dropdown -->
+                <div class="offers-select-item">
+                  <label for="offers-avail-select" class="offers-select-label">
+                    <span>Dispo :</span>
+                  </label>
+                  <select id="offers-avail-select" v-model="availabilityFilter" class="offers-custom-select">
+                    <option value="all">Toutes les offres</option>
+                    <option value="immediate">Confirmation immédiate</option>
+                    <option value="on_request">Sur demande (On Request)</option>
+                  </select>
+                </div>
+
+                <!-- Vue Dropdown (Kaaba / Haram / Toutes) -->
+                <div class="offers-select-item" v-if="isSaudiHotel || kaabaHaramRoomsCount > 0">
+                  <label for="offers-view-select" class="offers-select-label">
+                    <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 text-amber-500 inline mr-1" />
+                    <span>Vue :</span>
+                  </label>
+                  <select id="offers-view-select" v-model="viewFilter" class="offers-custom-select">
+                    <option value="all">Toutes les vues</option>
+                    <option value="kaaba_haram">Vue Kaaba &amp; Haram</option>
+                    <option value="kaaba">Vue Kaaba uniquement</option>
+                    <option value="haram">Vue Haram uniquement</option>
+                  </select>
+                </div>
+
+                <!-- Sort Wrap -->
+                <div class="offers-select-item">
+                  <label for="offers-sort-select" class="offers-select-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="sort-icon">
+                      <path fill-rule="evenodd" d="M2.24 6.8a.75.75 0 001.06-.04l1.95-2.1v8.59a.75.75 0 001.5 0V4.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0L2.2 5.74a.75.75 0 00.04 1.06zm8 6.4a.75.75 0 00-.04 1.06l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V6.75a.75.75 0 00-1.5 0v8.59l-1.95-2.1a.75.75 0 00-1.06-.04z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Trier :</span>
+                  </label>
+                  <select id="offers-sort-select" v-model="offersSortOrder" class="offers-custom-select">
+                    <option value="price_asc">Prix (DZD ↑)</option>
+                    <option value="price_desc">Prix (DZD ↓)</option>
+                    <option value="name_asc">Chambre (A - Z)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -256,6 +378,22 @@
                   <div class="room-info-col">
                     <div class="room-type-title">
                       <h3>{{ agreement.room_type || hotel.room_basis_name || 'Chambre Standard' }}</h3>
+                      <span v-if="agreement.is_on_request || agreement.available === false" class="on-request-pill" title="Sous réserve de confirmation du fournisseur (24-48h)">
+                        <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 mr-1" />
+                        Sur demande
+                      </span>
+                      <span v-else class="immediate-pill" title="Confirmation immédiate garantie">
+                        <UIcon name="i-heroicons-bolt" class="w-3.5 h-3.5 mr-1" />
+                        Confirmation immédiate
+                      </span>
+                      <span v-if="isKaabaView(agreement)" class="kaaba-view-pill">
+                        <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 mr-1" />
+                        Vue Kaaba
+                      </span>
+                      <span v-else-if="isHaramView(agreement)" class="haram-view-pill">
+                        <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 mr-1" />
+                        Vue Haram
+                      </span>
                       <span v-if="selectedAgreement?.agreement_id === agreement.agreement_id" class="current-selected-badge">
                         Offre choisie
                       </span>
@@ -330,6 +468,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="check-ico"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                         Offre sélectionnée
                       </span>
+                      <span v-else-if="agreement.is_on_request || agreement.available === false" class="btn-flex" style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">
+                        Demander la réservation
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="arrow-ico"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/></svg>
+                      </span>
                       <span v-else class="btn-flex">
                         Choisir cette chambre
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="arrow-ico"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd"/></svg>
@@ -340,6 +482,24 @@
                 </div>
                 </div>
               </template>
+
+              <!-- Empty state when filters hide all offers -->
+              <div v-else-if="availableAgreements.length > 0" class="no-offers-empty-state">
+                <div class="empty-icon-circle">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="empty-state-svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                  </svg>
+                </div>
+                <h4 class="empty-state-title">Aucune offre ne correspond à vos filtres</h4>
+                <p class="empty-state-text">
+                  Certaines formules sont masquées par vos critères de filtrage actifs (Régime de repas ou Vue).
+                </p>
+                <div class="empty-state-actions">
+                  <button type="button" class="empty-back-btn cursor-pointer" @click="resetOffersFilters">
+                    ↺ Réinitialiser les filtres d'offres
+                  </button>
+                </div>
+              </div>
 
               <!-- Empty state when not loading and no agreements exist -->
               <div v-else class="no-offers-empty-state">
@@ -594,7 +754,36 @@
                         </div>
 
                         <div class="payment-options-grid">
-                          <!-- OPTION: BaridiMob / CCP (Manual Admin Confirmation) -->
+                          <!-- OPTION 1: Carte CIB / EDAHABIA (Passerelle SATIM 3D-Secure) -->
+                          <label
+                            class="pay-method-card"
+                            :class="{ active: selectedPaymentMethod === 'cib' }"
+                          >
+                            <input
+                              type="radio"
+                              value="cib"
+                              v-model="selectedPaymentMethod"
+                              name="hotel_payment_choice"
+                              class="pay-radio"
+                            />
+                            <div class="pay-method-content">
+                              <div class="pay-method-top">
+                                <div class="pay-badges-row">
+                                  <span class="pay-badge-instant" style="background:#10b981; color:white; font-size:10px; font-weight:900; padding:2px 8px; border-radius:6px;">
+                                    Confirmation Immédiate
+                                  </span>
+                                  <span class="pay-brand-tag" style="background:#2563eb; color:white; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px; margin-right:4px;">CIB</span>
+                                  <span class="pay-brand-tag" style="background:#f59e0b; color:#0f172a; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">الذهبية EDAHABIA</span>
+                                </div>
+                                <span class="pay-title">Carte CIB / EDAHABIA (Passerelle SATIM)</span>
+                              </div>
+                              <p class="pay-desc">
+                                Règlement électronique sécurisé par carte CIB ou Edahabia via la passerelle officielle <strong>SATIM (3D-Secure OTP)</strong>. Votre bon d'échange (Voucher) et réservation sont <strong>confirmés instantanément sur Netstorming</strong>.
+                              </p>
+                            </div>
+                          </label>
+
+                          <!-- OPTION 2: BaridiMob / CCP (Manual Admin Confirmation) -->
                           <label
                             class="pay-method-card"
                             :class="{ active: selectedPaymentMethod === 'baridimob' }"
@@ -672,14 +861,17 @@
 
                               <!-- Live Wallet Balance Status -->
                               <div v-if="!isWalletSufficient" class="wallet-warning-msg">
-                                ⚠️ Solde & Crédit autorisés insuffisants ({{ formatPrice(userWalletBalance) }} DZD disponible sur {{ formatPrice(requiredWalletAmount) }} DZD requis). Veuillez recharger votre compte ou contacter l'administration.
+                                <UIcon name="i-heroicons-exclamation-triangle" class="w-4 h-4 text-amber-600 shrink-0 inline mr-1" />
+                                <span>Solde &amp; Crédit autorisés insuffisants ({{ formatPrice(userWalletBalance) }} DZD disponible sur {{ formatPrice(requiredWalletAmount) }} DZD requis). Veuillez recharger votre compte ou contacter l'administration.</span>
                               </div>
                               <div v-else class="wallet-success-msg">
                                 <span v-if="b2bCreditAvailable > 0 && b2bPrepaidAvailable <= 0">
-                                  ✓ Ligne de crédit autorisée suffisante ({{ formatPrice(b2bCreditAvailable) }} DZD). La réservation sera immédiatement confirmée auprès de MyGo et inscrite sur votre compte.
+                                  <UIcon name="i-heroicons-check-circle" class="w-4 h-4 text-emerald-600 shrink-0 inline mr-1" />
+                                  <span>Ligne de crédit autorisée suffisante ({{ formatPrice(b2bCreditAvailable) }} DZD). La réservation sera immédiatement confirmée auprès de MyGo et inscrite sur votre compte.</span>
                                 </span>
                                 <span v-else>
-                                  ✓ Solde / Crédit disponible suffisant ({{ formatPrice(userWalletBalance) }} DZD disponible pour {{ formatPrice(requiredWalletAmount) }} DZD requis). Confirmation instantanée auprès de MyGo.
+                                  <UIcon name="i-heroicons-check-circle" class="w-4 h-4 text-emerald-600 shrink-0 inline mr-1" />
+                                  <span>Solde / Crédit disponible suffisant ({{ formatPrice(userWalletBalance) }} DZD disponible pour {{ formatPrice(requiredWalletAmount) }} DZD requis). Confirmation instantanée auprès de MyGo.</span>
                                 </span>
                               </div>
                             </div>
@@ -737,7 +929,9 @@
 
           <!-- ── Booking Confirmation Success ──────────────────────── -->
           <section v-if="hotelStore.bookingConfirmation" class="section-card success-card" id="booking-confirmed-card">
-            <div class="success-icon-wrap">🎉</div>
+            <div class="success-icon-wrap">
+              <UIcon name="i-heroicons-check-badge" class="w-12 h-12 text-emerald-500" />
+            </div>
             <h2 class="success-title">Réservation Confirmée avec Succès !</h2>
             <p class="success-sub">Votre réservation d'hôtel a été validée par la passerelle officielle Netstorming.</p>
 
@@ -772,7 +966,7 @@
               <div class="mini-hotel-details">
                 <h4 class="mini-hotel-name">{{ hotel.hotel_name }}</h4>
                 <div class="mini-stars">
-                  <span v-for="s in hotel.stars" :key="s">★</span>
+                  <UIcon v-for="s in hotel.stars" :key="s" name="i-heroicons-star-20-solid" class="w-3.5 h-3.5 text-amber-400 inline" />
                 </div>
                 <span class="mini-city">{{ hotel.hotel_city }}</span>
               </div>
@@ -877,7 +1071,8 @@
             <!-- Primary Action Button -->
             <div class="summary-cta-wrap">
               <div v-if="evaluation && evaluation.is_available === false" class="sb-unavail-alert" style="background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:10px;line-height:1.4;">
-                ⚠️ Cette chambre n'est plus disponible ou n'accepte pas la combinaison voyageurs demandée (enfants / lits d'appoint). Veuillez choisir une autre offre ci-contre.
+                <UIcon name="i-heroicons-exclamation-triangle" class="w-4 h-4 text-red-600 shrink-0 inline mr-1" />
+                <span>Cette chambre n'est plus disponible ou n'accepte pas la combinaison voyageurs demandée (enfants / lits d'appoint). Veuillez choisir une autre offre ci-contre.</span>
               </div>
               <button
                 v-if="!hotelStore.bookingConfirmation"
@@ -962,7 +1157,7 @@ const hotelStore = useHotelStore();
 const authStore  = useAuthStore();
 const isDark     = useDark();
 
-const selectedPaymentMethod = ref('baridimob'); // 'baridimob' | 'wallet'
+const selectedPaymentMethod = ref('cib'); // 'cib' | 'baridimob' | 'wallet'
 const guestInfo             = ref({ name: '', email: '', phone: '' });
 
 // Number of rooms requested (from URL query, store, or default 1)
@@ -1060,8 +1255,94 @@ const netVisible = ref({});
 const toggleNet = (id) => { netVisible.value = { ...netVisible.value, [id]: !netVisible.value[id] }; };
 const evaluation        = ref(null);
 const showBookingForm   = ref(false);
-const offersFilter      = ref('all');
+const offersFilter      = ref('all'); // 'all', 'breakfast', 'half_board', 'full_board', 'room_only', 'refundable'
 const offersSortOrder   = ref('price_asc');
+const viewFilter        = ref('all'); // 'all', 'kaaba_haram', 'kaaba', 'haram'
+const selectedMealPlan  = ref('all'); // 'all', 'RO', 'RB', 'RD', 'FB', 'AI'
+
+const KAABA_REGEX = /(kaaba|kabaa|kaba|الكعبة)/i;
+const HARAM_REGEX = /(haram|al[\s-]?haram|el[\s-]?haram|الحرم)/i;
+
+function isKaabaView(agreement) {
+  const t = `${agreement?.room_type || ''} ${agreement?.name || ''} ${agreement?.room_basis_name || ''}`;
+  return KAABA_REGEX.test(t);
+}
+
+function isHaramView(agreement) {
+  const t = `${agreement?.room_type || ''} ${agreement?.name || ''} ${agreement?.room_basis_name || ''}`;
+  return HARAM_REGEX.test(t);
+}
+
+function isKaabaOrHaram(agreement) {
+  return isKaabaView(agreement) || isHaramView(agreement);
+}
+
+const kaabaHaramRoomsCount = computed(() => {
+  return availableAgreements.value.filter(a => isKaabaOrHaram(a)).length;
+});
+
+const isSaudiHotel = computed(() => {
+  const city = (hotel.value?.hotel_city || hotel.value?.city || '').toLowerCase();
+  const country = (hotel.value?.country || hotel.value?.hotel_country || '').toLowerCase();
+  const name = (hotel.value?.hotel_name || hotel.value?.name || '').toLowerCase();
+  return (
+    country.includes('saudi') ||
+    country.includes('arabie') ||
+    country === 'sa' ||
+    city.includes('makkah') ||
+    city.includes('mecca') ||
+    city.includes('madinah') ||
+    city.includes('medina') ||
+    city.includes('jeddah') ||
+    city.includes('riyadh') ||
+    name.includes('makkah') ||
+    name.includes('madinah') ||
+    kaabaHaramRoomsCount.value > 0
+  );
+});
+
+function toggleViewFilter(val) {
+  if (viewFilter.value === val) {
+    viewFilter.value = 'all';
+  } else {
+    viewFilter.value = val;
+  }
+}
+
+function toggleMealFilter(val) {
+  if (selectedMealPlan.value === val) {
+    selectedMealPlan.value = 'all';
+    offersFilter.value = 'all';
+  } else {
+    selectedMealPlan.value = val;
+    offersFilter.value = 'all';
+  }
+}
+
+const availabilityFilter = ref('all'); // 'all' | 'immediate' | 'on_request'
+
+const immediateRoomsCount = computed(() => {
+  return availableAgreements.value.filter(a => a.is_available !== false && !a.is_on_request).length;
+});
+
+const onRequestRoomsCount = computed(() => {
+  return availableAgreements.value.filter(a => a.is_on_request || a.available === false).length;
+});
+
+function toggleAvailabilityFilter(val) {
+  if (availabilityFilter.value === val) {
+    availabilityFilter.value = 'all';
+  } else {
+    availabilityFilter.value = val;
+  }
+}
+
+function resetOffersFilters() {
+  offersFilter.value = 'all';
+  viewFilter.value = 'all';
+  selectedMealPlan.value = 'all';
+  availabilityFilter.value = 'all';
+}
 const activePhoto       = ref('');
 const hotelPhotos       = ref([]);
 const roomsList         = ref([]);
@@ -1292,14 +1573,90 @@ const availableAgreements = computed(() => {
 const filteredAgreements = computed(() => {
   let list = [...availableAgreements.value];
 
-  // Filters
+  // 1. Kaaba & Haram View Filter
+  if (viewFilter.value === 'kaaba_haram') {
+    list = list.filter(a => isKaabaOrHaram(a));
+  } else if (viewFilter.value === 'kaaba') {
+    list = list.filter(a => isKaabaView(a));
+  } else if (viewFilter.value === 'haram') {
+    list = list.filter(a => isHaramView(a));
+  }
+
+  // 1b. Availability Filter (Immediate vs On Request / Sur Demande)
+  if (availabilityFilter.value === 'immediate') {
+    list = list.filter(a => a.is_available !== false && !a.is_on_request);
+  } else if (availabilityFilter.value === 'on_request') {
+    list = list.filter(a => a.is_on_request || a.available === false);
+  }
+
+  // 2. Régime de repas (Meal plan) Filter according to Netstorming specifications (Section 31 & 33)
+  if (selectedMealPlan.value && selectedMealPlan.value !== 'all') {
+    const target = selectedMealPlan.value.toUpperCase();
+    list = list.filter((a) => {
+      const rb = (a.room_basis || a.room_basis_code || '').toUpperCase();
+      const mb = (a.meal_basis || a.meal_basis_code || '').toUpperCase();
+      const mn = (a.meal_basis_name || '').toLowerCase();
+      const rt = (a.room_type || '').toLowerCase();
+
+      if (target === 'RO') {
+        if (rb === 'RO') return true;
+        if (rb === '' && (mb === 'X' || mn.includes('seule') || mn.includes('sans petit') || rt.includes('room only') || rt.includes('logement seul'))) return true;
+        if (mb === 'X' && !['RB', 'RD', 'RL', 'FB', 'AI'].includes(rb) && !mn.includes('petit-déjeuner') && !mn.includes('demi') && !mn.includes('pension')) return true;
+        return mn.includes('logement seul') || mn.includes('chambre seule') || rt.includes('room only') || rt.includes('logement seul');
+      }
+      if (target === 'RB') {
+        if (rb === 'RB' || rb === 'BB') return true;
+        if (['H', 'C', 'B', 'A', 'E', 'R', 'I', 'O', 'S', 'T', 'V', 'F', 'Q'].includes(mb)) return true;
+        return mn.includes('petit-déjeuner') || mn.includes('petit dejeuner') || mn.includes('breakfast') || rt.includes('breakfast') || rt.includes('petit-déjeuner') || rt.includes('petit dejeuner') || rt.includes('bb');
+      }
+      if (target === 'RD') {
+        if (rb === 'RD' || rb === 'RL' || rb === 'D' || rb === 'HB') return true;
+        return mn.includes('demi-pension') || mn.includes('demi pension') || mn.includes('half board') || mn.includes('halfboard') || rt.includes('half board') || rt.includes('demi-pension') || rt.includes('demi pension');
+      }
+      if (target === 'FB') {
+        if (rb === 'FB') return true;
+        return mn.includes('pension complète') || mn.includes('pension complete') || mn.includes('full board') || mn.includes('fullboard') || rt.includes('full board') || rt.includes('pension complète') || rt.includes('pension complete');
+      }
+      if (target === 'AI') {
+        if (rb === 'AI' || rb === 'ALL') return true;
+        return mn.includes('tout compris') || mn.includes('all inclusive') || rt.includes('all inclusive') || rt.includes('tout compris');
+      }
+      return rb === target || mb === target;
+    });
+  }
+
+  // 3. Quick Offers Filter (Pills)
   if (offersFilter.value === 'breakfast') {
-    list = list.filter(a => a.room_basis === 'RB' || a.meal_basis !== 'X');
+    list = list.filter(a => {
+      const rb = (a.room_basis || '').toUpperCase();
+      const mb = (a.meal_basis || '').toUpperCase();
+      const rt = (a.room_type || '').toLowerCase();
+      return rb === 'RB' || rb === 'BB' || (mb && mb !== 'X') || rt.includes('breakfast') || rt.includes('petit-déjeuner');
+    });
+  } else if (offersFilter.value === 'half_board') {
+    list = list.filter(a => {
+      const rb = (a.room_basis || '').toUpperCase();
+      const rt = (a.room_type || '').toLowerCase();
+      return rb === 'RD' || rb === 'RL' || rb === 'HB' || rt.includes('half board') || rt.includes('demi-pension');
+    });
+  } else if (offersFilter.value === 'full_board') {
+    list = list.filter(a => {
+      const rb = (a.room_basis || '').toUpperCase();
+      const rt = (a.room_type || '').toLowerCase();
+      return rb === 'FB' || rt.includes('full board') || rt.includes('pension complète');
+    });
+  } else if (offersFilter.value === 'room_only') {
+    list = list.filter(a => {
+      const rb = (a.room_basis || '').toUpperCase();
+      const mb = (a.meal_basis || '').toUpperCase();
+      const rt = (a.room_type || '').toLowerCase();
+      return rb === 'RO' || (mb === 'X' && rb !== 'RD' && rb !== 'FB' && rb !== 'AI') || rt.includes('room only');
+    });
   } else if (offersFilter.value === 'refundable') {
     list = list.filter(a => a.is_fully_refundable);
   }
 
-  // Sorting: Default 'price_asc' (from lower to greater)
+  // 4. Sorting: Default 'price_asc'
   if (offersSortOrder.value === 'price_asc') {
     list.sort((a, b) => {
       const pA = Number(a.final_price_dzd || a.raw_price || 0);
@@ -1559,6 +1916,13 @@ async function submitBookingOrder() {
     || (leadPax.phone?.trim())
     || (authStore.User?.phone || '');
 
+  const isAgOnRequest = Boolean(
+    selectedAgreement.value?.is_on_request ||
+    selectedAgreement.value?.available === false ||
+    evaluation.value?.is_on_request ||
+    evaluation.value?.available === false
+  );
+
   const bookingPayload = {
     rooms: roomsCount.value,
     remarks: selectedRemarks.value,
@@ -1566,6 +1930,7 @@ async function submitBookingOrder() {
     guest_name: fullGuestName,
     guest_email: fullGuestEmail,
     guest_phone: fullGuestPhone,
+    is_on_request: isAgOnRequest,
   };
 
   const res = await hotelStore.bookRoom(allPax, bookingPayload);
@@ -1573,9 +1938,9 @@ async function submitBookingOrder() {
   if (res) {
     showBookingForm.value = false;
 
-    // Payment redirection flow (BaridiMob / CCP)
+    // Payment redirection flow (SATIM CIB / EDAHABIA or BaridiMob / CCP)
     if (res.payment_redirect || res.requires_payment) {
-      const targetMethod = 'ccp';
+      const targetMethod = selectedPaymentMethod.value === 'baridimob' ? 'ccp' : 'cib';
       const redirectUrl = res.payment_redirect
         ? `${res.payment_redirect}&method=${targetMethod}`
         : `/payment/confirm?order_id=${res.order_id}&type=hotel&amount=${res.price_dzd || currentPrice.value}&ref=${res.reference || ('BZZ-ORD-' + res.order_id)}&method=${targetMethod}`;
@@ -2236,6 +2601,159 @@ useHead({
   color: var(--dt-gold);
   font-weight: 600;
   animation: pulse 1.5s infinite;
+}
+
+
+/* Kaaba & Haram View filter styles */
+.filter-pill-kaaba {
+  background: rgba(217, 119, 6, 0.08) !important;
+  color: #d97706 !important;
+  border: 1.5px solid rgba(217, 119, 6, 0.45) !important;
+  font-weight: 800 !important;
+}
+.filter-pill-kaaba:hover {
+  background: rgba(217, 119, 6, 0.16) !important;
+  border-color: #d97706 !important;
+}
+.filter-pill-kaaba.active {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+  color: #ffffff !important;
+  border-color: #b45309 !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+}
+
+.pill-count-tag {
+  background: rgba(0, 0, 0, 0.12);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  margin-left: 4px;
+}
+.filter-pill-kaaba.active .pill-count-tag {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* Availability badges & pills */
+.immediate-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  margin-left: 6px;
+}
+
+.on-request-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  margin-left: 6px;
+}
+
+.filter-pill-immediate.active {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  color: #ffffff !important;
+  border-color: #047857 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.filter-pill-on-request.active {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+  color: #ffffff !important;
+  border-color: #b45309 !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+}
+
+.kaaba-view-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  background: rgba(217, 119, 6, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  border-radius: 4px;
+  margin-left: 8px;
+}
+.haram-view-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  background: rgba(5, 150, 105, 0.12);
+  color: #047857;
+  border: 1px solid rgba(5, 150, 105, 0.35);
+  border-radius: 4px;
+  margin-left: 8px;
+}
+.dark-theme .kaaba-view-pill {
+  background: rgba(217, 119, 6, 0.22);
+  color: #fbbf24;
+  border-color: rgba(217, 119, 6, 0.5);
+}
+.dark-theme .haram-view-pill {
+  background: rgba(5, 150, 105, 0.22);
+  color: #34d399;
+  border-color: rgba(5, 150, 105, 0.5);
+}
+
+.offers-selectors-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.offers-select-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--dt-box-bg);
+  border: 1px solid var(--dt-card-border);
+  padding: 4px 10px;
+  border-radius: 0 !important;
+}
+.offers-select-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--dt-text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+.offers-custom-select {
+  border: none;
+  background: transparent;
+  color: var(--dt-text-main);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 6px;
+  outline: none;
+  cursor: pointer;
+  border-radius: 0 !important;
+}
+.offers-custom-select option {
+  background: var(--dt-card-bg);
+  color: var(--dt-text-main);
 }
 
 /* Filter & Sort bar for room offers */

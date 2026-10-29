@@ -15,7 +15,7 @@ export default defineNuxtConfig({
     routeRules: {
       '/**': {
         headers: {
-          'Content-Security-Policy': "default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https:; font-src 'self' https: data:; img-src 'self' https: data: blob: https://pictures.netstorming.net https://images.unsplash.com; connect-src 'self' https: http: ws: wss:; frame-src 'self' https:; object-src 'none';",
+          'Content-Security-Policy': "default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https:; font-src 'self' https: data:; img-src 'self' https: http: data: blob: https://pictures.netstorming.net https://images.unsplash.com http://localhost:8000 http://127.0.0.1:8000; connect-src 'self' https: http: ws: wss:; frame-src 'self' https:; object-src 'none';",
         },
       },
     },

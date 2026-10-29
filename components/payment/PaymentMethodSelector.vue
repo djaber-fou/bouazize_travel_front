@@ -11,7 +11,46 @@
     </div>
     
     <div class="grid gap-4" :class="gridColsClass">
-      <!-- E-Payment Option (BaridiMob / CCP) -->
+      <!-- 1. E-Payment Option (Carte CIB / EDAHABIA - SATIM) -->
+      <label 
+        for="payment-method-cib"
+        class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all sm:col-span-2"
+        :class="modelValue === 'cib' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
+      >
+        <input 
+          id="payment-method-cib"
+          type="radio" 
+          name="payment_method" 
+          value="cib" 
+          class="sr-only"
+          :checked="modelValue === 'cib'"
+          @change="$emit('update:modelValue', 'cib')"
+        >
+        <span class="flex flex-1 pr-8">
+          <span class="flex flex-col">
+            <span class="text-sm font-black text-gray-900 dark:text-white flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded bg-[#004b93] text-white text-[10px] font-black">CIB</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded bg-[#008250] text-white text-[10px] font-black">الذهبية</span>
+              <span>Carte CIB / EDAHABIA (Passerelle SATIM)</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-primary">Confirmation Immédiate</span>
+            </span>
+            <span class="mt-1.5 text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
+              Paiement électronique direct et 100% sécurisé via la plateforme officielle SATIM (protocole 3D-Secure avec SMS OTP). Reçu officiel et voucher immédiats.
+            </span>
+            <span class="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <Icon name="heroicons:shield-check" class="w-4 h-4 text-primary" />
+              <span>GIE Monétique • Zéro frais de dossier</span>
+            </span>
+          </span>
+        </span>
+        <Icon 
+          v-if="modelValue === 'cib'" 
+          name="heroicons:check-circle-solid" 
+          class="h-6 w-6 text-primary absolute top-5 right-5" 
+        />
+      </label>
+
+      <!-- 2. E-Payment Option (BaridiMob / CCP) -->
       <label 
         for="payment-method-ccp"
         class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all"

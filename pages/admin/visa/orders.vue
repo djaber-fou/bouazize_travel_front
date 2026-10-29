@@ -87,53 +87,131 @@
                         <p class="text-secondary">Membres:</p>
                         <div>{{ order?.members }}</div>
                     </div>
-                    <UBadge size="xl" color="success" variant="subtle" class="w-fit flex items-center gap-2">
+                                        <UBadge size="xl" color="success" variant="subtle" class="w-fit flex items-center gap-2">
                         <p class="text-secondary">Prix total:</p>
                         <div class="font-bold">{{ order?.price }} DZD</div>
                     </UBadge>
-                    
+                    <div class="flex flex-col gap-2">
+                        <p class="text-secondary font-bold">Mode de paiement:</p>
+                        <div>
+                            <UBadge v-if="order?.is_credit || order?.payment_method === 'credit'" color="primary" variant="subtle" class="font-bold text-sm">
+                                Crédit B2B (Dette autorisée)
+                            </UBadge>
+                            <UBadge v-else color="neutral" variant="soft" class="font-bold text-sm uppercase">
+                                {{ order?.payment_method || 'CCP / Virement' }}
+                            </UBadge>
+                        </div>
+                    </div>
                 </div>
             </template>
-            <template #footer>
-                <div class="w-full grid grid-row-2 gap-2">
-                    <div class="w-full">
-                        <div v-if="order?.paiment_status === 'unpaid' || order?.paiment_status === 'pending_payment'" class="w-1/2">
-                            <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'payer')" class="w-full align-middle font-bold" color="success">
-                                <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                    <div>Payé</div>
-                                    <UIcon name="i-fluent-payment-24-filled"/>
-                                </div>
-                            </UButton>
-                        </div>
-                        <div v-else-if="order?.status === 'pending' && order?.paiment_status === 'paid'" class="w-full flex gap-2 justify-between">
-                            <UButton @click="()=>{
-                                openAccept = true
-                                orderAction = 'accept'
-                            }" class="w-full align-middle font-bold" color="success">
-                                <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                    <div>Accepter</div>
-                                    <UIcon name="i-icon-park-solid-correct"/>
-                                </div>
-                            </UButton>
-                            <UButton :loading="loadingAction === 'reject'" loading-icon="i-lucide-loader-circle" @click="()=>{
-                                openAccept = true
-                                orderAction = 'reject'
+                                    <template #footer>
+                <div class="w-full flex flex-col gap-2">
+                    <!-- B2B Order Banner -->
+                    <div v-if="isB2BOrder" class="text-xs p-2.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center gap-2">
+                        <UIcon name="i-lucide-info" class="w-4 h-4 shrink-0" />
+                        <span>Client B2B (Dette autorisée) : Vous pouvez accepter ou rejeter directement la commande. La dette reste inscrite sur le compte de l'agence.</span>
+                    </div>
+
+                    <!-- B2B Actions: NO 'Payé' button, directly Accepter, Rejeter, Supprimer -->
+                    <template v-if="isB2BOrder">
+                        <div v-if="order?.status === 'pending'" class="w-full flex flex-col gap-2">
+                            <div class="w-full flex gap-2 justify-between">
+                                <UButton @click="()=>{
+                                    openAccept = true
+                                    orderAction = 'accept'
+                                }" class="w-full align-middle font-bold" color="success">
+                                    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div>Accepter</div>
+                                        <UIcon name="i-icon-park-solid-correct"/>
+                                    </div>
+                                </UButton>
+                                <UButton :loading="loadingAction === 'reject'" loading-icon="i-lucide-loader-circle" @click="()=>{
+                                    openAccept = true
+                                    orderAction = 'reject'
                                 }" class="w-full align-middle font-bold" color="error">
+                                    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div>Rejeter</div>
+                                        <UIcon name="i-emojione-monotone-heavy-multiplication-x"/>
+                                    </div>
+                                </UButton>
+                            </div>
+                            <div class="w-1/2">
+                                <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'supprimer')" class="w-full align-middle font-bold" color="error" variant="soft">
+                                    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div>Supprimer</div>
+                                        <UIcon name="i-material-symbols-delete-outline"/>
+                                    </div>
+                                </UButton>
+                            </div>
+                        </div>
+                        <div v-else class="w-1/2">
+                            <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'supprimer')" class="w-full align-middle font-bold" color="error" variant="soft">
                                 <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                    <div>Rejeter</div>
-                                    <UIcon name="i-emojione-monotone-heavy-multiplication-x"/>
+                                    <div>Supprimer</div>
+                                    <UIcon name="i-material-symbols-delete-outline"/>
                                 </div>
                             </UButton>
                         </div>
-                    </div>
-                    <div v-if="order?.status === 'pending'"  class="w-1/2">
-                        <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'supprimer')" class="w-full align-middle font-bold" color="error">
-                            <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                <div>Supprimer</div>
-                                <UIcon name="i-material-symbols-delete-outline"/>
+                    </template>
+
+                    <!-- Individual Actions -->
+                    <template v-else>
+                        <div v-if="order?.status === 'pending'" class="w-full flex flex-col gap-2">
+                            <div v-if="order?.paiment_status === 'paid'" class="w-full flex gap-2 justify-between">
+                                <UButton @click="()=>{
+                                    openAccept = true
+                                    orderAction = 'accept'
+                                }" class="w-full align-middle font-bold" color="success">
+                                    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div>Accepter</div>
+                                        <UIcon name="i-icon-park-solid-correct"/>
+                                    </div>
+                                </UButton>
+                                <UButton :loading="loadingAction === 'reject'" loading-icon="i-lucide-loader-circle" @click="()=>{
+                                    openAccept = true
+                                    orderAction = 'reject'
+                                }" class="w-full align-middle font-bold" color="error">
+                                    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div>Rejeter</div>
+                                        <UIcon name="i-emojione-monotone-heavy-multiplication-x"/>
+                                    </div>
+                                </UButton>
                             </div>
-                        </UButton>
-                    </div>
+                            <div v-else class="w-full flex gap-2 justify-between">
+                                <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'payer')" class="w-full align-middle font-bold" color="success">
+                                    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div>Marquer Payé</div>
+                                        <UIcon name="i-fluent-payment-24-filled"/>
+                                    </div>
+                                </UButton>
+                                <UButton :loading="loadingAction === 'reject'" loading-icon="i-lucide-loader-circle" @click="()=>{
+                                    openAccept = true
+                                    orderAction = 'reject'
+                                }" class="w-full align-middle font-bold" color="error">
+                                    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div>Rejeter</div>
+                                        <UIcon name="i-emojione-monotone-heavy-multiplication-x"/>
+                                    </div>
+                                </UButton>
+                            </div>
+                            <div class="w-1/2">
+                                <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'supprimer')" class="w-full align-middle font-bold" color="error" variant="soft">
+                                    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div>Supprimer</div>
+                                        <UIcon name="i-material-symbols-delete-outline"/>
+                                    </div>
+                                </UButton>
+                            </div>
+                        </div>
+                        <div v-else class="w-1/2">
+                            <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'supprimer')" class="w-full align-middle font-bold" color="error" variant="soft">
+                                <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                    <div>Supprimer</div>
+                                    <UIcon name="i-material-symbols-delete-outline"/>
+                                </div>
+                            </UButton>
+                        </div>
+                    </template>
                 </div>
             </template>
         </USlideover>
@@ -257,6 +335,19 @@ const overlay = useOverlay()
 const order = ref({})
 const action = ref(null)
 const orderAction = ref(null)
+
+const isB2BOrder = computed(() => {
+    const ord = order.value
+    if (!ord) return false
+    const u = ord.user
+    const role = typeof u?.role === 'object' ? u?.role?.value : u?.role
+    return Boolean(
+        ord.is_b2b ||
+        ord.is_credit ||
+        ord.payment_method === 'credit' ||
+        role === 'business'
+    )
+})
 
 const openDocsModal = ref(false)
 const selectedOrderDocs = ref([])
@@ -468,7 +559,7 @@ const columns = [
             return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: meta.color }, () => meta.label)
         }
     },
-    {
+                {
         accessorKey: 'paiment_status',
         header: 'Paiement',
         cell: ({ row }) => {
@@ -496,8 +587,9 @@ const columns = [
                     name:"i-lucide-eye",
                     size:"17",
                     class:"cursor-pointer text-secondary",
-                    onClick:()=>{
-                        getOrder(row.original.id) 
+                    onClick: () => {
+                        order.value = row.original
+                        getOrder(row.original.id)
                         open.value = true
                     }
                 },

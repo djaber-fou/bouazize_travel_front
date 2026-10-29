@@ -232,7 +232,7 @@
                 </div>
                 <div class="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
                   <span class="text-primary font-semibold uppercase">{{ order.hotel_city }}</span>
-                  <span v-if="order.hotel_category">· {{ order.hotel_category }}★</span>
+                  <span v-if="order.hotel_category" class="inline-flex items-center gap-0.5">· {{ order.hotel_category }}<UIcon name="i-heroicons-star-20-solid" class="w-3 h-3 text-amber-400 inline" /></span>
                 </div>
               </td>
 
@@ -261,13 +261,18 @@
 
               <!-- Status -->
               <td class="py-3.5 px-4">
-                <UBadge
-                  :color="getStatusBadgeColor(order.status)"
-                  variant="subtle"
-                  class="capitalize text-[11px] font-bold"
-                >
-                  {{ getStatusLabel(order.status) }}
-                </UBadge>
+                <div class="flex flex-col gap-1 items-start">
+                  <UBadge
+                    :color="getStatusBadgeColor(order.status)"
+                    variant="subtle"
+                    class="capitalize text-[11px] font-bold"
+                  >
+                    {{ getStatusLabel(order.status) }}
+                  </UBadge>
+                  <span v-if="order.is_on_request" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                    <UIcon name="i-heroicons-clock" class="w-3 h-3 text-amber-600 dark:text-amber-400 inline mr-1" />Sur demande
+                  </span>
+                </div>
               </td>
 
               <!-- Payment -->
@@ -442,6 +447,11 @@
                   {{ selectedOrder.ns_booking_status || (selectedOrder.status === 'failed' ? 'Échoué' : 'Inconnu') }}
                 </span>
               </div>
+            </div>
+
+            <div v-if="selectedOrder.is_on_request" class="p-2.5 bg-amber-50 dark:bg-amber-950/30 rounded-lg text-xs border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 flex items-center gap-2">
+              <UIcon name="i-heroicons-clock" class="w-4 h-4 text-amber-600 shrink-0" />
+              <span><strong>Dossier Sur Demande (On Request) :</strong> Ce dossier dépend de la confirmation de l'hôtelier en amont (délai 24 à 48h). Utilisez le bouton "Vérifier En Direct" pour actualiser l'état.</span>
             </div>
 
             <div v-if="selectedOrder.admin_notes" class="p-3 bg-red-50 dark:bg-red-950/30 rounded-lg text-xs border border-red-200 dark:border-red-900/40 text-red-700 dark:text-red-300">

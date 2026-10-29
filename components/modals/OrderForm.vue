@@ -471,7 +471,7 @@ const clientOrder = ref({
     babies_count: 0,
     children_count: 0,
     file: [],
-    payment_method: 'ccp',
+    payment_method: 'cib',
     guest_name: '',
     guest_email: '',
     guest_phone: ''
@@ -749,22 +749,67 @@ const handleUploadClick = () => {
     }
 }
 
-const onFileChange = (event)=> {
+const compressImageIfNeeded = async (file) => {
+    // Only compress image files larger than 1MB; PDFs and documents remain untouched
+    if (!file.type || !file.type.startsWith('image/') || file.size <= 1024 * 1024) {
+        return file;
+    }
+    try {
+        return await new Promise((resolve) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                const maxDim = 1920;
+                let width = img.width;
+                let height = img.height;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    if (blob && blob.size < file.size) {
+                        resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+                    } else {
+                        resolve(file);
+                    }
+                }, 'image/jpeg', 0.85);
+            };
+            img.onerror = () => resolve(file);
+            img.src = url;
+        });
+    } catch {
+        return file;
+    }
+};
+
+const onFileChange = async (event)=> {
     const files = event.target.files;
     if (files && files.length > 0) {
         let remaining = maxFiles.value - clientOrder.value.file.length
         
         for(let i=0; i < files.length; i++){
-            if (files[i].size > 10 * 1024 * 1024) {
+            if (files[i].size > 30 * 1024 * 1024) {
                 toast.add({
-                    title: `Le fichier ${files[i].name} est trop volumineux (Max 10MB).`,
+                    title: `Le fichier ${files[i].name} est trop volumineux (Max 30MB).`,
                     color: 'orange'
                 })
                 continue
             }
 
             if (remaining > 0) {
-                clientOrder.value.file.push(files[i])
+                const processedFile = await compressImageIfNeeded(files[i]);
+                clientOrder.value.file.push(processedFile)
                 remaining--
             } else {
                 toast.add({
@@ -844,13 +889,14 @@ const submitOrder = async ()=>{
         })
         
         const configOpts = {
+            timeout: 900000, // 15 minutes timeout for large files / PDFs
             onUploadProgress: (progressEvent) => {
-                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
                 uploadProgress.value = percentCompleted;
                 if (percentCompleted < 100) {
-                    loadingText.value = `Envoi des fichiers (${percentCompleted}%)...`;
+                    loadingText.value = `Envoi des documents (${percentCompleted}%)...`;
                 } else {
-                    loadingText.value = 'Traitement en cours (Veuillez patienter)...';
+                    loadingText.value = 'Enregistrement de la réservation sur le serveur...';
                 }
             }
         }
@@ -862,8 +908,8 @@ const submitOrder = async ()=>{
             : `/client/${props.service}/offers/${props.id}/${orderType}`
 
         sendApi(basePath, formData, 'POST', configOpts).then((response)=>{
-            if (response) {
-                const orderId = response.data?.order_id
+            const orderId = response?.data?.order_id || response?.order_id;
+            if (orderId) {
                 const amount = grandTotalPrice.value
                 const paymentMethod = clientOrder.value.payment_method
                 

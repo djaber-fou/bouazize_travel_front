@@ -73,6 +73,8 @@ export const useHotelStore = defineStore('hotel', {
       searchName: '',
       cancellationPolicy: 'all', // 'all' | 'refundable' | 'non_refundable'
       refundableOnly: false,      // backward compatibility
+      viewType: '',               // '' | 'kaaba_haram' | 'kaaba' | 'haram'
+      availabilityType: 'all',    // 'all' | 'immediate' | 'on_request'
     },
     sortBy: 'price_asc',
     selectedHotel: null,
@@ -131,16 +133,84 @@ export const useHotelStore = defineStore('hotel', {
             const rb = (item.room_basis_code || item.room_basis || '').toUpperCase();
             const mb = (item.meal_basis_code || item.meal_basis || '').toUpperCase();
             const mn = (item.meal_basis_name || '').toLowerCase();
-            if (target === 'RO') return rb === 'RO' || mb === 'X' || mn.includes('seule') || mn.includes('sans petit');
-            if (target === 'RB') return rb === 'RB' || mb === 'H' || mb === 'B' || mb === 'C' || mb === 'A' || mb === 'E' || mb === 'J' || mn.includes('petit-déjeuner') || mn.includes('petit dejeuner');
-            if (target === 'RD') return rb === 'RD' || rb === 'RL' || rb === 'D' || mn.includes('demi-pension') || mn.includes('demi pension');
-            if (target === 'FB') return rb === 'FB' || mn.includes('pension complète') || mn.includes('pension complete');
-            if (target === 'AI') return rb === 'AI' || mn.includes('tout compris') || mn.includes('all inclusive');
+            const rt = (item.room_type || item.room_basis_name || item.title || '').toLowerCase();
+
+            if (target === 'RO') {
+              if (rb === 'RO') return true;
+              if (rb === '' && (mb === 'X' || mn.includes('seule') || mn.includes('sans petit') || rt.includes('room only') || rt.includes('logement seul'))) return true;
+              if (mb === 'X' && !['RB', 'RD', 'RL', 'FB', 'AI'].includes(rb) && !mn.includes('petit-déjeuner') && !mn.includes('demi') && !mn.includes('pension')) return true;
+              return mn.includes('logement seul') || mn.includes('chambre seule') || rt.includes('room only') || rt.includes('logement seul');
+            }
+            if (target === 'RB') {
+              if (rb === 'RB' || rb === 'BB') return true;
+              if (['H', 'C', 'B', 'A', 'E', 'R', 'I', 'O', 'S', 'T', 'V', 'F', 'Q'].includes(mb)) return true;
+              return mn.includes('petit-déjeuner') || mn.includes('petit dejeuner') || mn.includes('breakfast') || rt.includes('breakfast') || rt.includes('petit-déjeuner') || rt.includes('petit dejeuner') || rt.includes('bb');
+            }
+            if (target === 'RD') {
+              if (rb === 'RD' || rb === 'RL' || rb === 'D' || rb === 'HB') return true;
+              return mn.includes('demi-pension') || mn.includes('demi pension') || mn.includes('half board') || mn.includes('halfboard') || rt.includes('half board') || rt.includes('demi-pension') || rt.includes('demi pension');
+            }
+            if (target === 'FB') {
+              if (rb === 'FB') return true;
+              return mn.includes('pension complète') || mn.includes('pension complete') || mn.includes('full board') || mn.includes('fullboard') || rt.includes('full board') || rt.includes('pension complète') || rt.includes('pension complete');
+            }
+            if (target === 'AI') {
+              if (rb === 'AI' || rb === 'ALL') return true;
+              return mn.includes('tout compris') || mn.includes('all inclusive') || rt.includes('all inclusive') || rt.includes('tout compris');
+            }
             return rb === target || mb === target;
           };
           return matchMeal(h) ||
             (Array.isArray(h.agreements) && h.agreements.some(matchMeal)) ||
             (Array.isArray(h.rooms) && h.rooms.some(matchMeal));
+        });
+      }
+
+      // View filter (Kaaba & Haram view for Saudi Arabia / holy cities)
+      if (state.filters.viewType) {
+        const vTarget = state.filters.viewType.toLowerCase();
+        const kaabaRegex = /(kaaba|kabaa|kaba|الكعبة)/i;
+        const haramRegex = /(haram|al[\s-]?haram|el[\s-]?haram|الحرم)/i;
+
+        list = list.filter((h) => {
+          const matchView = (item) => {
+            if (!item) return false;
+            const text = `${item.room_type || ''} ${item.room_name || ''} ${item.room_basis_name || ''} ${item.title || ''}`;
+            if (vTarget === 'kaaba_haram') return kaabaRegex.test(text) || haramRegex.test(text);
+            if (vTarget === 'kaaba') return kaabaRegex.test(text);
+            if (vTarget === 'haram') return haramRegex.test(text);
+            return false;
+          };
+          const hotelText = `${h.name || ''} ${h.hotel_name || ''} ${h.description || ''}`;
+          const hotelMatches = vTarget === 'kaaba_haram'
+            ? (kaabaRegex.test(hotelText) || haramRegex.test(hotelText))
+            : (vTarget === 'kaaba' ? kaabaRegex.test(hotelText) : haramRegex.test(hotelText));
+
+          return hotelMatches ||
+            (Array.isArray(h.agreements) && h.agreements.some(matchView)) ||
+            (Array.isArray(h.rooms) && h.rooms.some(matchView));
+        });
+      }
+
+      // Availability type filter (Immediate vs On Request / Sur Demande)
+      if (state.filters.availabilityType && state.filters.availabilityType !== 'all') {
+        const aTarget = state.filters.availabilityType;
+        list = list.filter((h) => {
+          const checkAg = (ag) => {
+            if (!ag) return false;
+            const isOnReq = ag.is_on_request || ag.available === false || ag.availability_type === 'on_request';
+            return aTarget === 'on_request' ? isOnReq : !isOnReq;
+          };
+          const hotelOnReq = h.is_on_request || h.has_on_request || h.availability_type === 'on_request';
+          const hotelImmediate = h.has_immediate || (!h.is_on_request && h.is_available !== false);
+
+          if (aTarget === 'on_request') {
+            return hotelOnReq || (Array.isArray(h.agreements) && h.agreements.some(checkAg)) || (Array.isArray(h.rooms) && h.rooms.some(checkAg));
+          }
+          if (aTarget === 'immediate') {
+            return hotelImmediate || (Array.isArray(h.agreements) && h.agreements.some(checkAg)) || (Array.isArray(h.rooms) && h.rooms.some(checkAg));
+          }
+          return true;
         });
       }
 
@@ -254,9 +324,9 @@ export const useHotelStore = defineStore('hotel', {
       if (code && destination.type !== 'hotel') {
         warmupDestination(
           code,
-          this.searchForm.check_in   || null,
-          this.searchForm.check_out  || null,
-          this.searchForm.adults     || 2
+          this.searchForm.check_in || null,
+          this.searchForm.check_out || null,
+          this.searchForm.adults || 2
         );
       }
     },
@@ -288,6 +358,8 @@ export const useHotelStore = defineStore('hotel', {
         searchName: '',
         cancellationPolicy: 'all',
         refundableOnly: false,
+        viewType: '',
+        availabilityType: 'all',
       };
       this.sortBy = 'price_asc';
       this.currentPage = 1;
@@ -444,8 +516,8 @@ export const useHotelStore = defineStore('hotel', {
           room?.session_id || this.searchResults.session_id || hotel.session_id || '',
           hotel.hotel_code,
           agreementCode,
-          { 
-            check_in: cIn, check_out: cOut, adults: ad, rooms: rm, price: pr, 
+          {
+            check_in: cIn, check_out: cOut, adults: ad, rooms: rm, price: pr,
             room_type: rType, nationality: nat, query_required: room?.query_required || 1,
             children: this.searchForm.children || 0,
             children_ages: this.searchForm.children_ages || []

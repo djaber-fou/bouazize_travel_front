@@ -64,7 +64,7 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
         url: url,
         data: Data,
         headers: reqHeaders,
-        timeout: 90000,
+        timeout: configOpts.timeout ?? (typeof FormData !== 'undefined' && Data instanceof FormData ? 900000 : 90000),
         ...restConfigOpts
     }).then(response=>{
         console.log(response)
@@ -132,7 +132,11 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
             }
         } else if (error.request) {
             // No response received (Network error, timeout, or PHP aborted due to post_max_size)
-            errorMsg = "Erreur de connexion ou délai d'attente dépassé."
+            if (error.code === 'ECONNABORTED' || (error.message && error.message.toLowerCase().includes('timeout'))) {
+            errorMsg = "Le délai d'attente pour l'envoi des documents a été dépassé. Veuillez vérifier votre connexion ou compresser les fichiers volumineux.";
+        } else {
+            errorMsg = "Erreur de connexion avec le serveur ou délai d'attente dépassé.";
+        }
         } else {
             errorMsg = error.message
         }
@@ -149,7 +153,7 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
             }
         })
         
-        return undefined
+        return error.response?.data || undefined
     })
     return response
     // const {data:responseData,status,error} = await useFetch(url,{

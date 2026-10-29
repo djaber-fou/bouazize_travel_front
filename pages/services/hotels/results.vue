@@ -274,6 +274,34 @@
             </div>
 
             <div class="filter-box">
+              <div class="filter-head flex items-center justify-between">
+                <span>Disponibilité</span>
+                <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">MyGo API</span>
+              </div>
+              <select id="filter-availability-type" v-model="hotelStore.filters.availabilityType" class="form-ctrl">
+                <option value="all">Tous les types d'offres</option>
+                <option value="immediate">Confirmation immédiate</option>
+                <option value="on_request">Sur demande (On Request)</option>
+              </select>
+            </div>
+
+            <div class="filter-box">
+              <div class="filter-head flex items-center justify-between">
+                <span class="inline-flex items-center gap-1.5">
+                  <UIcon name="i-heroicons-eye" class="w-4 h-4 text-amber-500" />
+                  Vue Kaaba / Haram
+                </span>
+                <span class="text-[10px] uppercase font-bold text-amber-500">Arabie Saoudite</span>
+              </div>
+              <select id="filter-view-type" v-model="hotelStore.filters.viewType" class="form-ctrl">
+                <option value="">Toutes les chambres</option>
+                <option value="kaaba_haram">Vue Kaaba &amp; Haram</option>
+                <option value="kaaba">Vue Kaaba uniquement</option>
+                <option value="haram">Vue Haram uniquement</option>
+              </select>
+            </div>
+
+            <div class="filter-box">
               <div class="filter-head">Conditions d'annulation</div>
               <select
                 id="filter-cancellation-policy"
@@ -394,6 +422,34 @@
                     </div>
 
                     <div class="filter-box">
+                      <div class="filter-head flex items-center justify-between">
+                        <span>Disponibilité</span>
+                        <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">MyGo API</span>
+                      </div>
+                      <select id="drawer-filter-availability-type" v-model="hotelStore.filters.availabilityType" class="form-ctrl">
+                        <option value="all">Tous les types d'offres</option>
+                        <option value="immediate">Confirmation immédiate</option>
+                        <option value="on_request">Sur demande (On Request)</option>
+                      </select>
+                    </div>
+
+                    <div class="filter-box">
+                      <div class="filter-head flex items-center justify-between">
+                        <span class="inline-flex items-center gap-1.5">
+                          <UIcon name="i-heroicons-eye" class="w-4 h-4 text-amber-500" />
+                          Vue Kaaba / Haram
+                        </span>
+                        <span class="text-[10px] uppercase font-bold text-amber-500">Arabie Saoudite</span>
+                      </div>
+                      <select id="drawer-filter-view-type" v-model="hotelStore.filters.viewType" class="form-ctrl">
+                        <option value="">Toutes les chambres</option>
+                        <option value="kaaba_haram">Vue Kaaba &amp; Haram</option>
+                        <option value="kaaba">Vue Kaaba uniquement</option>
+                        <option value="haram">Vue Haram uniquement</option>
+                      </select>
+                    </div>
+
+                    <div class="filter-box">
                       <div class="filter-head">Conditions d'annulation</div>
                       <select
                         id="drawer-filter-cancellation-policy"
@@ -466,6 +522,15 @@
 
                   <!-- Badges / Tags -->
                   <div class="card-tags-list">
+                    <span v-if="hasKaabaHaram(hotel)" class="board-tag" style="background: rgba(217, 119, 6, 0.15); color: #d97706; border-color: rgba(217, 119, 6, 0.35); font-weight: 700;">
+                      <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 text-amber-600 inline mr-1" />Vue Kaaba / Haram
+                    </span>
+                    <span v-if="hotel.is_on_request || hotel.has_on_request" class="board-tag" style="background: rgba(245, 158, 11, 0.15); color: #b45309; border-color: rgba(245, 158, 11, 0.4); font-weight: 700;">
+                      <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-amber-600 inline mr-1" />Sur demande
+                    </span>
+                    <span v-else class="board-tag" style="background: rgba(16, 185, 129, 0.12); color: #047857; border-color: rgba(16, 185, 129, 0.3); font-weight: 700;">
+                      <UIcon name="i-heroicons-bolt" class="w-3.5 h-3.5 text-emerald-600 inline mr-1" />Confirmation immédiate
+                    </span>
                     <span class="board-tag">{{ roomBasisName(hotel.room_basis_code) }}</span>
                     <span v-if="hotel.meal_basis_code && hotel.meal_basis_code !== 'X'" class="meal-tag">
                       {{ mealBasisName(hotel.meal_basis_code) }}
@@ -645,9 +710,28 @@ const activeFiltersCount = computed(() => {
   if (hotelStore.filters?.minStars) count++;
   if (hotelStore.filters?.maxPrice) count++;
   if (hotelStore.filters?.mealBasis) count++;
+  if (hotelStore.filters?.viewType) count++;
+  if (hotelStore.filters?.availabilityType && hotelStore.filters.availabilityType !== 'all') count++;
+  if (hotelStore.filters?.cancellationPolicy && hotelStore.filters.cancellationPolicy !== 'all') count++;
   if (hotelStore.filters?.refundableOnly) count++;
   return count;
 });
+
+const KAABA_REGEX = /(kaaba|kabaa|kaba|الكعبة)/i;
+const HARAM_REGEX = /(haram|al[\s-]?haram|el[\s-]?haram|الحرم)/i;
+
+function hasKaabaHaram(hotel) {
+  if (!hotel) return false;
+  const hotelText = `${hotel.name || ''} ${hotel.hotel_name || ''} ${hotel.description || ''}`;
+  if (KAABA_REGEX.test(hotelText) || HARAM_REGEX.test(hotelText)) return true;
+  if (Array.isArray(hotel.agreements)) {
+    return hotel.agreements.some(a => {
+      const t = `${a.room_type || ''} ${a.name || ''} ${a.room_basis_name || ''}`;
+      return KAABA_REGEX.test(t) || HARAM_REGEX.test(t);
+    });
+  }
+  return false;
+}
 
 
 function updateStickyHeights() {
