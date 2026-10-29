@@ -501,6 +501,19 @@ function triggerHotelSearch() {
     hotelStore.searchForm.check_out = checkOut.value
     hotelStore.searchForm.adults = adults.value
     hotelStore.searchForm.children = children.value
+    hotelStore.searchForm.children_ages = []
+    hotelStore.searchForm.rooms = 1
+    hotelStore.searchForm.room_type = 'dbl'
+    hotelStore.searchForm.rooms_config = [{
+        adults: Number(adults.value) || 2,
+        children: Number(children.value) || 0,
+        children_ages: [],
+        type: 'dbl',
+        berceau: false,
+    }]
+    if (typeof sessionStorage !== 'undefined') {
+        try { sessionStorage.removeItem('hotel_rooms_config') } catch {}
+    }
 
     hotelStore.clearSearchResults()
     isNavigating.value = true

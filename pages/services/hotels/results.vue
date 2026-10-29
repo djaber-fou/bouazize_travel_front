@@ -785,6 +785,64 @@ const currentNights = computed(() => {
   return diff > 0 ? diff : 1;
 });
 
+function resolveRouteRoomsConfig(q) {
+  if (q.rooms_config) {
+    try {
+      const parsed = typeof q.rooms_config === 'string' ? JSON.parse(q.rooms_config) : q.rooms_config;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.slice(0, 5).map(r => ({
+          adults: Math.max(1, Number(r.adults) || 2),
+          children: Math.max(0, Number(r.children) || 0),
+          children_ages: Array.isArray(r.children_ages) ? r.children_ages.map(Number) : (Array.isArray(r.childrenAges) ? r.childrenAges.map(Number) : []),
+          type: r.type === 'twn' ? 'twn' : 'dbl',
+          berceau: Boolean(r.berceau || r.has_cot),
+        }));
+      }
+    } catch {}
+  }
+  const reqRooms = Math.max(1, Number(q.rooms || hotelStore.searchForm.rooms || 1));
+  if (Array.isArray(hotelStore.searchForm.rooms_config) && hotelStore.searchForm.rooms_config.length === reqRooms && !q.adults) {
+    return hotelStore.searchForm.rooms_config;
+  }
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      const saved = sessionStorage.getItem('hotel_rooms_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === reqRooms) {
+          return parsed.map(r => ({
+            adults: Math.max(1, Number(r.adults) || 2),
+            children: Math.max(0, Number(r.children) || 0),
+            children_ages: Array.isArray(r.children_ages) ? r.children_ages.map(Number) : (Array.isArray(r.childrenAges) ? r.childrenAges.map(Number) : []),
+            type: r.type === 'twn' ? 'twn' : 'dbl',
+            berceau: Boolean(r.berceau || r.has_cot),
+          }));
+        }
+      }
+    } catch {}
+  }
+  const totalAd = Math.max(reqRooms, Number(q.adults || hotelStore.searchForm.adults || 2));
+  const totalCh = Math.max(0, Number(q.children || hotelStore.searchForm.children || 0));
+  const allAges = q.children_ages
+    ? String(q.children_ages).split(',').map(Number).filter(n => !isNaN(n))
+    : (hotelStore.searchForm.children_ages || []);
+  const built = [];
+  let ageCursor = 0;
+  for (let i = 0; i < reqRooms; i++) {
+    const rAd = Math.floor(totalAd / reqRooms) + (i < (totalAd % reqRooms) ? 1 : 0);
+    const rCh = Math.floor(totalCh / reqRooms) + (i < (totalCh % reqRooms) ? 1 : 0);
+    built.push({
+      adults: Math.max(1, rAd),
+      children: rCh,
+      children_ages: allAges.slice(ageCursor, ageCursor + rCh),
+      type: 'dbl',
+      berceau: false,
+    });
+    ageCursor += rCh;
+  }
+  return built;
+}
+
 function getRouteSearchKey() {
   const q = route.query;
   const destCode  = q.destination_code || hotelStore.searchForm.destination_code || '';
@@ -796,7 +854,8 @@ function getRouteSearchKey() {
   const children  = q.children || hotelStore.searchForm.children || 0;
   const rooms     = q.rooms || hotelStore.searchForm.rooms || 1;
   const ages      = q.children_ages || (hotelStore.searchForm.children_ages || []).join(',');
-  return `${destCode}|${hotelId}|${hotelName}|${cIn}|${cOut}|${adults}|${children}|${rooms}|${ages}`;
+  const rcKey     = JSON.stringify(resolveRouteRoomsConfig(q));
+  return `${destCode}|${hotelId}|${hotelName}|${cIn}|${cOut}|${adults}|${children}|${rooms}|${ages}|${rcKey}`;
 }
 
 // ── Auto-retry state (for cold Netstorming destinations) ─────────────────
@@ -839,6 +898,23 @@ async function executeSearch(isAutoRetry = false) {
     hotelStore.searchForm.children_ages = String(q.children_ages).split(',').map(Number);
   } else if (!q.children) {
     hotelStore.searchForm.children_ages = [];
+  }
+  const resolvedRc = resolveRouteRoomsConfig(q);
+  hotelStore.searchForm.rooms_config = resolvedRc;
+  hotelStore.searchForm.rooms = resolvedRc.length;
+  hotelStore.searchForm.adults = resolvedRc.reduce((s, r) => s + (Number(r.adults) || 1), 0);
+  hotelStore.searchForm.children = resolvedRc.reduce((s, r) => s + (Number(r.children) || 0), 0);
+  hotelStore.searchForm.children_ages = resolvedRc.flatMap(r => r.children_ages || []);
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      sessionStorage.setItem('hotel_rooms_config', JSON.stringify(resolvedRc.map(r => ({
+        adults: r.adults,
+        children: r.children,
+        childrenAges: r.children_ages || [],
+        type: r.type || 'dbl',
+        berceau: Boolean(r.berceau),
+      }))));
+    } catch {}
   }
   if (q.hotel_id) {
     hotelStore.searchForm.hotel_id = String(q.hotel_id);
@@ -998,7 +1074,8 @@ function openHotelDetails(hotel) {
   const chAges = Array.isArray(hotelStore.searchForm.children_ages) && hotelStore.searchForm.children_ages.length
     ? hotelStore.searchForm.children_ages.join(',')
     : (route.query.children_ages || '');
-  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&children_ages=${encodeURIComponent(chAges)}&rooms=${rm}`);
+  const rcParam = encodeURIComponent(JSON.stringify(hotelStore.searchForm.rooms_config || []));
+  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&children_ages=${encodeURIComponent(chAges)}&rooms=${rm}&rooms_config=${rcParam}`);
 }
 
 function onImageError(event, stars) {
@@ -1024,15 +1101,17 @@ function formatDate(iso) {
 }
 
 function roomBasisName(code) {
+  const c = String(code || '').trim().toUpperCase();
   const map = {
-    RO: 'Chambre seule',
-    RB: 'Petit-déjeuner inclus',
-    RL: 'Déjeuner inclus',
-    RD: 'Dîner inclus',
-    FB: 'Pension complète',
-    AI: 'Tout compris',
+    RO: 'Chambre seule', S: 'Self Catering (Kitchenette)', DYU: 'Day Use',
+    RB: 'Petit-déjeuner inclus', BB: 'Petit-déjeuner inclus', BKCO: 'Petit-déjeuner ECO', AMB: 'Petit-déjeuner américain', ALG: 'Petit-déjeuner Deluxe', BKVP: 'Petit-déjeuner VIP', PB: 'Hébergement et Brunch', SON: 'Sahour inclus',
+    RD: 'Demi-Pension', HB: 'Demi-Pension', D: 'Petit-déjeuner et dîner inclus', RL: 'Hébergement et Déjeuner', GC: 'Hébergement et Déjeuner',
+    HBD: 'Demi-pension - Dîner inclus', HBLD: 'Demi-pension - Déjeuner ou dîner', HBLDS: 'Demi-pension (menu fixe)', HBLSM: 'Demi-pension déjeuner (menu fixe)',
+    HBH: 'Demi-Pension Hôtel', HBS: 'Demi-Pension Standard', HBPR: 'Demi-Pension Premium', HBP: 'Demi-Pension Plus', HBB: 'Demi-Pension (Boissons incluses)', HBSP: 'Demi-Pension & SPA', HC: 'Demi-Pension ECO', HV: 'Demi-Pension VIP', HFF: 'Demi-Pension Déjeuner', GGG: 'Demi-Pension Dîner', BEN: 'Demi-Pension Deluxe Dîner', BBG: 'Demi-Pension Deluxe Déjeuner', LLL: 'Demi-Pension Déjeuner', TTTT: 'Demi-Pension Dîner', ABC: 'Demi-Pension Dine Around', MZS: 'Demi-Pension + Soft AI', LD: 'Déjeuner et Dîner', LDSD: 'Déjeuner ou Dîner', IFT: 'Iftar inclus', SAH: 'Sahour et Iftar',
+    FB: 'Pension Complète', RRR: 'Pension Complète Standard', FBB: 'Pension Complète (Boissons)', FBH: 'Pension Complète Hôtel', FBS: 'Pension Complète Standard', FBPR: 'Pension Complète Premium', FBP: 'Pension Complète Plus', NDR: 'Pension Complète Deluxe', DD: 'Pension Complète',
+    AI: 'Tout Compris', ALL: 'Tout Compris', SAI: 'Soft All Inclusive', AIS: 'Tout Compris Soft (Sans Alcool)', UAI: 'Ultra All Inclusive', UAIS: 'Ultra All Inclusive Soft', AIPL: 'All Inclusive Plus', GAI: 'Gourmet All Inclusive', UAL: 'Ultra Luxury All Inclusive', PLLL: 'Platinum All Inclusive', SAIV: 'Select All Inclusive', DALL: 'Dine Around All Inclusive', GA: 'Golden All-Inclusive', PA: 'Premium All Inclusive', CG: 'All Inclusive Premium', XL: 'All Inclusive XXL', GB: 'Hard All Inclusive', IP: 'Infinity Plan',
   };
-  return map[code] || code || 'Standard';
+  return map[c] || code || 'Standard';
 }
 
 function mealBasisName(code) {

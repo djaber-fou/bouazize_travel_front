@@ -38,6 +38,9 @@ export const useHotelStore = defineStore('hotel', {
       adults: 2,
       children: 0,
       children_ages: [],
+      rooms_config: [
+        { adults: 2, children: 0, children_ages: [], type: 'dbl', berceau: false },
+      ],
       nationality: 'DZ',
     },
     destinationSuggestions: [],
@@ -124,39 +127,46 @@ export const useHotelStore = defineStore('hotel', {
         });
       }
 
-      // Meal plan / Régime filter (Section 31 & 88: RO, RB, RD, FB, AI)
+      // Meal plan / Régime filter (Official Netstorming 77 room_basis codes + meal_basis codes)
       if (state.filters.mealBasis) {
         const target = state.filters.mealBasis.toUpperCase();
+        const RO_CODES = ['RO', 'S', 'DYU'];
+        const BB_CODES = ['RB', 'BB', 'BKCO', 'AMB', 'ALG', 'BKVP', 'PB', 'SON'];
+        const HB_CODES = ['RD', 'RL', 'D', 'HB', 'GC', 'HBD', 'HBLD', 'HBLDS', 'HBLSM', 'HBH', 'HBS', 'HBPR', 'HBP', 'HBB', 'HBSP', 'HC', 'HV', 'HFF', 'GGG', 'BEN', 'BBG', 'LLL', 'TTTT', 'ABC', 'MZS', 'LD', 'LDSD', 'IFT', 'SAH', 'STD', 'DXD', 'DNN', 'LNC', 'SLC', 'DLL'];
+        const FB_CODES = ['FB', 'RRR', 'FBB', 'FBH', 'FBS', 'FBPR', 'FBP', 'NDR', 'DD'];
+        const AI_CODES = ['AI', 'ALL', 'SAI', 'AIS', 'UAI', 'UAIS', 'AIPL', 'GAI', 'UAL', 'PLLL', 'SAIV', 'DALL', 'GA', 'PA', 'CG', 'XL', 'GB', 'IP'];
+
         list = list.filter((h) => {
           const matchMeal = (item) => {
             if (!item) return false;
             const rb = (item.room_basis_code || item.room_basis || '').toUpperCase();
             const mb = (item.meal_basis_code || item.meal_basis || '').toUpperCase();
             const mn = (item.meal_basis_name || '').toLowerCase();
-            const rt = (item.room_type || item.room_basis_name || item.title || '').toLowerCase();
+            const rbn = (item.room_basis_name || '').toLowerCase();
+            const rt = (item.room_type || item.title || '').toLowerCase();
 
             if (target === 'RO') {
-              if (rb === 'RO') return true;
-              if (rb === '' && (mb === 'X' || mn.includes('seule') || mn.includes('sans petit') || rt.includes('room only') || rt.includes('logement seul'))) return true;
-              if (mb === 'X' && !['RB', 'RD', 'RL', 'FB', 'AI'].includes(rb) && !mn.includes('petit-déjeuner') && !mn.includes('demi') && !mn.includes('pension')) return true;
-              return mn.includes('logement seul') || mn.includes('chambre seule') || rt.includes('room only') || rt.includes('logement seul');
+              if (RO_CODES.includes(rb)) return true;
+              if (!rb && (mb === 'X' || mn.includes('seule') || mn.includes('sans petit') || rt.includes('room only') || rt.includes('logement seul'))) return true;
+              return rbn.includes('chambre seule') || mn.includes('chambre seule') || rt.includes('room only');
             }
             if (target === 'RB') {
-              if (rb === 'RB' || rb === 'BB') return true;
-              if (['H', 'C', 'B', 'A', 'E', 'R', 'I', 'O', 'S', 'T', 'V', 'F', 'Q'].includes(mb)) return true;
-              return mn.includes('petit-déjeuner') || mn.includes('petit dejeuner') || mn.includes('breakfast') || rt.includes('breakfast') || rt.includes('petit-déjeuner') || rt.includes('petit dejeuner') || rt.includes('bb');
+              if (BB_CODES.includes(rb)) return true;
+              if (rb && (HB_CODES.includes(rb) || FB_CODES.includes(rb) || AI_CODES.includes(rb) || RO_CODES.includes(rb))) return false;
+              if (!rb && ['H', 'C', 'B', 'A', 'E', 'J', 'R', 'I', 'O', 'S', 'T', 'V', 'F', 'Q', 'L', 'G', 'P', 'W', 'Z'].includes(mb)) return true;
+              return rbn.includes('petit-déjeuner') || rbn.includes('petit dejeuner') || rbn.includes('breakfast') || rt.includes('breakfast');
             }
             if (target === 'RD') {
-              if (rb === 'RD' || rb === 'RL' || rb === 'D' || rb === 'HB') return true;
-              return mn.includes('demi-pension') || mn.includes('demi pension') || mn.includes('half board') || mn.includes('halfboard') || rt.includes('half board') || rt.includes('demi-pension') || rt.includes('demi pension');
+              if (HB_CODES.includes(rb)) return true;
+              return rbn.includes('demi-pension') || rbn.includes('demi pension') || rbn.includes('half board') || mn.includes('demi-pension') || mn.includes('half board') || rt.includes('half board') || rt.includes('demi-pension');
             }
             if (target === 'FB') {
-              if (rb === 'FB') return true;
-              return mn.includes('pension complète') || mn.includes('pension complete') || mn.includes('full board') || mn.includes('fullboard') || rt.includes('full board') || rt.includes('pension complète') || rt.includes('pension complete');
+              if (FB_CODES.includes(rb)) return true;
+              return rbn.includes('pension complète') || rbn.includes('pension complete') || rbn.includes('full board') || mn.includes('pension complète') || mn.includes('full board') || rt.includes('full board') || rt.includes('pension complète');
             }
             if (target === 'AI') {
-              if (rb === 'AI' || rb === 'ALL') return true;
-              return mn.includes('tout compris') || mn.includes('all inclusive') || rt.includes('all inclusive') || rt.includes('tout compris');
+              if (AI_CODES.includes(rb)) return true;
+              return rbn.includes('tout compris') || rbn.includes('all inclusive') || rbn.includes('all-inclusive') || mn.includes('tout compris') || mn.includes('all inclusive') || rt.includes('all inclusive') || rt.includes('tout compris');
             }
             return rb === target || mb === target;
           };
@@ -386,6 +396,7 @@ export const useHotelStore = defineStore('hotel', {
         this.searchForm.children || 0,
         this.searchForm.rooms || 1,
         (this.searchForm.children_ages || []).join(','),
+        JSON.stringify(this.searchForm.rooms_config || []),
       ].join('|');
 
       try {
@@ -511,6 +522,9 @@ export const useHotelStore = defineStore('hotel', {
       const pr = room?.raw_price || room?.final_price_dzd || 0;
       const rType = room?.room_type_code || this.searchForm.room_type || 'dbl';
       const nat = this.searchForm.nationality || 'DZ';
+      const roomsConfig = (Array.isArray(room?.rooms_breakdown) && room.rooms_breakdown.length)
+        ? room.rooms_breakdown
+        : (this.searchForm.rooms_config || []);
       try {
         const data = await evaluateHotelRoom(
           room?.session_id || this.searchResults.session_id || hotel.session_id || '',
@@ -518,9 +532,10 @@ export const useHotelStore = defineStore('hotel', {
           agreementCode,
           {
             check_in: cIn, check_out: cOut, adults: ad, rooms: rm, price: pr,
-            room_type: rType, nationality: nat, query_required: room?.query_required || 1,
+            room_type: rType, nationality: nat, query_required: room?.query_required || rm,
             children: this.searchForm.children || 0,
-            children_ages: this.searchForm.children_ages || []
+            children_ages: this.searchForm.children_ages || [],
+            rooms_config: roomsConfig,
           }
         );
         this.evaluationResult = data?.data ?? null;
@@ -547,15 +562,21 @@ export const useHotelStore = defineStore('hotel', {
       this.loadingBooking = true;
       this.bookingError = null;
       this.bookingConfirmation = null;
-      const roomCode = this.selectedRoom.agreement_id || this.selectedRoom.room_code || this.selectedHotel.room_code;
-      const roomBasisCode = this.selectedRoom.room_basis || this.selectedRoom.room_basis_code || this.selectedHotel.room_basis_code;
-      const roomBasisName = this.selectedRoom.room_type || this.selectedRoom.room_basis_name || this.selectedHotel.room_basis_name;
-      const mealBasisCode = this.selectedRoom.meal_basis || this.selectedRoom.meal_basis_code || this.selectedHotel.meal_basis_code;
+      // Per Netstorming Section 33 & 37: prefer agreement_id and search_number returned by evaluate
+      const roomCode = this.evaluationResult?.agreement_id || this.selectedRoom.agreement_id || this.selectedRoom.room_code || this.selectedHotel.room_code;
+      const roomBasisCode = this.selectedRoom.room_basis || this.selectedRoom.room_basis_code || this.evaluationResult?.room_basis_code || this.selectedHotel.room_basis_code;
+      const roomBasisName = this.selectedRoom.room_basis_name || this.evaluationResult?.room_basis_name || this.selectedHotel.room_basis_name || this.selectedRoom.room_type;
+      const mealBasisCode = this.selectedRoom.meal_basis || this.selectedRoom.meal_basis_code || this.evaluationResult?.meal_basis_code || this.selectedHotel.meal_basis_code;
       const evaluatedSessionId = this.evaluationResult?.search_number
         || this.selectedRoom?.search_number
         || this.selectedRoom?.session_id
         || this.searchResults?.session_id
         || this.selectedHotel?.session_id;
+      const roomsConfig = (Array.isArray(this.evaluationResult?.rooms_breakdown) && this.evaluationResult.rooms_breakdown.length)
+        ? this.evaluationResult.rooms_breakdown
+        : ((Array.isArray(this.selectedRoom?.rooms_breakdown) && this.selectedRoom.rooms_breakdown.length)
+          ? this.selectedRoom.rooms_breakdown
+          : (this.searchForm.rooms_config || []));
       const payload = {
         session_id: evaluatedSessionId,
         hotel_code: this.selectedHotel.hotel_code,
@@ -566,7 +587,7 @@ export const useHotelStore = defineStore('hotel', {
         room_basis_code: roomBasisCode,
         room_basis_name: roomBasisName,
         meal_basis_code: mealBasisCode,
-        meal_basis_name: this.selectedRoom.meal_basis_name,
+        meal_basis_name: this.selectedRoom.meal_basis_name || this.evaluationResult?.meal_basis_name,
         check_in: this.searchForm.check_in || extraData.check_in,
         check_out: this.searchForm.check_out || extraData.check_out,
         destination_code: this.searchForm.destination_code || this.selectedHotel.destination_code || this.selectedHotel.city || this.selectedHotel.hotel_city || 'DZ',
@@ -575,8 +596,9 @@ export const useHotelStore = defineStore('hotel', {
         adults: this.searchForm.adults,
         children: this.searchForm.children,
         children_ages: this.searchForm.children_ages,
+        rooms_config: roomsConfig,
         nationality: this.searchForm.nationality || 'DZ',
-        room_type: this.selectedRoom?.room_type_code || this.evaluationResult?.room_type_code || this.searchForm.room_type || 'dbl',
+        room_type: this.evaluationResult?.room_type_code || this.selectedRoom?.room_type_code || this.searchForm.room_type || 'dbl',
         // ns_price = NET price in original currency (EUR/USD/DZD) — sent to NS for booking
         // Priority: evaluate result raw_price > agreement raw_price > agreement ns_price > fallback
         // NEVER divide final_price_dzd by exchange_rate (exchange_rate = DZD multiplier, not divisor)

@@ -145,6 +145,7 @@ export const evaluateHotelRoom = async (sessionId, hotelCode, roomCode, extra = 
     query_required: extra.query_required || 1,
     children: extra.children || 0,
     children_ages: extra.children_ages || [],
+    rooms_config: extra.rooms_config || [],
   };
   const response = await sendApi('/hotels/evaluate', payload, 'POST');
   return response;
@@ -218,7 +219,18 @@ export const fetchHotelDetails = async (hotelId, params = {}) => {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== null && value !== '') {
-      searchParams.append(key, value);
+      if (key === 'rooms_config') {
+        const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+        if (serialized && serialized !== '[]') {
+          searchParams.append(key, serialized);
+        }
+      } else if (Array.isArray(value)) {
+        if (value.length > 0) {
+          searchParams.append(key, typeof value[0] === 'object' ? JSON.stringify(value) : value.join(','));
+        }
+      } else {
+        searchParams.append(key, value);
+      }
     }
   }
   const queryStr = searchParams.toString();

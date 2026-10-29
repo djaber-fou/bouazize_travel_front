@@ -287,21 +287,22 @@
                 </div>
               </div>
 
-              <!-- Berceau -->
+              <!-- Berceau (Netstorming: allowed on dbl/twn/trp only) -->
               <div class="room-field-item berceau-item">
                 <label class="field-micro-label">Berceau</label>
-                <div class="berceau-checkbox-wrap">
+                <div class="berceau-checkbox-wrap" :title="(Number(room.adults) < 2 || Number(room.adults) > 3) ? 'Berceau autorisé uniquement pour les chambres Double, Twin et Triple' : 'Ajouter un lit bébé (berceau)'">
                   <input
                     :id="`room-${idx}-berceau`"
                     v-model="room.berceau"
                     type="checkbox"
                     class="custom-check"
+                    :disabled="Number(room.adults) < 2 || Number(room.adults) > 3"
                   />
                 </div>
               </div>
 
-              <!-- Room Type Radios -->
-              <div class="room-field-item room-types-item">
+              <!-- Room Type Radios (Double vs Twin for 2 adults; auto-typed badge for 1, 3, 4+ adults) -->
+              <div v-if="Number(room.adults) === 2" class="room-field-item room-types-item">
                 <label class="radio-label">
                   <input
                     :id="`room-${idx}-type-double`"
@@ -324,6 +325,11 @@
                   />
                   <span>Chambre Twin</span>
                 </label>
+              </div>
+              <div v-else class="room-field-item room-types-item">
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                  {{ Number(room.adults) === 1 ? 'Chambre Simple' : (Number(room.adults) === 3 ? 'Chambre Triple' : (Number(room.adults) === 4 ? 'Chambre Quadruple' : `Occupation (${room.adults} Adultes)`)) }}
+                </span>
               </div>
             </div>
 
@@ -759,6 +765,40 @@ onMounted(() => {
     destinationQuery.value = hotelStore.searchForm.destination_name;
   }
 
+  // Hydrate multi-room occupancy configuration from store or sessionStorage
+  try {
+    let sourceRooms = null;
+    if (Array.isArray(hotelStore.searchForm.rooms_config) && hotelStore.searchForm.rooms_config.length > 0) {
+      sourceRooms = hotelStore.searchForm.rooms_config;
+    } else if (typeof sessionStorage !== 'undefined') {
+      const savedRoomsRaw = sessionStorage.getItem('hotel_rooms_config');
+      if (savedRoomsRaw) {
+        const parsed = JSON.parse(savedRoomsRaw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          sourceRooms = parsed;
+        }
+      }
+    }
+    if (sourceRooms) {
+      rooms.value = sourceRooms.slice(0, 5).map(r => {
+        const ad = Math.max(1, Math.min(9, Number(r.adults) || 2));
+        const ch = Math.max(0, Math.min(6, Number(r.children) || 0));
+        const rawAges = Array.isArray(r.childrenAges) ? r.childrenAges : (Array.isArray(r.children_ages) ? r.children_ages : []);
+        const ages = [];
+        for (let i = 0; i < ch; i++) {
+          ages.push(rawAges[i] !== undefined ? Number(rawAges[i]) : 5);
+        }
+        return {
+          adults: ad,
+          children: ch,
+          childrenAges: ages,
+          type: r.type === 'twn' ? 'twn' : 'dbl',
+          berceau: ad >= 2 && ad <= 3 ? Boolean(r.berceau || r.has_cot) : false,
+        };
+      });
+    }
+  } catch {}
+
   // Load recent searches from localStorage
   try {
     const saved = localStorage.getItem('hotel_recent_searches');
@@ -834,9 +874,10 @@ function changeNights(delta) {
 }
 
 function addRoom() {
-  if (rooms.value.length < 9) {
+  const totalPax = rooms.value.reduce((s, r) => s + (Number(r.adults) || 1) + (Number(r.children) || 0), 0);
+  if (rooms.value.length < 5 && totalPax < 9) {
     rooms.value.push({
-      adults: 2,
+      adults: Math.min(2, Math.max(1, 9 - totalPax)),
       children: 0,
       childrenAges: [],
       type: 'dbl',
@@ -996,16 +1037,31 @@ function clearAllRecentSearches() {
 async function triggerSearch() {
   if (!canSearch.value) return;
 
-  const totalAdults = rooms.value.reduce((sum, r) => sum + (Number(r.adults) || 1), 0);
-  const totalChildren = rooms.value.reduce((sum, r) => sum + (Number(r.children) || 0), 0);
-  const allChildrenAges = rooms.value.flatMap(r => r.childrenAges || []);
-  const firstRoom = rooms.value[0] || {};
+  const normalizedRoomsConfig = rooms.value.slice(0, 5).map(r => {
+    const ad = Math.max(1, Math.min(9, Number(r.adults) || 1));
+    const ch = Math.max(0, Math.min(6, Number(r.children) || 0));
+    const ages = (r.childrenAges || []).slice(0, ch).map(a => Number(a) || 0);
+    while (ages.length < ch) ages.push(5);
+    return {
+      adults: ad,
+      children: ch,
+      children_ages: ages,
+      type: ad === 2 && r.type === 'twn' ? 'twn' : 'dbl',
+      berceau: ad >= 2 && ad <= 3 ? Boolean(r.berceau) : false,
+    };
+  });
+
+  const totalAdults = normalizedRoomsConfig.reduce((sum, r) => sum + r.adults, 0);
+  const totalChildren = normalizedRoomsConfig.reduce((sum, r) => sum + r.children, 0);
+  const allChildrenAges = normalizedRoomsConfig.flatMap(r => r.children_ages);
+  const firstRoom = normalizedRoomsConfig[0] || {};
 
   hotelStore.searchForm.adults        = totalAdults;
   hotelStore.searchForm.children      = totalChildren;
   hotelStore.searchForm.children_ages = allChildrenAges;
-  hotelStore.searchForm.room_type     = firstRoom.type || 'dbl';
-  hotelStore.searchForm.rooms         = rooms.value.length;
+  hotelStore.searchForm.room_type     = firstRoom.adults === 2 && firstRoom.type === 'twn' ? 'twn' : 'dbl';
+  hotelStore.searchForm.rooms         = normalizedRoomsConfig.length;
+  hotelStore.searchForm.rooms_config  = normalizedRoomsConfig;
 
   try {
     sessionStorage.setItem('hotel_rooms_config', JSON.stringify(rooms.value));
@@ -1038,7 +1094,8 @@ async function triggerSearch() {
     check_out: hotelStore.searchForm.check_out,
     adults: totalAdults,
     children: totalChildren,
-    rooms: rooms.value.length,
+    rooms: normalizedRoomsConfig.length,
+    rooms_config: JSON.stringify(normalizedRoomsConfig),
   };
   if (hotelStore.searchForm.children_ages?.length) {
     query.children_ages = hotelStore.searchForm.children_ages.join(',');
@@ -1077,7 +1134,8 @@ function openHotelDetails(hotel) {
   const chAges = Array.isArray(hotelStore.searchForm.children_ages)
     ? hotelStore.searchForm.children_ages.join(',')
     : (hotelStore.searchForm.children_ages || '');
-  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&children_ages=${encodeURIComponent(chAges)}&rooms=${rm}`);
+  const rcParam = encodeURIComponent(JSON.stringify(hotelStore.searchForm.rooms_config || []));
+  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&children_ages=${encodeURIComponent(chAges)}&rooms=${rm}&rooms_config=${rcParam}`);
 }
 
 function onImageError(event, stars) {
