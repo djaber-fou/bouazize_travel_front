@@ -825,7 +825,7 @@
                             </div>
                           </label>
 
-                          <!-- OPTION 3: B2B Agency Wallet / Credit Line (Instant NET deduction) -->
+                          <!-- OPTION 3: B2B Agency Wallet / Admin Unlimited Credit (Instant NET deduction) -->
                           <label
                             v-if="canPayWithWallet"
                             class="pay-method-card"
@@ -848,30 +848,39 @@
                                     <svg class="pay-badge-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                       <path fill-rule="evenodd" d="M2.5 4A1.5 1.5 0 001 5.5v9A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0017.5 4h-15zm10.5 4a1.5 1.5 0 011.5 1.5v1a1.5 1.5 0 01-1.5 1.5h-2A1.5 1.5 0 019.5 10.5v-1A1.5 1.5 0 0111 8h2z" clip-rule="evenodd" />
                                     </svg>
-                                    {{ (authStore.isBusiness && b2bCreditAvailable > 0 && b2bPrepaidAvailable <= 0) ? 'Ligne de Crédit Agence' : 'Solde & Crédit Agence' }}
+                                    {{ authStore.isAdmin ? 'Compte Administrateur' : ((authStore.isBusiness && b2bCreditAvailable > 0 && b2bPrepaidAvailable <= 0) ? 'Ligne de Crédit Agence' : 'Solde & Crédit Agence') }}
                                   </span>
                                   <span
                                     class="pay-brand-tag"
                                     :class="isWalletSufficient ? 'tag-green' : 'tag-warn'"
                                   >
-                                    {{ formatPrice(userWalletBalance) }} DZD
+                                    {{ authStore.isAdmin ? 'Crédit Illimité' : `${formatPrice(userWalletBalance)} DZD` }}
                                   </span>
                                 </div>
                                 <span class="pay-title">
-                                  {{ (authStore.isBusiness && b2bCreditAvailable > 0 && b2bPrepaidAvailable <= 0)
-                                      ? 'Paiement par Crédit Agence B2B'
-                                      : 'Débit Direct du Portefeuille / Crédit Agence B2B' }}
+                                  {{ authStore.isAdmin
+                                      ? 'Réservation Directe Admin (Crédit Illimité)'
+                                      : ((authStore.isBusiness && b2bCreditAvailable > 0 && b2bPrepaidAvailable <= 0)
+                                          ? 'Paiement par Crédit Agence B2B'
+                                          : 'Débit Direct du Portefeuille / Crédit Agence B2B') }}
                                 </span>
                               </div>
                               <p class="pay-desc">
                                 Confirmation instantanée transmise à Netstorming / MyGo.
-                                <span v-if="authStore.isBusiness && b2bPayablePrice < currentPrice">
+                                <span v-if="authStore.isAdmin">
+                                  Tarif Administrateur Net : <strong>{{ formatPrice(b2bPayablePrice) }} DZD</strong> (Crédit illimité, confirmation immédiate).
+                                </span>
+                                <span v-else-if="authStore.isBusiness && b2bPayablePrice < currentPrice">
                                   Tarif B2B Net appliqué : <strong>{{ formatPrice(b2bPayablePrice) }} DZD</strong> (votre marge : {{ formatPrice(currentPrice - b2bPayablePrice) }} DZD).
                                 </span>
                               </p>
 
                               <!-- Live Wallet Balance Status -->
-                              <div v-if="!isWalletSufficient" class="wallet-warning-msg">
+                              <div v-if="authStore.isAdmin" class="wallet-success-msg">
+                                <UIcon name="i-heroicons-check-circle" class="w-4 h-4 text-emerald-600 shrink-0 inline mr-1" />
+                                <span>Privilège Administrateur : Crédit illimité actif. La réservation sera immédiatement confirmée auprès de Netstorming / MyGo.</span>
+                              </div>
+                              <div v-else-if="!isWalletSufficient" class="wallet-warning-msg">
                                 <UIcon name="i-heroicons-exclamation-triangle" class="w-4 h-4 text-amber-600 shrink-0 inline mr-1" />
                                 <span>Solde &amp; Crédit autorisés insuffisants ({{ formatPrice(userWalletBalance) }} DZD disponible sur {{ formatPrice(requiredWalletAmount) }} DZD requis). Veuillez recharger votre compte ou contacter l'administration.</span>
                               </div>
@@ -922,9 +931,11 @@
                           TRAITEMENT EN COURS...
                         </template>
                         <template v-else-if="selectedPaymentMethod === 'wallet'">
-                          {{ (authStore.isBusiness && b2bCreditAvailable > 0 && b2bPrepaidAvailable <= 0)
-                              ? `CONFIRMER AVEC LE CRÉDIT AGENCE (${formatPrice(requiredWalletAmount)} DZD)`
-                              : `CONFIRMER ET DÉBITER LE PORTEFEUILLE (${formatPrice(requiredWalletAmount)} DZD)` }}
+                          {{ authStore.isAdmin
+                              ? `CONFIRMER LA RÉSERVATION ADMIN (${formatPrice(requiredWalletAmount)} DZD - CRÉDIT ILLIMITÉ)`
+                              : ((authStore.isBusiness && b2bCreditAvailable > 0 && b2bPrepaidAvailable <= 0)
+                                  ? `CONFIRMER AVEC LE CRÉDIT AGENCE (${formatPrice(requiredWalletAmount)} DZD)`
+                                  : `CONFIRMER ET DÉBITER LE PORTEFEUILLE (${formatPrice(requiredWalletAmount)} DZD)`) }}
                         </template>
                         <template v-else>
                           PAYER ET CONFIRMER ({{ formatPrice(currentPrice) }} DZD)
@@ -1168,7 +1179,7 @@ const hotelStore = useHotelStore();
 const authStore  = useAuthStore();
 const isDark     = useDark();
 
-const selectedPaymentMethod = ref('cib'); // 'cib' | 'baridimob' | 'wallet'
+const selectedPaymentMethod = ref(authStore.isAdmin ? 'wallet' : 'cib'); // 'cib' | 'baridimob' | 'wallet'
 const guestInfo             = ref({ name: '', email: '', phone: '' });
 
 // Number of rooms requested (from URL query, store, or default 1)
@@ -1180,6 +1191,7 @@ const roomsCount = computed(() => {
 const userWalletBalance = computed(() => {
   const u = authStore.User;
   if (!u) return 0;
+  if (authStore.isAdmin) return 999999999;
   if (u.balance?.available !== undefined && u.balance?.available !== null) {
     return Math.max(0, Number(u.balance.available));
   }
@@ -1230,6 +1242,7 @@ const requiredWalletAmount = computed(() => {
 });
 
 const isWalletSufficient = computed(() => {
+  if (authStore.isAdmin) return true;
   return userWalletBalance.value >= requiredWalletAmount.value && requiredWalletAmount.value > 0;
 });
 
@@ -1947,7 +1960,7 @@ function buildPassengers() {
   }
 
   // Pre-select payment method based on user wallet capability and balance
-  if (canPayWithWallet.value && isWalletSufficient.value) {
+  if (authStore.isAdmin || (canPayWithWallet.value && isWalletSufficient.value)) {
     selectedPaymentMethod.value = 'wallet';
   } else {
     selectedPaymentMethod.value = 'baridimob';
@@ -2007,7 +2020,7 @@ async function openPassengerForm() {
   }
   if (!roomsList.value || !roomsList.value.length) {
     buildPassengers();
-  } else if (canPayWithWallet.value && isWalletSufficient.value) {
+  } else if (authStore.isAdmin || (canPayWithWallet.value && isWalletSufficient.value)) {
     selectedPaymentMethod.value = 'wallet';
   }
   showBookingForm.value = true;
