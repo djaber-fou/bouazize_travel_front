@@ -767,6 +767,7 @@
                         <div class="payment-options-grid">
                           <!-- OPTION 1: Carte CIB / EDAHABIA (Passerelle SATIM 3D-Secure) -->
                           <label
+                            v-if="showSatimPayment"
                             class="pay-method-card"
                             :class="{ active: selectedPaymentMethod === 'cib' }"
                           >
@@ -1179,7 +1180,8 @@ const hotelStore = useHotelStore();
 const authStore  = useAuthStore();
 const isDark     = useDark();
 
-const selectedPaymentMethod = ref(authStore.isAdmin ? 'wallet' : 'cib'); // 'cib' | 'baridimob' | 'wallet'
+const showSatimPayment      = ref(false); // Masqué selon la demande utilisateur
+const selectedPaymentMethod = ref(authStore.isAdmin ? 'wallet' : 'baridimob'); // 'baridimob' | 'wallet' | 'cib'
 const guestInfo             = ref({ name: '', email: '', phone: '' });
 
 // Number of rooms requested (from URL query, store, or default 1)

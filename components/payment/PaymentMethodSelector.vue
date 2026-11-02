@@ -13,6 +13,7 @@
     <div class="grid gap-4" :class="gridColsClass">
       <!-- 1. E-Payment Option (Carte CIB / EDAHABIA - SATIM) -->
       <label 
+        v-if="showCib"
         for="payment-method-cib"
         class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all sm:col-span-2"
         :class="modelValue === 'cib' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
@@ -197,7 +198,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 onMounted(() => {
-  if (props.modelValue === 'cib') {
+  if (props.modelValue === 'cib' && !props.showCib) {
     emit('update:modelValue', 'ccp');
   }
 });

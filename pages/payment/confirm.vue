@@ -5,7 +5,7 @@
       <div class="mb-8">
         <div class="flex items-center justify-center gap-2 sm:gap-4">
           <div class="flex items-center text-primary">
-            <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">✓</div>
+            <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm"><UIcon name="i-heroicons-check" class="w-5 h-5 text-white" /></div>
             <span class="ml-2 font-medium text-sm hidden sm:block">Réservation</span>
           </div>
           <div class="w-8 sm:w-12 h-1 bg-primary rounded"></div>
@@ -16,7 +16,7 @@
           <div class="w-8 sm:w-12 h-1 rounded" :class="isOrderPaid ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-slate-700'"></div>
           <div class="flex items-center" :class="isOrderPaid ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-slate-500'">
             <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm" :class="isOrderPaid ? 'bg-emerald-600 text-white' : 'bg-gray-300 dark:bg-slate-700 text-white'">
-              {{ isOrderPaid ? '✓' : '3' }}
+              <UIcon v-if="isOrderPaid" name="i-heroicons-check" class="w-5 h-5 text-white" /><span v-else>3</span>
             </div>
             <span class="ml-2 font-medium text-sm hidden sm:block">Confirmation</span>
           </div>
@@ -132,8 +132,8 @@
 
           <!-- Main Payment Selection Tabs & Forms -->
           <div v-else class="space-y-6">
-            <!-- Payment Method Switcher Tabs -->
-            <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+            <!-- Payment Method Switcher Tabs (CIB hidden per request) -->
+            <div v-if="showSatimMethod" class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
               <button
                 type="button"
                 @click="activeMethod = 'cib'"
@@ -157,7 +157,7 @@
             </div>
 
             <!-- View 1: Certified SATIM CIB / EDAHABIA Gateway Component -->
-            <div v-if="activeMethod === 'cib'">
+            <div v-if="showSatimMethod && activeMethod === 'cib'">
               <SatimPaymentCard
                 :amount="amount"
                 :order-id="orderId"
@@ -280,7 +280,8 @@ const paymentSubmittedSuccess = ref(false)
 const isOrderPaid = ref(route.query.status === 'paid')
 const cibReceiptNumber = ref(route.query.receipt || null)
 
-const activeMethod = ref(route.query.method === 'ccp' ? 'ccp' : 'cib')
+const showSatimMethod = ref(false) // Masqué selon la demande utilisateur
+const activeMethod = ref(showSatimMethod.value && route.query.method === 'cib' ? 'cib' : 'ccp')
 const isCibModalOpen = ref(false)
 
 const isSubmitting = ref(false)

@@ -471,7 +471,7 @@ const clientOrder = ref({
     babies_count: 0,
     children_count: 0,
     file: [],
-    payment_method: 'cib',
+    payment_method: 'ccp',
     guest_name: '',
     guest_email: '',
     guest_phone: ''
