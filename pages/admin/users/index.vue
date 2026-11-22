@@ -68,6 +68,44 @@
                     <div class="w-full">
                         <UButton :disabled="user?.role?.value === userRole" @click="updateRole(user.id, userRole)" class="w-fit font-bold cursor-pointer" label="Sauvegarder"/>
                     </div>
+
+                    <!-- Per-agency B2B Hotel Markup Override -->
+                    <div v-if="user?.role?.value === 'business'" class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 space-y-3 max-w-md">
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Tarification Hôtels — Marge B2B personnalisée (%)</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Laissez vide pour appliquer la marge globale ({{ user?.global_b2b_hotel_markup_percent ?? 5 }}%).
+                                Actuellement appliquée : <strong>{{ user?.effective_b2b_hotel_markup_percent ?? 5 }}%</strong>.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <UInput
+                                v-model="hotelMarkupOverride"
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                max="100"
+                                placeholder="Ex: 3.5 (vide = global)"
+                                class="w-48"
+                            />
+                            <UButton
+                                :loading="savingHotelMarkup"
+                                color="primary"
+                                label="Enregistrer"
+                                class="font-bold cursor-pointer"
+                                @click="saveHotelMarkup(user.id)"
+                            />
+                            <UButton
+                                v-if="user?.b2b_hotel_markup_percent !== null && user?.b2b_hotel_markup_percent !== undefined"
+                                :loading="savingHotelMarkup"
+                                variant="soft"
+                                color="gray"
+                                label="Réinitialiser"
+                                class="cursor-pointer"
+                                @click="resetHotelMarkup(user.id)"
+                            />
+                        </div>
+                    </div>
                 </div>
             </template>
         </USlideover>
@@ -523,6 +561,8 @@ const roles = ref([
 ])
 
 const userRole = ref('individual')
+const hotelMarkupOverride = ref('')
+const savingHotelMarkup = ref(false)
 const userBalance = ref({
     amount:null,
     debts:null,
@@ -575,10 +615,38 @@ const getUsers = async (page=1)=>{
 const getUser = async (id)=>{
     loading.value = true
     sendApi(`/admin/users/${id}`,null,'GET').then(response=>{
-        console.log(response)
         user.value = response.data
         userRole.value = response.data.role.value
+        hotelMarkupOverride.value = response.data.b2b_hotel_markup_percent !== null && response.data.b2b_hotel_markup_percent !== undefined
+            ? String(response.data.b2b_hotel_markup_percent)
+            : ''
+        loading.value = false
     })
+}
+
+const saveHotelMarkup = async (id) => {
+    savingHotelMarkup.value = true
+    try {
+        const raw = String(hotelMarkupOverride.value ?? '').trim()
+        const payload = {
+            b2b_hotel_markup_percent: raw === '' ? null : Number(raw),
+        }
+        const response = await sendApi(`/admin/users/${id}/hotel-markup`, payload, 'PUT')
+        if (response?.data) {
+            user.value = response.data
+            hotelMarkupOverride.value = response.data.b2b_hotel_markup_percent !== null && response.data.b2b_hotel_markup_percent !== undefined
+                ? String(response.data.b2b_hotel_markup_percent)
+                : ''
+        }
+        useToast().add({ title: 'Marge B2B hôtel mise à jour', color: 'success' })
+    } finally {
+        savingHotelMarkup.value = false
+    }
+}
+
+const resetHotelMarkup = async (id) => {
+    hotelMarkupOverride.value = ''
+    await saveHotelMarkup(id)
 }
 
 const viewUser = (id)=>{

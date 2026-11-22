@@ -698,9 +698,28 @@
               <span class="text-[10px] text-slate-400 mt-0.5 block">Appliquée aux réservations directes des particuliers.</span>
             </div>
             <div>
-              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Marge B2B par défaut (%) :</label>
-              <UInput v-model.number="settingsForm.b2b_default_markup_percent" type="number" step="0.5" min="0" max="100" />
-              <span class="text-[10px] text-slate-400 mt-0.5 block">Marge de référence pour les agences partenaires B2B.</span>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Marge plateforme B2B par défaut (%) :</label>
+              <UInput v-model.number="settingsForm.b2b_default_markup_percent" type="number" step="0.1" min="0" max="100" />
+              <span class="text-[10px] text-slate-400 mt-0.5 block">Appliquée sur le tarif fournisseur (NET × taux) pour les agences B2B. Surchargeable par agence dans « Utilisateurs ».</span>
+            </div>
+          </div>
+
+          <!-- Live Calculation Preview (100 EUR reference) -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
+            <p class="font-bold text-[11px] text-slate-700 dark:text-slate-200 uppercase tracking-wider">Aperçu en temps réel (exemple : 100 EUR NET)</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+              <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                <span class="text-slate-400 block">Coût Fournisseur NET</span>
+                <span class="font-mono font-bold text-slate-800 dark:text-slate-100">{{ formatCurrency(100 * Number(settingsForm.exchange_rate_eur || 165)) }} DZD</span>
+              </div>
+              <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-blue-100 dark:border-blue-900/40">
+                <span class="text-blue-600 dark:text-blue-400 block">Tarif B2B (+{{ Number(settingsForm.b2b_default_markup_percent || 0) }}%)</span>
+                <span class="font-mono font-bold text-blue-700 dark:text-blue-300">{{ formatCurrency(100 * Number(settingsForm.exchange_rate_eur || 165) * (1 + Number(settingsForm.b2b_default_markup_percent || 0) / 100)) }} DZD</span>
+              </div>
+              <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-900/40">
+                <span class="text-emerald-600 dark:text-emerald-400 block">Tarif Public B2C (+{{ Number(settingsForm.b2c_markup_percent || 0) }}%)</span>
+                <span class="font-mono font-bold text-emerald-700 dark:text-emerald-300">{{ formatCurrency(100 * Number(settingsForm.exchange_rate_eur || 165) * (1 + Number(settingsForm.b2c_markup_percent || 0) / 100)) }} DZD</span>
+              </div>
             </div>
           </div>
 
@@ -724,6 +743,41 @@
               <div>
                 <label class="block text-[11px] text-slate-500 mb-1">1 TRY (Livre) en DZD :</label>
                 <UInput v-model.number="settingsForm.exchange_rate_try" type="number" step="0.1" min="0.1" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Audit Log History -->
+          <div v-if="settings.audit_logs && settings.audit_logs.length" class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+            <h4 class="font-bold text-slate-800 dark:text-slate-200 uppercase text-[11px] tracking-wider flex items-center gap-1.5">
+              <UIcon name="i-heroicons-clipboard-document-list" class="w-3.5 h-3.5 text-primary" />
+              Journal d'audit des modifications tarifaires ({{ settings.audit_logs.length }})
+            </h4>
+            <div class="max-h-40 overflow-y-auto space-y-1.5 pr-1">
+              <div
+                v-for="log in settings.audit_logs"
+                :key="log.id"
+                class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/60 text-[11px]"
+              >
+                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+                  <span class="font-semibold text-slate-700 dark:text-slate-200">
+                    {{ log.changed_by?.name || 'Administrateur' }}
+                    <span v-if="log.scope === 'agency_override' && log.target_user" class="text-primary"> → Agence {{ log.target_user.name }}</span>
+                  </span>
+                  <span>{{ formatDate(log.created_at) }}</span>
+                </div>
+                <div class="mt-1 flex flex-wrap gap-1.5">
+                  <span
+                    v-for="(diff, field) in log.changes"
+                    :key="field"
+                    class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-mono text-[10px]"
+                  >
+                    <strong class="text-slate-600 dark:text-slate-300">{{ field }}:</strong>
+                    <span class="text-slate-400 line-through">{{ diff.old ?? 'défaut' }}</span>
+                    <span>→</span>
+                    <span class="text-emerald-600 dark:text-emerald-400 font-bold">{{ diff.new ?? 'défaut' }}</span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
