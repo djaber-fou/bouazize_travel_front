@@ -102,6 +102,36 @@
                             </UBadge>
                         </div>
                     </div>
+
+                    <!-- Acceptance / Response Documents Sent -->
+                    <div v-if="order?.acceptance_documents && order.acceptance_documents.length > 0" class="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <UIcon name="i-heroicons-paper-clip" class="w-4 h-4" />
+                                Documents envoyés ({{ order.acceptance_documents.length }})
+                            </p>
+                            <span v-if="order.sent_at" class="text-[11px] text-emerald-700 dark:text-emerald-400">
+                                Envoyé le <NuxtTime :datetime="order.sent_at" locale="fr-FR" year="numeric" month="short" day="numeric" hour="2-digit" minute="2-digit" />
+                            </span>
+                        </div>
+                        <div class="space-y-1.5">
+                            <div
+                                v-for="doc in order.acceptance_documents"
+                                :key="doc.id"
+                                class="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-900 text-xs"
+                            >
+                                <span class="font-semibold text-slate-700 dark:text-slate-200 truncate" :title="doc.original_name">{{ doc.original_name }}</span>
+                                <UButton
+                                    size="xs"
+                                    color="primary"
+                                    variant="soft"
+                                    icon="i-heroicons-arrow-down-tray"
+                                    label="Télécharger"
+                                    @click="downloadAcceptanceDoc(doc)"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </template>
                                     <template #footer>
@@ -215,46 +245,30 @@
                 </div>
             </template>
         </USlideover>
-        <UModal v-model:open="openAccept" title="Confirmation de commande">
+        <UModal v-model:open="openAccept" :title="orderAction === 'reject' ? 'Rejet de commande — Documents justificatifs (optionnels)' : 'Acceptation — Joindre un ou plusieurs documents'">
             <template #body>
                 <div class="flex flex-col gap-5">
-                    <div class="flex justify-center">
-                        <label v-if="!uploadedFile.url" for="file">
-                            <div 
-                            class="cursor-pointer flex flex-col gap-2 justify-center items-center w-[220px] h-[110px] border-dashed border-2 border-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors p-3 text-center">
-                                <UIcon name="i-lineicons-upload" class="text-primary" size="30"/>
-                                <div class="text-primary text-sm font-bold">Télécharger un document</div>
-                                <div class="text-xs text-gray-500">PDF, Word, Excel, Images... (max 20Mo)</div>
-                            </div>
-                            <input type="file" class="hidden" id="file" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.bmp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.txt,.rtf,.zip,.rar,.7z" @change="onFileChange"/>
-                        </label>
-                        <div v-else class="flex flex-col items-center gap-2 mt-3">
-                            <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 max-w-sm">
-                                <ULink :to="uploadedFile.url" target="_blank" class="flex items-center gap-2 truncate">
-                                    <UIcon :name="uploadedFileIcon" class="text-primary shrink-0" size="36"/>
-                                    <div class="flex flex-col truncate text-left">
-                                        <span class="text-sm font-semibold text-secondary dark:text-white truncate" :title="uploadedFileName">{{ uploadedFileName }}</span>
-                                        <span class="text-xs text-gray-400">Cliquez pour prévisualiser</span>
-                                    </div>
-                                </ULink>
-                                <UIcon 
-                                name="i-material-symbols-cancel" 
-                                class="cursor-pointer text-error shrink-0 hover:opacity-80"
-                                size="24"
-                                title="Supprimer le fichier"
-                                @click="resetUploadedFile"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex justify-center">
-                        <UButton loading-icon="i-lucide-loader-circle" :loading="loadingAction ==='accept'" @click="()=>{
-                            if(orderAction === 'accept'){
-                                acceptOrder()
-                            }else{
-                                rejectOrder()
-                            }
-                            }" label="Envoyer" color="primary" class="font-bold w-fit"/>
+                    <MultiFileDropzone
+                        v-model="selectedFiles"
+                        :progress="uploadProgress"
+                        :disabled="loadingAction === 'accept' || loadingAction === 'reject'"
+                    />
+                    <div class="flex justify-end gap-2">
+                        <UButton variant="ghost" color="gray" label="Annuler" :disabled="loadingAction === 'accept' || loadingAction === 'reject'" @click="openAccept = false" />
+                        <UButton
+                            loading-icon="i-lucide-loader-circle"
+                            :loading="loadingAction === 'accept' || loadingAction === 'reject'"
+                            :color="orderAction === 'reject' ? 'error' : 'primary'"
+                            :label="orderAction === 'reject' ? 'Confirmer le rejet' : `Accepter et envoyer (${selectedFiles.length})`"
+                            class="font-bold w-fit"
+                            @click="() => {
+                                if (orderAction === 'accept') {
+                                    acceptOrder()
+                                } else {
+                                    rejectOrder()
+                                }
+                            }"
+                        />
                     </div>
                 </div>
             </template>
@@ -328,6 +342,7 @@ import { useAuthStore } from '#imports'
 import JSZip from 'jszip'
 import pkg from 'file-saver'
 import ExpandableTitle from '~/components/common/ExpandableTitle.vue'
+import MultiFileDropzone from '~/components/admin/MultiFileDropzone.vue'
 const { saveAs } = pkg
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
@@ -660,11 +675,21 @@ const uploadedFileIcon = computed(() => {
     return 'i-lucide-file'
 })
 
+const selectedFiles = ref([])
+const uploadProgress = ref(0)
+
 const resetUploadedFile = () => {
     if (uploadedFile.value?.url) {
         URL.revokeObjectURL(uploadedFile.value.url)
     }
     uploadedFile.value = { url: null, file: null }
+    selectedFiles.value = []
+    uploadProgress.value = 0
+}
+
+const downloadAcceptanceDoc = (doc) => {
+    const targetUrl = doc?.signed_url || doc?.download_url
+    if (targetUrl) window.open(targetUrl, '_blank')
 }
 
 const onFileChange = (event)=> {
@@ -733,18 +758,40 @@ const getOrder = async (id)=>{
     })
 }
 
+const uploadOrderActionWithProgress = async (endpoint, filesList) => {
+    const config = useRuntimeConfig()
+    const authStore = useAuthStore()
+    const token = authStore.Authorization?.token
+    const formData = new FormData()
+    filesList.forEach((f) => formData.append('files[]', f))
+    formData.append('_method', 'PUT')
+    uploadProgress.value = 1
+
+    const res = await axios.post(`${config.public.apiBaseUrl}${endpoint}`, formData, {
+        headers: {
+            Accept: 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        onUploadProgress: (evt) => {
+            if (evt.total) {
+                uploadProgress.value = Math.min(99, Math.round((evt.loaded * 100) / evt.total))
+            }
+        },
+    })
+    uploadProgress.value = 100
+    return res.data
+}
+
 const acceptOrder = async ()=>{
-    if (!uploadedFile.value?.file) {
-        useToast().add({ title: 'Veuillez joindre un document avant d\'accepter', color: 'red' })
+    if (!selectedFiles.value.length) {
+        useToast().add({ title: "Veuillez joindre au moins un document avant d'accepter", color: 'red' })
         return
     }
-    loadingAction.value = "accept" 
+    loadingAction.value = "accept"
     try {
-        const formData = new FormData()
-        formData.append('file', uploadedFile.value.file)
-        formData.append('_method','PUT')
-        const response = await sendApi(`/admin/visa/orders/${order.value.id}/accept`, formData, 'POST')
+        const response = await uploadOrderActionWithProgress(`/admin/visa/orders/${order.value.id}/accept`, selectedFiles.value)
         if (response) {
+            useToast().add({ title: response.message || 'Commande acceptée et documents envoyés', color: 'success' })
             openAccept.value = false
             orderAction.value = null
             resetUploadedFile()
@@ -753,8 +800,11 @@ const acceptOrder = async ()=>{
                 getOrders((pagination.value.pageIndex ?? 0) + 1)
             ])
         }
+    } catch (err) {
+        useToast().add({ title: err?.response?.data?.message || "Échec lors de l'envoi des documents", color: 'red' })
     } finally {
         loadingAction.value = null
+        uploadProgress.value = 0
     }
 }
 
@@ -774,15 +824,11 @@ const markAsPaid = async ()=>{
 }
 
 const rejectOrder = async ()=>{
-    loadingAction.value = "reject" 
+    loadingAction.value = "reject"
     try {
-        const formData = new FormData()
-        if(uploadedFile.value?.file){
-            formData.append('file', uploadedFile.value.file)
-        }
-        formData.append('_method','PUT')
-        const response = await sendApi(`/admin/visa/orders/${order.value.id}/reject`, formData, 'POST')
+        const response = await uploadOrderActionWithProgress(`/admin/visa/orders/${order.value.id}/reject`, selectedFiles.value)
         if (response) {
+            useToast().add({ title: response.message || 'Commande refusée avec succès', color: 'success' })
             openAccept.value = false
             orderAction.value = null
             resetUploadedFile()
@@ -791,8 +837,11 @@ const rejectOrder = async ()=>{
                 getOrders((pagination.value.pageIndex ?? 0) + 1)
             ])
         }
+    } catch (err) {
+        useToast().add({ title: err?.response?.data?.message || 'Échec lors du rejet de la commande', color: 'red' })
     } finally {
         loadingAction.value = null
+        uploadProgress.value = 0
     }
 }
 
