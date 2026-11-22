@@ -977,139 +977,124 @@
     </UModal>
 
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <!--  VISA SLIDEOVER & MODALS (PRESERVED INTACT)                             -->
+    <!--  SLIDEOVER: VISA ORDER DETAILS & RECEIVED DOCUMENTS (CLIENT / B2B)      -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <USlideover fullscreen v-model:open="open" close-icon="i-lucide-arrow-right" :close="{ color: 'secondary', class: 'cursor-pointer' }">
-      <template #header>
-        <div class="flex flex-col gap-2">
-          <div class="font-bold text-secondary">
-            <div>{{ order?.user?.name }}</div>
-          </div>
-          <UBadge class="w-fit font-bold" variant="subtle" :color="offerStatus?.color || 'primary'" :label="offerStatus?.label || 'En attente'" />
-        </div>
-      </template>
-      <template #body>
-        <div class="flex flex-col gap-5">
-          <div class="flex flex-col gap-2">
-            <p class="text-secondary">Visa:</p>
-            <div class="flex items-center gap-3">
-              <div class="w-6 h-6 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-gray-100 flex items-center justify-center">
-                <img v-if="order?.visa?.country?.flag" :src="order?.visa?.country?.flag" class="w-full h-full object-cover" />
-                <UIcon v-else name="i-heroicons-globe-alt" class="w-4 h-4 text-gray-400" />
+    <USlideover
+      v-model:open="showVisaDetails"
+      :close="false"
+      :ui="{ content: 'sm:max-w-xl max-w-full bg-white dark:bg-slate-900 shadow-2xl' }"
+    >
+      <template #content="{ close }">
+        <div v-if="selectedVisaOrder" class="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-100px)]">
+          <!-- Header Status & Offer -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-primary">#VISA-{{ selectedVisaOrder.id }}</span>
+              <div class="flex items-center gap-2">
+                <UBadge :color="getPackageStatusColor(selectedVisaOrder.status)" variant="subtle" size="sm" class="font-bold uppercase">
+                  {{ getPackageStatusLabel(selectedVisaOrder.status) }}
+                </UBadge>
+                <UButton size="xs" color="gray" variant="ghost" icon="i-heroicons-x-mark" @click="showVisaDetails = false" />
               </div>
-              <div>{{ order?.visa?.country?.name }}</div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 bg-white flex items-center justify-center">
+                <img v-if="selectedVisaOrder.offer?.flag" :src="selectedVisaOrder.offer.flag" class="w-full h-full object-cover" />
+                <UIcon v-else name="i-heroicons-identification" class="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 class="font-black text-slate-900 dark:text-white text-base leading-snug">{{ selectedVisaOrder.offer?.name || 'Visa' }}</h3>
+                <p class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                  <UIcon name="i-heroicons-map-pin" class="w-3.5 h-3.5 text-primary" />
+                  <span>{{ selectedVisaOrder.offer?.country || '-' }}</span>
+                </p>
+              </div>
             </div>
           </div>
-          <div class="flex flex-col gap-2">
-            <p class="text-secondary">Offre:</p>
-            <div>{{ order?.visa?.name }}</div>
-          </div>
-          <div class="flex flex-col gap-2">
-            <p class="text-secondary">Garantie:</p>
-            <div>{{ offerGuarantee }}</div>
-          </div>
-          <div class="flex flex-col gap-2">
-            <p class="text-secondary">Date:</p>
-            <NuxtTime :datetime="order?.created_at" locale="fr-FR" year="numeric" month="long" day="numeric" />
-          </div>
-          <div class="flex flex-col gap-2">
-            <p class="text-secondary">Prix unitaire:</p>
-            <div>{{ order?.price / (order?.members || 1) }} DZD</div>
-          </div>
-          <div class="flex flex-col gap-2">
-            <p class="text-secondary">Membres:</p>
-            <div>{{ order?.members }}</div>
-          </div>
-          <UBadge size="xl" color="success" variant="subtle" class="w-fit flex items-center gap-2">
-            <p class="text-secondary">Prix total:</p>
-            <div class="font-bold">{{ order?.price }} DZD</div>
-          </UBadge>
-        </div>
-      </template>
-      <template #footer>
-        <div v-if="order?.paiment_status === 'unpaid'" class="w-1/2">
-          <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'payer')" class="w-full align-middle font-bold" color="success">
-            <div class="w-full flex justify-between items-center">
-              <div>Payé</div>
-              <UIcon name="i-fluent-payment-24-filled" />
+
+          <!-- Summary Info -->
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-3 text-xs">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-slate-400 block text-[11px]">Date de soumission :</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ formatDate(selectedVisaOrder.created_at) }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">Date de réponse :</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ formatDateShort(selectedVisaOrder.response_by_date) }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">Demandeurs :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedVisaOrder.members || 1 }} personne(s)</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px]">Paiement :</span>
+                <UBadge :color="getPackagePaymentBadge(selectedVisaOrder.payment_status).color" variant="subtle" size="xs" class="font-bold">
+                  {{ getPackagePaymentBadge(selectedVisaOrder.payment_status).label }}
+                </UBadge>
+              </div>
             </div>
-          </UButton>
-        </div>
-        <div v-else-if="order?.status === 'pending' && order?.paiment_status === 'paid'" class="w-full flex gap-2 justify-between">
-          <UButton @click="openAccept = true" class="w-full align-middle font-bold" color="success">
-            <div class="w-full flex justify-between items-center">
-              <div>Accepter</div>
-              <UIcon name="i-icon-park-solid-correct" />
+            <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <span class="font-bold text-xs uppercase text-slate-700 dark:text-slate-300">Montant Total :</span>
+              <span class="text-lg font-black text-primary">{{ formatCurrency(selectedVisaOrder.total_price) }} DZD</span>
             </div>
-          </UButton>
-          <UButton :loading="loadingAction === 'reject'" loading-icon="i-lucide-loader-circle" @click="() => openConfirmation(order.id, 'rejeter')" class="w-full align-middle font-bold" color="error">
-            <div class="w-full flex justify-between items-center">
-              <div>Rejeter</div>
-              <UIcon name="i-emojione-monotone-heavy-multiplication-x" />
+          </div>
+
+          <!-- Traveler Submitted Documents -->
+          <div v-if="selectedVisaOrder.documents && selectedVisaOrder.documents.length > 0" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60">
+            <UButton
+              block
+              size="xs"
+              variant="soft"
+              color="primary"
+              icon="i-heroicons-folder-open"
+              @click="openTravelerDocs(selectedVisaOrder)"
+            >
+              Consulter les {{ selectedVisaOrder.documents.length }} document(s) soumis
+            </UButton>
+          </div>
+
+          <!-- Official Acceptance / Response Documents Received -->
+          <div class="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <h4 class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                <UIcon name="i-heroicons-document-arrow-down" class="w-4 h-4" />
+                Documents officiels reçus ({{ getAcceptanceDocs(selectedVisaOrder).length }})
+              </h4>
+              <span v-if="selectedVisaOrder.sent_at" class="text-[11px] text-emerald-700 dark:text-emerald-400">
+                Envoyé le {{ formatDate(selectedVisaOrder.sent_at) }}
+              </span>
             </div>
-          </UButton>
-        </div>
-        <div v-else class="w-1/2">
-          <UButton loading-icon="i-lucide-loader-circle" @click="openConfirmation(order.id, 'supprimer')" class="w-full align-middle font-bold" color="error">
-            <div class="w-full flex justify-between items-center">
-              <div>Supprimer</div>
-              <UIcon name="i-material-symbols-delete-outline" />
+
+            <div v-if="getAcceptanceDocs(selectedVisaOrder).length > 0" class="space-y-2">
+              <div
+                v-for="(doc, idx) in getAcceptanceDocs(selectedVisaOrder)"
+                :key="doc.id || idx"
+                class="flex items-center justify-between gap-2.5 p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-900 text-xs"
+              >
+                <div class="min-w-0 flex items-center gap-2">
+                  <UIcon name="i-heroicons-document-text" class="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-800 dark:text-slate-100 truncate" :title="doc.original_name">{{ doc.original_name }}</p>
+                    <p v-if="doc.size" class="text-[10px] text-slate-400">{{ formatBytes(doc.size) }}</p>
+                  </div>
+                </div>
+                <UButton
+                  size="xs"
+                  color="primary"
+                  icon="i-heroicons-arrow-down-tray"
+                  label="Télécharger"
+                  @click="downloadOrderDocument(doc)"
+                />
+              </div>
             </div>
-          </UButton>
+            <p v-else class="text-xs text-slate-500 dark:text-slate-400 italic">
+              Aucun document officiel envoyé pour le moment. Vous serez notifié dès que votre dossier sera traité.
+            </p>
+          </div>
         </div>
       </template>
     </USlideover>
-
-    <UModal v-model:open="openAccept" title="Confirmation de commande">
-      <template #body>
-        <div class="flex flex-col gap-5">
-          <div class="flex justify-center">
-            <label v-if="!uploadedFile.url" for="file">
-              <div class="cursor-pointer flex flex-col gap-2 justify-center items-center w-[200px] h-[100px] border-solid border-1 border-primary bg-primary/5 rounded-none">
-                <UIcon name="i-lineicons-upload" class="text-primary" size="30" />
-                <div class="text-primary text-sm font-bold">Télécharger un document</div>
-              </div>
-              <UInput type="file" class="hidden" id="file" @change="onFileChange" />
-            </label>
-            <div v-else class="flex items-start" style="margin-top: 20px;">
-              <ULink :to="uploadedFile.url">
-                <UIcon name="i-teenyicons-pdf-solid" class="text-secondary" size="100" />
-              </ULink>
-              <UIcon 
-                name="i-material-symbols-cancel" 
-                class="cursor-pointer text-error"
-                @click="() => {
-                  uploadedFile.url = null
-                  uploadedFile.file = null 
-                }"
-              />
-            </div>
-          </div>
-          <div class="flex justify-center">
-            <UButton loading-icon="i-lucide-loader-circle" :loading="loadingAction === 'accept'" @click="acceptOrder" label="Envoyer" color="primary" class="font-bold w-fit" />
-          </div>
-        </div>
-      </template>
-    </UModal>
-
-    <UModal v-model:open="openInvoice" title="Ajouter une facture">
-      <template #body>
-        <div class="flex flex-col gap-5">
-          <UFormField :ui="{ label: 'text-secondary' }" label="Adresse" name="address">
-            <UInput placeholder="Adresse" v-model="bank_info.address" class="lg:w-100 md:w-80 w-60" />
-          </UFormField>
-          <UFormField :ui="{ label: 'text-secondary' }" label="Clé" name="key">
-            <UInput placeholder="Clé" v-model="bank_info.key" class="lg:w-100 md:w-80 w-60" />
-          </UFormField>
-          <UFormField :ui="{ label: 'text-secondary' }" label="RIB" name="rib">
-            <UInput placeholder="RIB" v-model="bank_info.rib" class="lg:w-100 md:w-80 w-60" />
-          </UFormField>
-          <div class="flex justify-center">
-            <UButton loading-icon="i-lucide-loader-circle" :loading="loadingAction === 'invoice'" @click="createInvoice()" label="Ajouter" color="primary" class="font-bold w-fit" />
-          </div>
-        </div>
-      </template>
-    </UModal>
 
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <!--  SLIDEOVER: OMRA / VOYAGE PACKAGE DETAILS                               -->
@@ -1216,8 +1201,8 @@
           <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 space-y-2.5">
             <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center justify-between">
               <span>Tarification & Règlement</span>
-              <UBadge :color="selectedPackageOrder.payment_status === 'paid' ? 'emerald' : 'rose'" variant="subtle" size="xs">
-                {{ selectedPackageOrder.payment_status === 'paid' ? 'Payé' : 'Non Payé' }}
+              <UBadge :color="getPackagePaymentBadge(selectedPackageOrder.payment_status).color" variant="subtle" size="xs">
+                {{ getPackagePaymentBadge(selectedPackageOrder.payment_status).label }}
               </UBadge>
             </h4>
             <div class="flex justify-between items-center text-xs text-slate-500">
@@ -1230,18 +1215,42 @@
             </div>
           </div>
 
-          <!-- Actions -->
-          <div class="space-y-2.5">
-            <UButton
-              v-if="selectedPackageOrder.attachment"
-              block
-              color="primary"
-              icon="i-heroicons-arrow-down-tray"
-              class="font-bold"
-              @click="openUrl(selectedPackageOrder.attachment)"
-            >
-              Télécharger le document officiel attaché
-            </UButton>
+          <!-- Official Acceptance / Response Documents Received -->
+          <div class="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <h4 class="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                <UIcon name="i-heroicons-document-arrow-down" class="w-4 h-4" />
+                Documents officiels reçus ({{ getAcceptanceDocs(selectedPackageOrder).length }})
+              </h4>
+              <span v-if="selectedPackageOrder.sent_at" class="text-[11px] text-emerald-700 dark:text-emerald-400">
+                Envoyé le {{ formatDate(selectedPackageOrder.sent_at) }}
+              </span>
+            </div>
+            <div v-if="getAcceptanceDocs(selectedPackageOrder).length > 0" class="space-y-2">
+              <div
+                v-for="(doc, idx) in getAcceptanceDocs(selectedPackageOrder)"
+                :key="doc.id || idx"
+                class="flex items-center justify-between gap-2.5 p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-900 text-xs"
+              >
+                <div class="min-w-0 flex items-center gap-2">
+                  <UIcon name="i-heroicons-document-text" class="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-800 dark:text-slate-100 truncate" :title="doc.original_name">{{ doc.original_name }}</p>
+                    <p v-if="doc.size" class="text-[10px] text-slate-400">{{ formatBytes(doc.size) }}</p>
+                  </div>
+                </div>
+                <UButton
+                  size="xs"
+                  color="primary"
+                  icon="i-heroicons-arrow-down-tray"
+                  label="Télécharger"
+                  @click="downloadOrderDocument(doc)"
+                />
+              </div>
+            </div>
+            <p v-else class="text-xs text-slate-500 dark:text-slate-400 italic">
+              Aucun document officiel reçu pour le moment. Ils apparaîtront ici dès l'acceptation du dossier.
+            </p>
           </div>
         </div>
       </template>
@@ -1258,20 +1267,20 @@
             :key="dIdx" 
             class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
           >
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
               <UIcon name="i-heroicons-document-text" class="w-5 h-5 text-primary shrink-0" />
-              <div>
-                <span class="font-bold text-slate-800 dark:text-slate-200 block">{{ doc.name || `Document ${dIdx + 1}` }}</span>
-                <span class="text-[11px] text-slate-400">{{ doc.type || 'Fichier joint' }}</span>
+              <div class="min-w-0">
+                <span class="font-bold text-slate-800 dark:text-slate-200 block truncate">{{ getTravelerDocLabel(doc, dIdx) }}</span>
+                <span class="text-[11px] text-slate-400">{{ typeof doc === 'string' ? 'Document soumis' : (doc.type || 'Fichier joint') }}</span>
               </div>
             </div>
             <UButton
-              v-if="doc.file || doc.path || doc.url"
+              v-if="getTravelerDocUrl(doc)"
               size="xs"
               variant="outline"
               color="primary"
               icon="i-heroicons-arrow-top-right-on-square"
-              @click="openUrl(doc.file || doc.path || doc.url)"
+              @click="openUrl(getTravelerDocUrl(doc))"
             >
               Voir
             </UButton>
@@ -1800,17 +1809,8 @@ const columns = [
     accessorKey: 'payment_status',
     header: 'Paiement',
     cell: ({ row }) => {
-      const color = {
-        paid: 'success',
-        unpaid: 'error',
-      }[row.getValue('payment_status')]
-
-      const status = {
-        paid: 'Payé',
-        unpaid: 'Non payé',
-      }[row.getValue('payment_status')]
-
-      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color }, status)
+      const badge = getPackagePaymentBadge(row.getValue('payment_status'))
+      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: badge.color }, badge.label)
     }
   },
   {
@@ -1832,23 +1832,32 @@ const columns = [
     }
   },
   {
-    accessorKey: "attachment",
-    header: "Attachement",
+    id: 'visa_actions',
+    header: 'Documents & Détails',
     cell: ({ row }) => {
-      return h(
-        'div',
-        { class: "text-center" },
-        row.original.attachment ?
+      const docs = getAcceptanceDocs(row.original)
+      const nodes = [
         h(UIcon, {
-          name: "i-teenyicons-attachment-solid",
-          size: "17",
-          class: "cursor-pointer text-primary",
-          onClick: () => {
-            const url = row.original.attachment
-            window.open(url, "_blank")
-          }
-        }) : "Aucun"
-      )
+          name: 'i-heroicons-eye',
+          class: 'w-4 h-4 text-primary hover:text-primary-hover cursor-pointer transition-colors',
+          title: 'Voir les détails et documents du dossier',
+          onClick: () => openVisaDrawer(row.original)
+        })
+      ]
+      if (docs.length > 0) {
+        nodes.push(
+          h('button', {
+            type: 'button',
+            class: 'inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold cursor-pointer hover:bg-emerald-100 transition-colors',
+            title: `${docs.length} document(s) reçu(s)`,
+            onClick: () => docs.length === 1 ? downloadOrderDocument(docs[0]) : openVisaDrawer(row.original)
+          }, [
+            h(UIcon, { name: 'i-heroicons-document-arrow-down', class: 'w-3.5 h-3.5' }),
+            `${docs.length}`
+          ])
+        )
+      }
+      return h('div', { class: 'flex items-center gap-2 justify-center' }, nodes)
     }
   }
 ]
@@ -1999,25 +2008,88 @@ const onPageChange = async (page) => {
 //  OMRA & VOYAGE STATE, COLUMNS & METHODS
 // ═════════════════════════════════════════════════════════════════════════════
 
-// Package Slideover & Docs Modal State
+// Package & Visa Slideover + Docs Helpers
+const showVisaDetails = ref(false)
+const selectedVisaOrder = ref(null)
 const showPackageDetails = ref(false)
 const selectedPackageOrder = ref(null)
 const showDocsModal = ref(false)
 const selectedDocs = ref([])
 
-function openPackageDrawer(order, serviceType) {
-  selectedPackageOrder.value = { ...order, service_type: serviceType }
+function openVisaDrawer(orderRow) {
+  selectedVisaOrder.value = orderRow
+  showVisaDetails.value = true
+}
+
+function openPackageDrawer(orderRow, serviceType) {
+  selectedPackageOrder.value = { ...orderRow, service_type: serviceType }
   showPackageDetails.value = true
 }
 
-function openTravelerDocs(order) {
-  selectedDocs.value = order?.documents || []
+function openTravelerDocs(orderRow) {
+  selectedDocs.value = orderRow?.documents || []
   showDocsModal.value = true
+}
+
+function getAcceptanceDocs(orderRow) {
+  if (!orderRow) return []
+  if (Array.isArray(orderRow.acceptance_documents) && orderRow.acceptance_documents.length > 0) {
+    return orderRow.acceptance_documents
+  }
+  if (orderRow.attachment && orderRow.attachment !== '-') {
+    return [{
+      id: `legacy-${orderRow.id}`,
+      original_name: 'Document officiel',
+      signed_url: orderRow.attachment,
+      download_url: orderRow.attachment,
+      size: 0,
+    }]
+  }
+  return []
+}
+
+function downloadOrderDocument(doc) {
+  const target = doc?.signed_url || doc?.download_url
+  if (!target) return
+  window.open(target, '_blank', 'noopener')
+}
+
+function getTravelerDocUrl(doc) {
+  if (!doc) return null
+  if (typeof doc === 'string') return doc
+  return doc.url || doc.file || doc.path || null
+}
+
+function getTravelerDocLabel(doc, idx) {
+  if (typeof doc === 'string') {
+    const clean = doc.split('?')[0].split('/').pop()
+    return clean || `Document ${idx + 1}`
+  }
+  return doc?.name || `Document ${idx + 1}`
+}
+
+function formatBytes(bytes) {
+  const n = Number(bytes || 0)
+  if (n < 1024) return `${n} o`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} Ko`
+  return `${(n / (1024 * 1024)).toFixed(2)} Mo`
+}
+
+function getPackagePaymentBadge(status) {
+  switch (status) {
+    case 'paid': return { color: 'emerald', label: 'Payé' }
+    case 'half_paid':
+    case 'partially_paid': return { color: 'amber', label: 'Partiellement payé' }
+    case 'refunded': return { color: 'purple', label: 'Remboursé' }
+    case 'pending_payment':
+    case 'verification_pending': return { color: 'blue', label: 'En vérification' }
+    default: return { color: 'rose', label: 'Non payé' }
+  }
 }
 
 function openUrl(url) {
   if (!url) return
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener')
 }
 
 function getPackageStatusColor(status) {
@@ -2162,8 +2234,8 @@ const omraColumns = [
     accessorKey: 'payment_status',
     header: 'Paiement',
     cell: ({ row }) => {
-      const paid = row.original.payment_status === 'paid'
-      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: paid ? 'emerald' : 'rose' }, paid ? 'Payé' : 'Non payé')
+      const badge = getPackagePaymentBadge(row.original.payment_status)
+      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: badge.color }, badge.label)
     }
   },
   {
@@ -2171,6 +2243,7 @@ const omraColumns = [
     header: 'Actions',
     cell: ({ row }) => {
       const icons = []
+      const accDocs = getAcceptanceDocs(row.original)
       icons.push(
         h(UIcon, {
           name: 'i-heroicons-eye',
@@ -2189,14 +2262,17 @@ const omraColumns = [
           })
         )
       }
-      if (row.original?.attachment) {
+      if (accDocs.length > 0) {
         icons.push(
-          h(UIcon, {
-            name: 'i-teenyicons-attachment-solid',
-            class: 'w-4 h-4 text-sky-600 hover:text-sky-700 cursor-pointer transition-colors',
-            title: 'Télécharger la pièce jointe',
-            onClick: () => openUrl(row.original.attachment)
-          })
+          h('button', {
+            type: 'button',
+            class: 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold cursor-pointer hover:bg-emerald-100',
+            title: `${accDocs.length} document(s) officiel(s) disponible(s)`,
+            onClick: () => openPackageDrawer(row.original, 'omra')
+          }, [
+            h(UIcon, { name: 'i-heroicons-document-arrow-down', class: 'w-3.5 h-3.5' }),
+            `${accDocs.length}`
+          ])
         )
       }
       return h('div', { class: 'flex items-center gap-2 justify-center' }, icons)
@@ -2318,8 +2394,8 @@ const voyageColumns = [
     accessorKey: 'payment_status',
     header: 'Paiement',
     cell: ({ row }) => {
-      const paid = row.original.payment_status === 'paid'
-      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: paid ? 'emerald' : 'rose' }, paid ? 'Payé' : 'Non payé')
+      const badge = getPackagePaymentBadge(row.original.payment_status)
+      return h(UBadge, { class: 'capitalize font-bold', variant: 'soft', color: badge.color }, badge.label)
     }
   },
   {
@@ -2327,6 +2403,7 @@ const voyageColumns = [
     header: 'Actions',
     cell: ({ row }) => {
       const icons = []
+      const accDocs = getAcceptanceDocs(row.original)
       icons.push(
         h(UIcon, {
           name: 'i-heroicons-eye',
@@ -2345,14 +2422,17 @@ const voyageColumns = [
           })
         )
       }
-      if (row.original?.attachment) {
+      if (accDocs.length > 0) {
         icons.push(
-          h(UIcon, {
-            name: 'i-teenyicons-attachment-solid',
-            class: 'w-4 h-4 text-sky-600 hover:text-sky-700 cursor-pointer transition-colors',
-            title: 'Télécharger la pièce jointe',
-            onClick: () => openUrl(row.original.attachment)
-          })
+          h('button', {
+            type: 'button',
+            class: 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold cursor-pointer hover:bg-emerald-100',
+            title: `${accDocs.length} document(s) officiel(s) disponible(s)`,
+            onClick: () => openPackageDrawer(row.original, 'voyage')
+          }, [
+            h(UIcon, { name: 'i-heroicons-document-arrow-down', class: 'w-3.5 h-3.5' }),
+            `${accDocs.length}`
+          ])
         )
       }
       return h('div', { class: 'flex items-center gap-2 justify-center' }, icons)

@@ -95,6 +95,73 @@
                 <div class="hidden md:flex items-center gap-3">
                     <DarkModeToggle />
 
+                    <!-- In-App Notifications Bell (Logged-in Clients & B2B Agencies) -->
+                    <div v-if="token" class="relative">
+                        <button
+                            type="button"
+                            class="relative w-10 h-10 flex items-center justify-center border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-secondary dark:text-white hover:text-primary hover:border-primary transition-colors cursor-pointer"
+                            title="Notifications"
+                            aria-label="Notifications"
+                            @click="toggleNotifications"
+                        >
+                            <Icon name="i-heroicons-bell" class="w-5 h-5" />
+                            <span
+                                v-if="unreadNotifications > 0"
+                                class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center"
+                            >
+                                {{ unreadNotifications > 9 ? '9+' : unreadNotifications }}
+                            </span>
+                        </button>
+
+                        <Transition name="user-dropdown">
+                            <div
+                                v-if="showNotifications"
+                                class="absolute right-0 top-full pt-3 w-80 sm:w-96 z-50"
+                            >
+                                <div class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 border-t-2 border-t-primary shadow-2xl overflow-hidden">
+                                    <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                                        <span class="text-xs font-bold uppercase tracking-wider text-secondary dark:text-white">
+                                            Notifications ({{ unreadNotifications }} non lue{{ unreadNotifications > 1 ? 's' : '' }})
+                                        </span>
+                                        <button
+                                            v-if="unreadNotifications > 0"
+                                            type="button"
+                                            class="text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                                            @click="markAllNotificationsRead"
+                                        >
+                                            Tout marquer lu
+                                        </button>
+                                    </div>
+                                    <div v-if="notificationsLoading && !notificationsList.length" class="p-6 text-center text-xs text-gray-400">
+                                        Chargement...
+                                    </div>
+                                    <div v-else-if="!notificationsList.length" class="p-6 text-center text-xs text-gray-400">
+                                        Aucune notification pour le moment.
+                                    </div>
+                                    <div v-else class="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-800">
+                                        <button
+                                            v-for="notif in notificationsList"
+                                            :key="notif.id"
+                                            type="button"
+                                            class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800/70 transition-colors cursor-pointer flex items-start gap-2.5"
+                                            :class="!notif.read_at ? 'bg-primary/[0.04] dark:bg-primary/[0.08]' : ''"
+                                            @click="openNotification(notif)"
+                                        >
+                                            <span
+                                                class="w-2 h-2 rounded-full mt-1.5 shrink-0"
+                                                :class="!notif.read_at ? 'bg-primary' : 'bg-transparent'"
+                                            ></span>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-xs font-bold text-secondary dark:text-white truncate">{{ notif.title }}</p>
+                                                <p class="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-2">{{ notif.message }}</p>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </Transition>
+                    </div>
+
                     <!-- User Menu Dropdown -->
                     <div v-if="token" class="relative">
                         <button 
@@ -421,11 +488,76 @@ const toggleMobileServices = (e) => {
 
 onMounted(() => {
     isMounted.value = true
+    if (token.value) {
+        fetchNotifications()
+    }
+})
+
+// In-app Notifications (T8)
+const showNotifications = ref(false)
+const notificationsLoading = ref(false)
+const notificationsList = ref([])
+const unreadNotifications = ref(0)
+
+const fetchNotifications = async () => {
+    if (!token.value) return
+    notificationsLoading.value = true
+    try {
+        const res = await sendApi('/client/notifications', null, 'GET', { silent: true })
+        if (res?.data) {
+            notificationsList.value = res.data.notifications || []
+            unreadNotifications.value = Number(res.data.unread_count || 0)
+        }
+    } catch (e) {
+        // silent fail for header badge
+    } finally {
+        notificationsLoading.value = false
+    }
+}
+
+const toggleNotifications = () => {
+    showNotifications.value = !showNotifications.value
+    if (showNotifications.value) {
+        fetchNotifications()
+    }
+}
+
+const openNotification = async (notif) => {
+    showNotifications.value = false
+    if (notif?.id && !notif.read_at) {
+        try {
+            const res = await sendApi(`/client/notifications/${notif.id}/read`, {}, 'POST', { silent: true })
+            notif.read_at = new Date().toISOString()
+            if (res?.data?.unread_count !== undefined) {
+                unreadNotifications.value = Number(res.data.unread_count)
+            } else {
+                unreadNotifications.value = Math.max(0, unreadNotifications.value - 1)
+            }
+        } catch (e) {}
+    }
+    router.push(notif?.action_url || '/client/orders')
+}
+
+const markAllNotificationsRead = async () => {
+    try {
+        await sendApi('/client/notifications/read-all', {}, 'POST', { silent: true })
+        unreadNotifications.value = 0
+        notificationsList.value.forEach((n) => { n.read_at = n.read_at || new Date().toISOString() })
+    } catch (e) {}
+}
+
+watch(token, (val) => {
+    if (val) fetchNotifications()
+    else {
+        notificationsList.value = []
+        unreadNotifications.value = 0
+    }
 })
 
 // Automatically close mobile menu on any navigation
 router.afterEach(() => {
     showMenu.value = false
+    showNotifications.value = false
 })
 
 // Always keep services open when navigating to /services
