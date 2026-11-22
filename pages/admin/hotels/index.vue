@@ -764,12 +764,30 @@
               <p class="font-bold text-slate-800 dark:text-slate-200">Mode Environnement de Production</p>
               <p class="text-[11px] text-slate-400">Activé = Réservations réelles Netstorming avec émission de code voucher officiel.</p>
             </div>
-            <UToggle v-model="settingsForm.is_live_mode" />
+            <USwitch v-model="settingsForm.is_live_mode" />
           </div>
         </div>
 
         <!-- Tab 3: Automation & Security -->
         <div v-show="settingsTab === 'automation'" class="space-y-4 text-xs">
+          <!-- Same-day booking policy (Africa/Algiers business timezone) -->
+          <div class="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 space-y-3">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="font-bold text-slate-800 dark:text-slate-100">Autoriser les réservations le jour même (Same-Day)</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Permet de rechercher et réserver avec une date d'arrivée = aujourd'hui (fuseau horaire : Algérie).</p>
+              </div>
+              <USwitch v-model="settingsForm.same_day_booking_enabled" />
+            </div>
+            <div v-if="settingsForm.same_day_booking_enabled" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-200/60 dark:border-amber-800/40">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Heure limite (Cut-off, Heure d'Algérie) :</label>
+                <UInput v-model="settingsForm.same_day_cutoff_time" type="time" />
+                <span class="text-[10px] text-slate-500 mt-0.5 block">Au-delà de cette heure (ex. 18:00), les arrivées le jour même sont basculées vers demain.</span>
+              </div>
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Délai d'annulation auto impayés (heures) :</label>
@@ -951,6 +969,8 @@ const settingsForm = ref({
   is_live_mode: true,
   auto_cancel_unpaid_hours: 24,
   auto_sync_interval_minutes: 15,
+  same_day_booking_enabled: true,
+  same_day_cutoff_time: '18:00',
   emergency_phone: '+213 (0) 770 20 20 84',
   emergency_email: 'hotels@bouazizetravel.com',
 });
@@ -973,6 +993,8 @@ function openSettingsModal() {
       is_live_mode: settings.value.is_live_mode !== false,
       auto_cancel_unpaid_hours: Number(settings.value.auto_cancel_unpaid_hours ?? 24),
       auto_sync_interval_minutes: Number(settings.value.auto_sync_interval_minutes ?? 15),
+      same_day_booking_enabled: settings.value.same_day_booking_enabled !== false,
+      same_day_cutoff_time: settings.value.same_day_cutoff_time || '18:00',
       emergency_phone: settings.value.emergency_phone || '+213 (0) 770 20 20 84',
       emergency_email: settings.value.emergency_email || 'hotels@bouazizetravel.com',
     };

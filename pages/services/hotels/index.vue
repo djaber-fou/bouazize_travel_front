@@ -177,7 +177,7 @@
                 v-model="hotelStore.searchForm.check_in"
                 type="date"
                 class="form-ctrl date-ctrl"
-                :min="tomorrow"
+                :min="minCheckinDate"
                 @change="onDateChange"
               />
             </div>
@@ -701,6 +701,13 @@ async function loadDestinationStats() {
     if (res?.data?.worldwide_inventory_count) {
       hotelsTotal.value = res.data.worldwide_inventory_count;
     }
+    if (res?.data?.min_check_in_date) {
+      serverMinCheckin.value = res.data.min_check_in_date;
+      if (hotelStore.searchForm.check_in && hotelStore.searchForm.check_in < serverMinCheckin.value) {
+        hotelStore.searchForm.check_in = serverMinCheckin.value;
+        hotelStore.searchForm.check_out = addDaysLocal(serverMinCheckin.value, Math.max(1, nights.value || 1));
+      }
+    }
   } catch { /* keep placeholder */ }
 }
 const geocodage              = ref('');
@@ -748,16 +755,12 @@ onMounted(() => {
     hotelStore.searchForm.nationality = 'DZ';
   }
 
-  // Pre-fill dates if empty: Check-in = +10 days, Check-out = +12 days (matching reference)
-  if (!hotelStore.searchForm.check_in) {
-    const d1 = new Date();
-    d1.setDate(d1.getDate() + 10);
-    hotelStore.searchForm.check_in = d1.toISOString().split('T')[0];
+  // Pre-fill dates if empty or persisted check-in is in the past (local timezone, no UTC shift)
+  if (!hotelStore.searchForm.check_in || hotelStore.searchForm.check_in < minCheckinDate.value) {
+    hotelStore.searchForm.check_in = addDaysLocal(minCheckinDate.value, hotelStore.searchForm.check_in ? 0 : 10);
   }
-  if (!hotelStore.searchForm.check_out) {
-    const d2 = new Date();
-    d2.setDate(d2.getDate() + 12);
-    hotelStore.searchForm.check_out = d2.toISOString().split('T')[0];
+  if (!hotelStore.searchForm.check_out || hotelStore.searchForm.check_out <= hotelStore.searchForm.check_in) {
+    hotelStore.searchForm.check_out = addDaysLocal(hotelStore.searchForm.check_in, 2);
   }
 
   // Pre-fill destination if already selected
@@ -824,19 +827,20 @@ onMounted(() => {
 });
 
 // ── Computed ───────────────────────────────────────────────────────────
-const tomorrow = computed(() => {
+const serverMinCheckin = ref('');
+
+const todayLocal = computed(() => {
   const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().split('T')[0];
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 });
+
+const minCheckinDate = computed(() => serverMinCheckin.value || todayLocal.value);
 
 const minCheckout = computed(() => {
   if (hotelStore.searchForm.check_in) {
-    const d = new Date(hotelStore.searchForm.check_in);
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
+    return addDaysLocal(hotelStore.searchForm.check_in, 1);
   }
-  return tomorrow.value;
+  return addDaysLocal(minCheckinDate.value, 1);
 });
 
 const canSearch = computed(() => {

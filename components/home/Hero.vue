@@ -388,6 +388,13 @@ onMounted(async () => {
         if (res?.data?.worldwide_inventory_count) {
             hotelsTotal.value = res.data.worldwide_inventory_count
         }
+        if (res?.data?.min_check_in_date) {
+            minDate.value = res.data.min_check_in_date
+            if (!checkIn.value || checkIn.value < minDate.value) {
+                checkIn.value = minDate.value
+                checkOut.value = addDaysYmd(minDate.value, 1)
+            }
+        }
     } catch { /* keep placeholder */ }
 })
 
@@ -400,11 +407,17 @@ const selectedHotelId = ref(null)
 const selectedHotelName = ref('')
 const showSuggestions = ref(false)
 
-const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
-const defaultIn = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
-const defaultOut = new Date(Date.now() + 12 * 86400000).toISOString().split('T')[0]
+function localTodayYmd(offsetDays = 0) {
+    const dt = new Date()
+    dt.setDate(dt.getDate() + offsetDays)
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+}
 
-const minDate = ref(tomorrow)
+const todayLocal = localTodayYmd(0)
+const defaultIn = localTodayYmd(7)
+const defaultOut = localTodayYmd(12)
+
+const minDate = ref(todayLocal)
 const checkIn = ref(defaultIn)
 const checkOut = ref(defaultOut)
 const adults = ref(2)
