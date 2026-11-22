@@ -3,18 +3,119 @@
     <!-- Header -->
     <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 p-6 rounded-none shadow-sm border border-gray-100 dark:border-slate-800">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Paiements CCP</h1>
-        <p class="text-gray-500 dark:text-slate-400 text-sm mt-1">Gérez et vérifiez les paiements par BaridiMob / CCP.</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Gestion des Paiements (CCP &amp; SATIM CIB/Edahabia)</h1>
+        <p class="text-gray-500 dark:text-slate-400 text-sm mt-1">Vérifiez les virements CCP/BaridiMob et suivez ou remboursez les transactions monétiques SATIM-EPG.</p>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="inline-flex rounded-lg border border-gray-200 dark:border-slate-700 p-1 bg-gray-50 dark:bg-slate-800">
+          <button
+            type="button"
+            class="px-3.5 py-1.5 text-xs font-bold rounded-md transition-colors cursor-pointer"
+            :class="activeGatewayTab === 'ccp' ? 'bg-primary text-white shadow-xs' : 'text-gray-600 dark:text-slate-300'"
+            @click="activeGatewayTab = 'ccp'"
+          >
+            Virements CCP / BaridiMob
+          </button>
+          <button
+            type="button"
+            class="px-3.5 py-1.5 text-xs font-bold rounded-md transition-colors cursor-pointer"
+            :class="activeGatewayTab === 'satim' ? 'bg-primary text-white shadow-xs' : 'text-gray-600 dark:text-slate-300'"
+            @click="switchToSatimTab"
+          >
+            Transactions SATIM (CIB / Edahabia)
+          </button>
+        </div>
         <UButton color="gray" variant="outline" icon="i-heroicons-cog" to="/s3t4t5i6n">
           Paramètres CCP
         </UButton>
-        <UButton color="gray" variant="ghost" icon="i-heroicons-arrow-path" @click="fetchPayments" :loading="pending">
+        <UButton color="gray" variant="ghost" icon="i-heroicons-arrow-path" @click="activeGatewayTab === 'satim' ? fetchSatimPayments() : fetchPayments()" :loading="pending || satimPending">
           Actualiser
         </UButton>
       </div>
     </div>
+
+    <!-- SATIM Transactions Tab (Certification & Refund Management) -->
+    <div v-if="activeGatewayTab === 'satim'" class="flex flex-col gap-4">
+      <div class="bg-white dark:bg-slate-900 rounded-none shadow-sm border border-gray-100 dark:border-slate-800 p-4 flex flex-col sm:flex-row flex-wrap gap-4 items-start sm:items-center">
+        <UInput v-model="satimFilters.search" icon="i-heroicons-magnifying-glass" placeholder="Rechercher par orderId SATIM, orderNumber, code d'autorisation..." class="w-full sm:w-80" @keyup.enter="fetchSatimPayments" />
+        <USelect v-model="satimFilters.status" :items="satimStatusOptions" @update:model-value="fetchSatimPayments" class="w-48" />
+        <UButton color="primary" variant="soft" icon="i-heroicons-magnifying-glass" @click="fetchSatimPayments">Filtrer</UButton>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 rounded-none shadow-sm border border-gray-100 dark:border-slate-800 overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 uppercase text-[11px] border-b border-gray-200 dark:border-slate-700">
+            <tr>
+              <th class="px-4 py-3">ID &amp; Service</th>
+              <th class="px-4 py-3">orderNumber (AN..10)</th>
+              <th class="px-4 py-3">orderId SATIM (mdOrder)</th>
+              <th class="px-4 py-3">Autorisation</th>
+              <th class="px-4 py-3">Montant</th>
+              <th class="px-4 py-3">Statut</th>
+              <th class="px-4 py-3">Message SATIM (respCode_desc)</th>
+              <th class="px-4 py-3 text-right">Actions SATIM</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-slate-800">
+            <tr v-if="satimPending">
+              <td colspan="8" class="px-4 py-10 text-center text-gray-400">Chargement des transactions SATIM...</td>
+            </tr>
+            <tr v-else-if="!satimPayments.length">
+              <td colspan="8" class="px-4 py-12 text-center text-gray-400">Aucune transaction SATIM enregistrée.</td>
+            </tr>
+            <tr v-for="sp in satimPayments" :key="sp.id" class="hover:bg-gray-50/60 dark:hover:bg-slate-800/40">
+              <td class="px-4 py-3 font-medium">
+                <div class="font-bold text-gray-900 dark:text-white">#{{ sp.id }} · {{ sp.order_type }} #{{ sp.order_id }}</div>
+                <div class="text-[11px] text-gray-400">{{ sp.created_at ? new Date(sp.created_at).toLocaleString('fr-FR') : '-' }}</div>
+              </td>
+              <td class="px-4 py-3 font-mono font-bold text-primary">{{ sp.payment_reference || sp.gateway_response?.OrderNumber || sp.gateway_response?.orderNumber || sp.order_reference }}</td>
+              <td class="px-4 py-3 font-mono text-gray-800 dark:text-slate-200">{{ sp.gateway_transaction_id || '-' }}</td>
+              <td class="px-4 py-3 font-mono font-bold text-emerald-600">{{ sp.receipt_number || '-' }}</td>
+              <td class="px-4 py-3 font-bold text-gray-900 dark:text-white">
+                {{ formatPrice(sp.amount) }} DZD
+                <div v-if="sp.refund_amount" class="text-[10px] text-rose-600">Remboursé: {{ formatPrice(sp.refund_amount) }} DZD</div>
+              </td>
+              <td class="px-4 py-3">
+                <UBadge :color="getSatimStatusColor(sp.status)" variant="subtle">{{ sp.status }}</UBadge>
+              </td>
+              <td class="px-4 py-3 max-w-xs truncate" :title="sp.failure_reason || sp.gateway_response?.params?.respCode_desc || sp.gateway_response?.respCode_desc || ''">
+                {{ sp.failure_reason || sp.gateway_response?.params?.respCode_desc || sp.gateway_response?.respCode_desc || sp.gateway_response?.actionCodeDescription || '-' }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex items-center justify-end gap-1.5">
+                  <UButton
+                    v-if="sp.gateway_transaction_id"
+                    size="xs"
+                    color="gray"
+                    variant="outline"
+                    icon="i-heroicons-arrow-path"
+                    :loading="syncingSatimId === sp.id"
+                    title="Synchroniser l'état depuis SATIM (acknowledgeTransaction.do)"
+                    @click="syncSatimTransaction(sp)"
+                  >
+                    Sync
+                  </UButton>
+                  <UButton
+                    v-if="sp.status === 'paid' || sp.status === 'refund_pending'"
+                    size="xs"
+                    color="red"
+                    variant="soft"
+                    icon="i-heroicons-arrow-uturn-left"
+                    :loading="refundingSatimId === sp.id"
+                    title="Rembourser via SATIM refund.do"
+                    @click="refundSatimTransaction(sp)"
+                  >
+                    Rembourser
+                  </UButton>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <template v-if="activeGatewayTab === 'ccp'">
 
     <!-- Filters -->
     <div class="bg-white dark:bg-slate-900 rounded-none shadow-sm border border-gray-100 dark:border-slate-800 p-4 flex flex-col sm:flex-row flex-wrap gap-4 items-start sm:items-center">
@@ -44,6 +145,7 @@
         />
       </div>
     </div>
+    </template>
 
     <!-- Reject Modal -->
     <UModal v-model:open="isRejectModalOpen" title="Rejeter le paiement">
@@ -434,6 +536,85 @@ const submitReject = async () => {
     }
   } finally {
     isRejecting.value = false
+  }
+}
+
+const activeGatewayTab = ref('ccp')
+const satimPayments = ref([])
+const satimPending = ref(false)
+const syncingSatimId = ref(null)
+const refundingSatimId = ref(null)
+const satimFilters = ref({
+  search: '',
+  status: 'all'
+})
+const satimStatusOptions = [
+  { label: 'Tous les statuts', value: 'all' },
+  { label: 'Payé (paid)', value: 'paid' },
+  { label: 'En attente (pending)', value: 'pending' },
+  { label: 'Refusé (failed)', value: 'failed' },
+  { label: 'Annulé (cancelled)', value: 'cancelled' },
+  { label: 'Expiré (expired)', value: 'expired' },
+  { label: 'Remboursé (refunded)', value: 'refunded' }
+]
+
+const getSatimStatusColor = (st) => ({
+  paid: 'green',
+  pending: 'yellow',
+  failed: 'red',
+  cancelled: 'gray',
+  expired: 'orange',
+  refunded: 'blue',
+  refund_pending: 'amber'
+}[st] || 'gray')
+
+const switchToSatimTab = () => {
+  activeGatewayTab.value = 'satim'
+  if (!satimPayments.value.length) {
+    fetchSatimPayments()
+  }
+}
+
+const fetchSatimPayments = async () => {
+  satimPending.value = true
+  try {
+    const q = `status=${encodeURIComponent(satimFilters.value.status)}&search=${encodeURIComponent(satimFilters.value.search)}&per_page=50`
+    const res = await sendApi(`/admin/payments/cib?${q}`, null, 'GET', { silent: true })
+    if (res?.data) {
+      satimPayments.value = res.data.data || res.data || []
+    }
+  } catch (err) {
+    toast.add({ title: 'Erreur lors du chargement des transactions SATIM', color: 'red' })
+  } finally {
+    satimPending.value = false
+  }
+}
+
+const syncSatimTransaction = async (sp) => {
+  syncingSatimId.value = sp.id
+  try {
+    const res = await sendApi(`/admin/payments/cib/${sp.id}/sync`, {}, 'POST')
+    toast.add({ title: res?.message || 'Transaction synchronisée avec SATIM', color: 'green' })
+    await fetchSatimPayments()
+  } catch (err) {
+    // toast shown by sendApi
+  } finally {
+    syncingSatimId.value = null
+  }
+}
+
+const refundSatimTransaction = async (sp) => {
+  if (!confirm(`Confirmer le remboursement SATIM (refund.do) de ${formatPrice(sp.amount)} DZD pour la commande ${sp.payment_reference || sp.order_reference} ?`)) return
+  refundingSatimId.value = sp.id
+  try {
+    await sendApi(`/admin/payments/cib/${sp.id}/refund`, {
+      reason: 'Remboursement administrateur via passerelle SATIM'
+    }, 'POST')
+    await fetchSatimPayments()
+  } catch (err) {
+    // toast shown by sendApi
+  } finally {
+    refundingSatimId.value = null
   }
 }
 

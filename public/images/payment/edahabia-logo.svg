@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 32" role="img" aria-label="Logo EDAHABIA">
+  <rect width="120" height="32" rx="6" fill="#003D7A"/>
+  <rect x="0" y="25" width="120" height="7" rx="0" fill="#F2B705"/>
+  <circle cx="15" cy="14" r="6.5" fill="#F2B705"/>
+  <path d="M12 14 L15 11 L18 14 L15 17 Z" fill="#003D7A"/>
+  <text x="27" y="19" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="12.5" letter-spacing="0.6" fill="#FFFFFF">EDAHABIA</text>
+</svg>

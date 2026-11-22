@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 32" role="img" aria-label="Logo CIB">
+  <rect width="88" height="32" rx="6" fill="#004B93"/>
+  <path d="M0 24 C22 18, 48 16, 88 22 L88 32 L0 32 Z" fill="#009245" opacity="0.92"/>
+  <circle cx="17" cy="14" r="6" fill="none" stroke="#FFFFFF" stroke-width="2.2"/>
+  <path d="M17 8 A6 6 0 0 1 23 14" fill="none" stroke="#F59E0B" stroke-width="2.2"/>
+  <text x="30" y="21" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="16" letter-spacing="1.2" fill="#FFFFFF">CIB</text>
+</svg>

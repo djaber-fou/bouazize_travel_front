@@ -315,6 +315,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '#imports';
 import { sendApi } from '@/composables/api';
 
 definePageMeta({ layout: 'default' });
@@ -396,26 +397,44 @@ const printReceipt = () => {
 };
 
 const downloadPdf = async () => {
+  if (!cibId) return;
   isGeneratingPdf.value = true;
   try {
+    // Primary: Download official server-generated PDF receipt (100% consistent across all browsers)
+    const authStore = useAuthStore();
+    const token = authStore?.Authorization?.token;
+    const baseUrl = (import.meta.env.VITE_BASE_URL || '/api').replace(/\/+$/, '');
+    const qs = paymentToken ? `?payment_token=${encodeURIComponent(paymentToken)}` : '';
+    const headers = { Accept: 'application/pdf' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const resp = await fetch(`${baseUrl}/payment/cib/receipt-pdf/${encodeURIComponent(String(cibId))}${qs}`, { headers });
+    if (resp.ok) {
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `Recu_Paiement_SATIM_${receipt.value.orderNumber || cibId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+      return;
+    }
+
+    // Fallback to client-side html2pdf if server PDF unavailable
     const element = document.getElementById('satim-printable-receipt');
     if (!element) return;
-
-    // Dynamically import html2pdf
     const html2pdf = (await import('html2pdf.js')).default;
-
-    const opt = {
+    await html2pdf().set({
       margin: [10, 10, 10, 10],
       filename: `Recu_Paiement_SATIM_${receipt.value.orderNumber || 'BOUAZIZE'}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    };
-
-    await html2pdf().set(opt).from(element).save();
+    }).from(element).save();
   } catch (err) {
-    console.error('PDF generation error:', err);
-    // Fallback to window print
+    console.error('PDF download error:', err);
     window.print();
   } finally {
     isGeneratingPdf.value = false;

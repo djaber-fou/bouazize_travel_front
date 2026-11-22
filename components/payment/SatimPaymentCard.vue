@@ -17,7 +17,7 @@
         <div class="flex items-center gap-2">
           <div v-if="isSandbox" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-[11px] font-black text-amber-300 uppercase">
             <Icon name="heroicons:beaker" class="w-3.5 h-3.5" />
-            <span>Sandbox Test</span>
+            <span>Mode Test Sandbox</span>
           </div>
           <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-bold text-slate-300">
             <Icon name="heroicons:lock-closed" class="w-3.5 h-3.5 text-emerald-400" />
@@ -44,18 +44,12 @@
         </p>
       </div>
 
-      <!-- Supported Cards Notice with Clean Badges -->
+      <!-- Supported Cards Notice with Official CIB & EDAHABIA SVG Logos -->
       <div class="flex flex-wrap items-center justify-between gap-3 py-3 border-y border-slate-100 dark:border-slate-800 text-xs">
         <span class="font-bold text-slate-600 dark:text-slate-400">Cartes bancaires acceptées :</span>
-        <div class="flex items-center gap-2">
-          <!-- CIB Badge -->
-          <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#004b93] text-white text-xs font-black shadow-xs">
-            <span>CIB</span>
-          </div>
-          <!-- EDAHABIA Badge -->
-          <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#008250] text-white text-xs font-black shadow-xs">
-            <span>الذهبية EDAHABIA</span>
-          </div>
+        <div class="flex items-center gap-2.5">
+          <img src="/images/payment/cib-logo.svg" alt="Carte CIB" class="h-7 w-auto rounded shadow-xs" />
+          <img src="/images/payment/edahabia-logo.svg" alt="Carte EDAHABIA" class="h-7 w-auto rounded shadow-xs" />
         </div>
       </div>
 
@@ -101,22 +95,52 @@
         </div>
       </div>
 
-      <!-- 3. CONDITIONS GÉNÉRALES DE VENTE (Exigence SATIM: Document officiel et case à cocher) -->
-      <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850/40 space-y-2">
-        <label class="flex items-start gap-3 cursor-pointer">
+      <!-- 3. CONDITIONS GÉNÉRALES DE PAIEMENT EN LIGNE ET DE VENTE (Exigence SATIM: affichées directement sur la page avant paiement) -->
+      <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-850/40 space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+            <Icon name="heroicons:document-text" class="w-4 h-4 text-primary" />
+            <span>Conditions Générales de Paiement en Ligne &amp; de Vente</span>
+          </span>
+          <button
+            type="button"
+            @click="showTermsModal = true"
+            class="text-[11px] font-bold text-primary hover:underline cursor-pointer"
+          >
+            Agrandir
+          </button>
+        </div>
+
+        <!-- Inline Scrollable Conditions Summary Directly on Checkout Page (SATIM IHM Compliance) -->
+        <div class="max-h-36 overflow-y-auto p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
+          <p>
+            <strong>1. Cadre légal :</strong> Le règlement électronique sur la plateforme <strong>SARL Bouazize Travel</strong> (Agrément N° 4484 · RC 19/00-5345775 A 23) s'effectue via la passerelle nationale <strong>SATIM-EPG / GIE Monétique</strong>, conformément à la Loi n° 18-05 relative au commerce électronique.
+          </p>
+          <p>
+            <strong>2. Sécurité 3D-Secure &amp; Confidentialité :</strong> Cartes acceptées : <strong>CIB</strong> et <strong>EDAHABIA</strong> (montant minimum 50,00 DZD). La saisie des coordonnées bancaires et du code OTP SMS s'effectue exclusivement sur le serveur sécurisé SSL de la SATIM ; Bouazize Travel ne conserve aucune donnée de carte.
+          </p>
+          <p>
+            <strong>3. Tarifs, Confirmation &amp; Remboursement :</strong> Tous les prix sont affichés TTC en Dinar Algérien (DZD) sans frais cachés. Dès validation bancaire, un reçu officiel imprimable et téléchargeable en PDF est émis. En cas d'annulation éligible, le remboursement s'effectue par crédit sur la carte utilisée.
+          </p>
+          <p>
+            <strong>4. Assistance SATIM :</strong> Pour toute réclamation liée à votre carte ou transaction, contactez gratuitement le numéro vert de la SATIM : <strong>3020</strong>.
+          </p>
+        </div>
+
+        <label class="flex items-start gap-3 cursor-pointer pt-1">
           <input
             type="checkbox"
             v-model="acceptedTerms"
-            class="mt-1 w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary focus:ring-offset-0 cursor-pointer"
+            class="mt-0.5 w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary focus:ring-offset-0 cursor-pointer"
           />
-          <span class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            J'ai lu et j'accepte sans réserve les
+          <span class="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+            J'ai lu, pris connaissance et j'accepte sans réserve les
             <button
               type="button"
               @click.stop="showTermsModal = true"
               class="font-bold text-primary hover:underline cursor-pointer"
             >
-              Conditions Générales de Vente et de Paiement Électronique
+              Conditions Générales de Paiement en Ligne et de Vente
             </button>
             de l'agence <strong>Bouazize Travel</strong>.
           </span>
@@ -129,7 +153,7 @@
             class="text-[11px] text-slate-400 hover:text-primary inline-flex items-center gap-1 transition-colors"
           >
             <Icon name="heroicons:document-text" class="w-3.5 h-3.5" />
-            <span>Consulter la page officielle du document (nouvel onglet)</span>
+            <span>Consulter le document complet (nouvel onglet)</span>
             <Icon name="heroicons:arrow-top-right-on-square" class="w-3 h-3" />
           </NuxtLink>
         </div>
@@ -154,14 +178,9 @@
           <span>Connexion à la passerelle SATIM...</span>
         </template>
         <template v-else>
-          <!-- CIB Logo Badge inside Button -->
-          <span class="inline-flex items-center justify-center px-2 py-0.5 rounded bg-[#004b93] text-[10px] font-black text-white">
-            CIB
-          </span>
-          <!-- EDAHABIA Logo Badge inside Button -->
-          <span class="inline-flex items-center justify-center px-2 py-0.5 rounded bg-[#008250] text-[10px] font-black text-white">
-            الذهبية
-          </span>
+          <!-- Official CIB & EDAHABIA Logos Directly on Payment Button (SATIM IHM Requirement) -->
+          <img src="/images/payment/cib-logo.svg" alt="CIB" class="h-6 w-auto rounded-xs bg-white/10" />
+          <img src="/images/payment/edahabia-logo.svg" alt="EDAHABIA" class="h-6 w-auto rounded-xs bg-white/10" />
           <span>Payer par Carte CIB / EDAHABIA</span>
           <Icon name="heroicons:arrow-right" class="w-4 h-4" />
         </template>
