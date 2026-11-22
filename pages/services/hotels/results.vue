@@ -50,7 +50,14 @@
           <div class="summary-left">
             <div class="summary-title-line">
               <span class="dest-highlight">{{ currentDestName }}</span>
-              <span class="count-pill">{{ hotelStore.searchResults.total || hotelStore.filteredHotels.length }} hôtel{{ (hotelStore.searchResults.total || hotelStore.filteredHotels.length) > 1 ? 's' : '' }}</span>
+              <span class="count-pill">
+                <template v-if="activeFiltersCount > 0 && hotelStore.masterHotelsList.length > 0">
+                  {{ hotelStore.filteredHotels.length }} / {{ hotelStore.masterHotelsList.length }} hôtel{{ hotelStore.filteredHotels.length > 1 ? 's' : '' }}
+                </template>
+                <template v-else>
+                  {{ hotelStore.filteredHotels.length || hotelStore.searchResults.total }} hôtel{{ (hotelStore.filteredHotels.length || hotelStore.searchResults.total) > 1 ? 's' : '' }}
+                </template>
+              </span>
             </div>
             <div class="dates-meta-row">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dates-mini-pin">
@@ -230,24 +237,31 @@
                   :id="`filter-star-${s}`"
                   type="button"
                   class="star-filter-chip"
-                  :class="{ active: (hotelStore.filters.minStars ?? 0) === s }"
-                  @click="hotelStore.filters.minStars = s || null"
+                  :class="{ active: isStarSelected(s) }"
+                  @click="toggleStarFilter(s)"
                 >
-                  <span v-if="s === 0">Toutes</span>
+                  <span v-if="s === 0">Toutes ({{ hotelStore.filterCounts.total }})</span>
                   <span v-else class="star-chips-row">
                     <svg v-for="i in s" :key="i" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="star-chip-icon"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" /></svg>
+                    <span class="text-[10px] opacity-75 ml-1">({{ hotelStore.filterCounts.stars[s] || 0 }})</span>
                   </span>
                 </button>
               </div>
             </div>
 
             <div class="filter-box">
-              <div class="filter-head">Fourchette de prix (DZD)</div>
+              <div class="filter-head flex items-center justify-between">
+                <span>Fourchette de prix (DZD)</span>
+                <span v-if="hotelStore.priceBounds.max > 0" class="text-[10px] text-slate-400 font-semibold">
+                  {{ formatPrice(hotelStore.priceBounds.min) }} – {{ formatPrice(hotelStore.priceBounds.max) }}
+                </span>
+              </div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <input
                   id="filter-min-price"
                   v-model.number="hotelStore.filters.minPrice"
                   type="number"
+                  min="0"
                   class="form-ctrl"
                   placeholder="Min (DZD)"
                 />
@@ -255,37 +269,58 @@
                   id="filter-max-price"
                   v-model.number="hotelStore.filters.maxPrice"
                   type="number"
+                  min="0"
                   class="form-ctrl"
                   placeholder="Max (DZD)"
                 />
               </div>
+              <input
+                v-if="hotelStore.priceBounds.max > hotelStore.priceBounds.min"
+                type="range"
+                :min="hotelStore.priceBounds.min"
+                :max="hotelStore.priceBounds.max"
+                :step="500"
+                :value="hotelStore.filters.maxPrice || hotelStore.priceBounds.max"
+                class="w-full mt-2 accent-amber-600 cursor-pointer"
+                @input="hotelStore.filters.maxPrice = Number($event.target.value)"
+              />
             </div>
 
             <div class="filter-box">
               <div class="filter-head">Régime de repas</div>
               <select id="filter-meal-basis" v-model="hotelStore.filters.mealBasis" class="form-ctrl">
-                <option value="">Tous les régimes</option>
-                <option value="RO">Chambre seule (RO)</option>
-                <option value="RB">Petit-déjeuner inclus (BB)</option>
-                <option value="RD">Demi-pension (HB)</option>
-                <option value="FB">Pension complète (FB)</option>
-                <option value="AI">Tout compris (AI)</option>
+                <option value="">Tous les régimes ({{ hotelStore.filterCounts.total }})</option>
+                <option value="RO">Chambre seule ({{ hotelStore.filterCounts.meals.RO }})</option>
+                <option value="RB">Petit-déjeuner inclus ({{ hotelStore.filterCounts.meals.RB }})</option>
+                <option value="RD">Demi-pension ({{ hotelStore.filterCounts.meals.RD }})</option>
+                <option value="FB">Pension complète ({{ hotelStore.filterCounts.meals.FB }})</option>
+                <option value="AI">Tout compris ({{ hotelStore.filterCounts.meals.AI }})</option>
+              </select>
+            </div>
+
+            <div v-if="hotelStore.availableLocations.length > 0" class="filter-box">
+              <div class="filter-head">Emplacement / Zone</div>
+              <select id="filter-location-code" v-model="hotelStore.filters.locationCode" class="form-ctrl">
+                <option value="">Tous les emplacements</option>
+                <option v-for="loc in hotelStore.availableLocations" :key="loc.code" :value="loc.code">
+                  {{ loc.label }} ({{ loc.count }})
+                </option>
               </select>
             </div>
 
             <div class="filter-box">
               <div class="filter-head flex items-center justify-between">
                 <span>Disponibilité</span>
-                <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">MyGo API</span>
+                <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">En direct</span>
               </div>
               <select id="filter-availability-type" v-model="hotelStore.filters.availabilityType" class="form-ctrl">
-                <option value="all">Tous les types d'offres</option>
-                <option value="immediate">Confirmation immédiate</option>
-                <option value="on_request">Sur demande (On Request)</option>
+                <option value="all">Tous les types d'offres ({{ hotelStore.filterCounts.total }})</option>
+                <option value="immediate">Confirmation immédiate ({{ hotelStore.filterCounts.immediate }})</option>
+                <option value="on_request">Sur demande ({{ hotelStore.filterCounts.onRequest }})</option>
               </select>
             </div>
 
-            <div class="filter-box">
+            <div v-if="isSaudiDestination" class="filter-box">
               <div class="filter-head flex items-center justify-between">
                 <span class="inline-flex items-center gap-1.5">
                   <UIcon name="i-heroicons-eye" class="w-4 h-4 text-amber-500" />
@@ -308,9 +343,9 @@
                 v-model="hotelStore.filters.cancellationPolicy"
                 class="form-ctrl"
               >
-                <option value="all">Tous les tarifs</option>
-                <option value="refundable">Annulation gratuite / Remboursable</option>
-                <option value="non_refundable">Non remboursable uniquement</option>
+                <option value="all">Tous les tarifs ({{ hotelStore.filterCounts.total }})</option>
+                <option value="refundable">Annulation gratuite / Remboursable ({{ hotelStore.filterCounts.refundable }})</option>
+                <option value="non_refundable">Non remboursable uniquement ({{ hotelStore.filterCounts.nonRefundable }})</option>
               </select>
             </div>
 
@@ -380,10 +415,10 @@
                           :key="s"
                           type="button"
                           class="star-filter-chip"
-                          :class="{ active: (hotelStore.filters.minStars ?? 0) === s }"
-                          @click="hotelStore.filters.minStars = s || null"
+                          :class="{ active: isStarSelected(s) }"
+                          @click="toggleStarFilter(s)"
                         >
-                          <span v-if="s === 0">Toutes</span>
+                          <span v-if="s === 0">Toutes ({{ hotelStore.filterCounts.total }})</span>
                           <span v-else class="star-chips-row">
                             <svg v-for="i in s" :key="i" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="star-chip-icon"><path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" /></svg>
                           </span>
@@ -421,19 +456,29 @@
                       </select>
                     </div>
 
-                    <div class="filter-box">
-                      <div class="filter-head flex items-center justify-between">
-                        <span>Disponibilité</span>
-                        <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">MyGo API</span>
-                      </div>
-                      <select id="drawer-filter-availability-type" v-model="hotelStore.filters.availabilityType" class="form-ctrl">
-                        <option value="all">Tous les types d'offres</option>
-                        <option value="immediate">Confirmation immédiate</option>
-                        <option value="on_request">Sur demande (On Request)</option>
+                    <div v-if="hotelStore.availableLocations.length > 0" class="filter-box">
+                      <div class="filter-head">Emplacement / Zone</div>
+                      <select id="drawer-filter-location-code" v-model="hotelStore.filters.locationCode" class="form-ctrl">
+                        <option value="">Tous les emplacements</option>
+                        <option v-for="loc in hotelStore.availableLocations" :key="loc.code" :value="loc.code">
+                          {{ loc.label }} ({{ loc.count }})
+                        </option>
                       </select>
                     </div>
 
                     <div class="filter-box">
+                      <div class="filter-head flex items-center justify-between">
+                        <span>Disponibilité</span>
+                        <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">En direct</span>
+                      </div>
+                      <select id="drawer-filter-availability-type" v-model="hotelStore.filters.availabilityType" class="form-ctrl">
+                        <option value="all">Tous les types d'offres ({{ hotelStore.filterCounts.total }})</option>
+                        <option value="immediate">Confirmation immédiate ({{ hotelStore.filterCounts.immediate }})</option>
+                        <option value="on_request">Sur demande ({{ hotelStore.filterCounts.onRequest }})</option>
+                      </select>
+                    </div>
+
+                    <div v-if="isSaudiDestination" class="filter-box">
                       <div class="filter-head flex items-center justify-between">
                         <span class="inline-flex items-center gap-1.5">
                           <UIcon name="i-heroicons-eye" class="w-4 h-4 text-amber-500" />
@@ -456,9 +501,9 @@
                         v-model="hotelStore.filters.cancellationPolicy"
                         class="form-ctrl"
                       >
-                        <option value="all">Tous les tarifs</option>
-                        <option value="refundable">Annulation gratuite / Remboursable</option>
-                        <option value="non_refundable">Non remboursable uniquement</option>
+                        <option value="all">Tous les tarifs ({{ hotelStore.filterCounts.total }})</option>
+                        <option value="refundable">Annulation gratuite / Remboursable ({{ hotelStore.filterCounts.refundable }})</option>
+                        <option value="non_refundable">Non remboursable uniquement ({{ hotelStore.filterCounts.nonRefundable }})</option>
                       </select>
                     </div>
                   </div>
@@ -469,7 +514,7 @@
                     </button>
                     <button type="button" class="filter-apply-btn" @click="showMobileFilters = false">
                       Voir les résultats
-                      <span v-if="hotelStore.filteredHotels?.length" class="filter-count-badge">{{ hotelStore.filteredHotels.length }}</span>
+                      <span class="filter-count-badge">{{ hotelStore.filteredHotels?.length ?? 0 }}</span>
                     </button>
                   </div>
                 </div>
@@ -694,8 +739,14 @@ import { useRoute, navigateTo, useHead } from '#app';
 import { useHotelStore } from '~/stores/hotel';
 import { useDark } from '@vueuse/core';
 import { resolveHotelImage, onHotelImageError } from '~/composables/useHotelImages';
+import {
+  parseFiltersFromQuery,
+  serializeFiltersToQuery,
+  resolveEffectiveCancellationPolicy,
+} from '~/utils/hotelFilterEngine';
 
 const route      = useRoute();
+const router     = useRouter();
 const hotelStore = useHotelStore();
 const isDark     = useDark();
 
@@ -703,17 +754,49 @@ const stickyWrapperRef    = ref(null);
 const siteHeaderHeight    = ref(72);
 const stickyWrapperHeight = ref(95);
 const showMobileFilters   = ref(false);
+let syncingUrlFromStore   = false;
+
+const isSaudiDestination = computed(() => {
+  const code = String(currentDestCode.value || '').toUpperCase();
+  const name = String(currentDestName.value || '').toLowerCase();
+  if (['MAK', 'MED', 'JED', 'RUH', 'SJ', 'SA', 'COUNTRY_SJ', 'COUNTRY_SA'].includes(code)) return true;
+  return /(makkah|mecca|mecque|madinah|medina|médine|jeddah|saoud|saudi|riyadh)/i.test(name);
+});
+
+function isStarSelected(star) {
+  const arr = hotelStore.filters?.selectedStars || [];
+  if (star === 0) return arr.length === 0 && !hotelStore.filters?.minStars;
+  return arr.includes(star) || (!arr.length && hotelStore.filters?.minStars === star);
+}
+
+function toggleStarFilter(star) {
+  if (star === 0) {
+    hotelStore.filters.selectedStars = [];
+    hotelStore.filters.minStars = null;
+    return;
+  }
+  const current = Array.isArray(hotelStore.filters.selectedStars) ? [...hotelStore.filters.selectedStars] : [];
+  const idx = current.indexOf(star);
+  if (idx >= 0) {
+    current.splice(idx, 1);
+  } else {
+    current.push(star);
+  }
+  hotelStore.filters.selectedStars = current.sort((a, b) => b - a);
+  hotelStore.filters.minStars = null;
+}
 
 const activeFiltersCount = computed(() => {
   let count = 0;
   if (hotelStore.filters?.searchName && hotelStore.filters.searchName.trim()) count++;
-  if (hotelStore.filters?.minStars) count++;
-  if (hotelStore.filters?.maxPrice) count++;
+  if ((hotelStore.filters?.selectedStars?.length || 0) > 0 || hotelStore.filters?.minStars) count++;
+  if (hotelStore.filters?.minPrice && Number(hotelStore.filters.minPrice) > 0) count++;
+  if (hotelStore.filters?.maxPrice && Number(hotelStore.filters.maxPrice) > 0) count++;
   if (hotelStore.filters?.mealBasis) count++;
+  if (hotelStore.filters?.locationCode) count++;
   if (hotelStore.filters?.viewType) count++;
   if (hotelStore.filters?.availabilityType && hotelStore.filters.availabilityType !== 'all') count++;
-  if (hotelStore.filters?.cancellationPolicy && hotelStore.filters.cancellationPolicy !== 'all') count++;
-  if (hotelStore.filters?.refundableOnly) count++;
+  if (resolveEffectiveCancellationPolicy(hotelStore.filters) !== 'all') count++;
   return count;
 });
 
@@ -847,7 +930,7 @@ function getRouteSearchKey() {
   const q = route.query;
   const destCode  = q.destination_code || hotelStore.searchForm.destination_code || '';
   const hotelId   = q.hotel_id || hotelStore.searchForm.hotel_id || '';
-  const hotelName = q.hotel_name || hotelStore.filters.searchName || '';
+  const hotelName = q.hotel_name || '';
   const cIn       = q.check_in || hotelStore.searchForm.check_in || '';
   const cOut      = q.check_out || hotelStore.searchForm.check_out || '';
   const adults    = q.adults || hotelStore.searchForm.adults || 2;
@@ -929,10 +1012,14 @@ async function executeSearch(isAutoRetry = false) {
     hotelStore.searchForm.hotel_id = null;
     hotelStore.filters.searchName = q.hotel_name ? String(q.hotel_name) : '';
   }
-  if (q.refundable_only === '1' || q.refundable_only === 'true' || q.refundable_only === true) {
-    hotelStore.filters.refundableOnly = true;
-  } else {
-    hotelStore.filters.refundableOnly = false;
+  const parsedUrlFilters = parseFiltersFromQuery(q);
+  if (!isRetry) {
+    hotelStore.filters = {
+      ...parsedUrlFilters.filters,
+      searchName: q.hotel_id ? '' : (parsedUrlFilters.filters.searchName || (q.hotel_name ? String(q.hotel_name) : '')),
+    };
+    hotelStore.sortBy = parsedUrlFilters.sortBy;
+    hotelStore.currentPage = parsedUrlFilters.page;
   }
 
   // Trigger search availability
@@ -1003,14 +1090,48 @@ watch(
   }
 );
 
-// When filters or sort change, reset pagination to page 1
+// Keep refundableOnly synced with cancellationPolicy and reset pagination on ANY filter/sort change
 watch(
-  () => [hotelStore.filters.searchName, hotelStore.filters.maxPrice, hotelStore.filters.minStars, hotelStore.filters.mealBasis, hotelStore.filters.refundableOnly, hotelStore.sortBy],
+  () => [
+    hotelStore.filters.searchName,
+    hotelStore.filters.minPrice,
+    hotelStore.filters.maxPrice,
+    hotelStore.filters.minStars,
+    JSON.stringify(hotelStore.filters.selectedStars || []),
+    hotelStore.filters.mealBasis,
+    hotelStore.filters.locationCode,
+    hotelStore.filters.viewType,
+    hotelStore.filters.availabilityType,
+    hotelStore.filters.cancellationPolicy,
+    hotelStore.filters.refundableOnly,
+    hotelStore.sortBy,
+  ],
   () => {
+    hotelStore.filters.refundableOnly = hotelStore.filters.cancellationPolicy === 'refundable';
     hotelStore.currentPage = 1;
     hotelStore.displayedCount = 20;
+    syncFiltersToUrl();
   }
 );
+
+watch(
+  () => hotelStore.currentPage,
+  () => {
+    syncFiltersToUrl();
+  }
+);
+
+function syncFiltersToUrl() {
+  if (syncingUrlFromStore || typeof window === 'undefined') return;
+  const nextQuery = serializeFiltersToQuery(route.query, hotelStore.filters, hotelStore.sortBy, hotelStore.currentPage);
+  const currentStr = JSON.stringify(route.query);
+  const nextStr = JSON.stringify(nextQuery);
+  if (currentStr === nextStr) return;
+  syncingUrlFromStore = true;
+  router.replace({ query: nextQuery }).catch(() => {}).finally(() => {
+    setTimeout(() => { syncingUrlFromStore = false; }, 0);
+  });
+}
 
 // ── Numbered Pagination Navigation ──────────────────────────────────────
 const visiblePages = computed(() => {

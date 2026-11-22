@@ -8,6 +8,13 @@
 
 import { defineStore } from 'pinia';
 import {
+  createDefaultFilters,
+  applyHotelFilters,
+  computeHotelFilterCounts,
+  computePriceBounds,
+  computeAvailableLocations,
+} from '~/utils/hotelFilterEngine';
+import {
   searchDestinations,
   searchHotelsAutocomplete,
   searchHotelAvailability,
@@ -68,17 +75,7 @@ export const useHotelStore = defineStore('hotel', {
     loadingSearch: false,
     loadingMore: false,
     searchError: null,
-    filters: {
-      maxPrice: null,
-      minPrice: null,
-      minStars: null,
-      mealBasis: '',
-      searchName: '',
-      cancellationPolicy: 'all', // 'all' | 'refundable' | 'non_refundable'
-      refundableOnly: false,      // backward compatibility
-      viewType: '',               // '' | 'kaaba_haram' | 'kaaba' | 'haram'
-      availabilityType: 'all',    // 'all' | 'immediate' | 'on_request'
-    },
+    filters: createDefaultFilters(),
     sortBy: 'price_asc',
     selectedHotel: null,
     selectedRoom: null,
@@ -98,182 +95,24 @@ export const useHotelStore = defineStore('hotel', {
      * Filters + sorts ALL hotels (allHotels if loaded, else initial chunk).
      * This is the master filtered list — used to count results and slice for display.
      */
-    filteredHotels: (state) => {
-      let list = state.allHotels.length > 0
-        ? [...state.allHotels]
-        : [...state.searchResults.hotels];
+    masterHotelsList: (state) => (
+      state.allHotels.length > 0 ? state.allHotels : state.searchResults.hotels
+    ),
 
-      if (state.filters.searchName && state.filters.searchName.trim()) {
-        const term = state.filters.searchName.trim().toLowerCase();
-        list = list.filter((h) => {
-          const name = (h.name || h.hotel_name || '').toLowerCase();
-          const city = (h.city || h.hotel_city || '').toLowerCase();
-          return name.includes(term) || city.includes(term);
-        });
-      }
+    filteredHotels() {
+      return applyHotelFilters(this.masterHotelsList, this.filters, this.sortBy);
+    },
 
-      if (state.filters.minPrice) {
-        list = list.filter((h) => (h.lowest_price_dzd || h.final_price_dzd || 0) >= state.filters.minPrice);
-      }
-      if (state.filters.maxPrice) {
-        list = list.filter((h) => (h.lowest_price_dzd || h.final_price_dzd || 0) <= state.filters.maxPrice);
-      }
+    filterCounts() {
+      return computeHotelFilterCounts(this.masterHotelsList);
+    },
 
-      if (state.filters.minStars) {
-        const stars = state.filters.minStars;
-        list = list.filter((h) => {
-          const cat = h.stars || parseInt(h.hotel_category) || 0;
-          return cat >= stars;
-        });
-      }
+    priceBounds() {
+      return computePriceBounds(this.masterHotelsList);
+    },
 
-      // Meal plan / Régime filter (Official Netstorming 77 room_basis codes + meal_basis codes)
-      if (state.filters.mealBasis) {
-        const target = state.filters.mealBasis.toUpperCase();
-        const RO_CODES = ['RO', 'S', 'DYU'];
-        const BB_CODES = ['RB', 'BB', 'BKCO', 'AMB', 'ALG', 'BKVP', 'PB', 'SON'];
-        const HB_CODES = ['RD', 'RL', 'D', 'HB', 'GC', 'HBD', 'HBLD', 'HBLDS', 'HBLSM', 'HBH', 'HBS', 'HBPR', 'HBP', 'HBB', 'HBSP', 'HC', 'HV', 'HFF', 'GGG', 'BEN', 'BBG', 'LLL', 'TTTT', 'ABC', 'MZS', 'LD', 'LDSD', 'IFT', 'SAH', 'STD', 'DXD', 'DNN', 'LNC', 'SLC', 'DLL'];
-        const FB_CODES = ['FB', 'RRR', 'FBB', 'FBH', 'FBS', 'FBPR', 'FBP', 'NDR', 'DD'];
-        const AI_CODES = ['AI', 'ALL', 'SAI', 'AIS', 'UAI', 'UAIS', 'AIPL', 'GAI', 'UAL', 'PLLL', 'SAIV', 'DALL', 'GA', 'PA', 'CG', 'XL', 'GB', 'IP'];
-
-        list = list.filter((h) => {
-          const matchMeal = (item) => {
-            if (!item) return false;
-            const rb = (item.room_basis_code || item.room_basis || '').toUpperCase();
-            const mb = (item.meal_basis_code || item.meal_basis || '').toUpperCase();
-            const mn = (item.meal_basis_name || '').toLowerCase();
-            const rbn = (item.room_basis_name || '').toLowerCase();
-            const rt = (item.room_type || item.title || '').toLowerCase();
-
-            if (target === 'RO') {
-              if (RO_CODES.includes(rb)) return true;
-              if (!rb && (mb === 'X' || mn.includes('seule') || mn.includes('sans petit') || rt.includes('room only') || rt.includes('logement seul'))) return true;
-              return rbn.includes('chambre seule') || mn.includes('chambre seule') || rt.includes('room only');
-            }
-            if (target === 'RB') {
-              if (BB_CODES.includes(rb)) return true;
-              if (rb && (HB_CODES.includes(rb) || FB_CODES.includes(rb) || AI_CODES.includes(rb) || RO_CODES.includes(rb))) return false;
-              if (!rb && ['H', 'C', 'B', 'A', 'E', 'J', 'R', 'I', 'O', 'S', 'T', 'V', 'F', 'Q', 'L', 'G', 'P', 'W', 'Z'].includes(mb)) return true;
-              return rbn.includes('petit-déjeuner') || rbn.includes('petit dejeuner') || rbn.includes('breakfast') || rt.includes('breakfast');
-            }
-            if (target === 'RD') {
-              if (HB_CODES.includes(rb)) return true;
-              return rbn.includes('demi-pension') || rbn.includes('demi pension') || rbn.includes('half board') || mn.includes('demi-pension') || mn.includes('half board') || rt.includes('half board') || rt.includes('demi-pension');
-            }
-            if (target === 'FB') {
-              if (FB_CODES.includes(rb)) return true;
-              return rbn.includes('pension complète') || rbn.includes('pension complete') || rbn.includes('full board') || mn.includes('pension complète') || mn.includes('full board') || rt.includes('full board') || rt.includes('pension complète');
-            }
-            if (target === 'AI') {
-              if (AI_CODES.includes(rb)) return true;
-              return rbn.includes('tout compris') || rbn.includes('all inclusive') || rbn.includes('all-inclusive') || mn.includes('tout compris') || mn.includes('all inclusive') || rt.includes('all inclusive') || rt.includes('tout compris');
-            }
-            return rb === target || mb === target;
-          };
-          return matchMeal(h) ||
-            (Array.isArray(h.agreements) && h.agreements.some(matchMeal)) ||
-            (Array.isArray(h.rooms) && h.rooms.some(matchMeal));
-        });
-      }
-
-      // View filter (Kaaba & Haram view for Saudi Arabia / holy cities)
-      if (state.filters.viewType) {
-        const vTarget = state.filters.viewType.toLowerCase();
-        const kaabaRegex = /(kaaba|kabaa|kaba|الكعبة)/i;
-        const haramRegex = /(haram|al[\s-]?haram|el[\s-]?haram|الحرم)/i;
-
-        list = list.filter((h) => {
-          const matchView = (item) => {
-            if (!item) return false;
-            const text = `${item.room_type || ''} ${item.room_name || ''} ${item.room_basis_name || ''} ${item.title || ''}`;
-            if (vTarget === 'kaaba_haram') return kaabaRegex.test(text) || haramRegex.test(text);
-            if (vTarget === 'kaaba') return kaabaRegex.test(text);
-            if (vTarget === 'haram') return haramRegex.test(text);
-            return false;
-          };
-          const hotelText = `${h.name || ''} ${h.hotel_name || ''} ${h.description || ''}`;
-          const hotelMatches = vTarget === 'kaaba_haram'
-            ? (kaabaRegex.test(hotelText) || haramRegex.test(hotelText))
-            : (vTarget === 'kaaba' ? kaabaRegex.test(hotelText) : haramRegex.test(hotelText));
-
-          return hotelMatches ||
-            (Array.isArray(h.agreements) && h.agreements.some(matchView)) ||
-            (Array.isArray(h.rooms) && h.rooms.some(matchView));
-        });
-      }
-
-      // Availability type filter (Immediate vs On Request / Sur Demande)
-      if (state.filters.availabilityType && state.filters.availabilityType !== 'all') {
-        const aTarget = state.filters.availabilityType;
-        list = list.filter((h) => {
-          const checkAg = (ag) => {
-            if (!ag) return false;
-            const isOnReq = ag.is_on_request || ag.available === false || ag.availability_type === 'on_request';
-            return aTarget === 'on_request' ? isOnReq : !isOnReq;
-          };
-          const hotelOnReq = h.is_on_request || h.has_on_request || h.availability_type === 'on_request';
-          const hotelImmediate = h.has_immediate || (!h.is_on_request && h.is_available !== false);
-
-          if (aTarget === 'on_request') {
-            return hotelOnReq || (Array.isArray(h.agreements) && h.agreements.some(checkAg)) || (Array.isArray(h.rooms) && h.rooms.some(checkAg));
-          }
-          if (aTarget === 'immediate') {
-            return hotelImmediate || (Array.isArray(h.agreements) && h.agreements.some(checkAg)) || (Array.isArray(h.rooms) && h.rooms.some(checkAg));
-          }
-          return true;
-        });
-      }
-
-      // Cancellation policy filter (myGO spec)
-      const policy = state.filters.cancellationPolicy || (state.filters.refundableOnly ? 'refundable' : 'all');
-      if (policy === 'refundable') {
-        list = list.filter((h) => {
-          const isItemRefundable = (item) => {
-            if (!item) return false;
-            if (item.is_fully_refundable === true) return true;
-            if (item.deadline) {
-              const d = new Date(item.deadline);
-              return !isNaN(d.getTime()) && d > new Date();
-            }
-            return false;
-          };
-          return isItemRefundable(h) ||
-            (Array.isArray(h.agreements) && h.agreements.some(isItemRefundable)) ||
-            (Array.isArray(h.rooms) && h.rooms.some(isItemRefundable));
-        });
-      } else if (policy === 'non_refundable') {
-        list = list.filter((h) => {
-          const isItemNonRefundable = (item) => {
-            if (!item) return true;
-            if (item.is_fully_refundable === false) return true;
-            if (item.deadline) {
-              const d = new Date(item.deadline);
-              return isNaN(d.getTime()) || d <= new Date();
-            }
-            return true;
-          };
-          return isItemNonRefundable(h) ||
-            (Array.isArray(h.agreements) && h.agreements.some(isItemNonRefundable)) ||
-            (Array.isArray(h.rooms) && h.rooms.some(isItemNonRefundable));
-        });
-      }
-
-      switch (state.sortBy) {
-        case 'price_asc':
-          list.sort((a, b) => (a.lowest_price_dzd || a.final_price_dzd || 0) - (b.lowest_price_dzd || b.final_price_dzd || 0));
-          break;
-        case 'price_desc':
-          list.sort((a, b) => (b.lowest_price_dzd || b.final_price_dzd || 0) - (a.lowest_price_dzd || a.final_price_dzd || 0));
-          break;
-        case 'stars_desc':
-          list.sort((a, b) => ((b.stars || parseInt(b.hotel_category)) || 0) - ((a.stars || parseInt(a.hotel_category)) || 0));
-          break;
-        case 'name_asc':
-          list.sort((a, b) => (a.hotel_name || '').localeCompare(b.hotel_name || ''));
-          break;
-      }
-
-      return list;
+    availableLocations() {
+      return computeAvailableLocations(this.masterHotelsList);
     },
 
     totalPages() {
@@ -284,7 +123,8 @@ export const useHotelStore = defineStore('hotel', {
 
     paginatedHotels() {
       const size = this.pageSize || 20;
-      const start = Math.max(0, (this.currentPage - 1) * size);
+      const safePage = Math.max(1, Math.min(this.currentPage || 1, this.totalPages));
+      const start = (safePage - 1) * size;
       return (this.filteredHotels || []).slice(start, start + size);
     },
 
@@ -360,17 +200,7 @@ export const useHotelStore = defineStore('hotel', {
     },
 
     resetFilters() {
-      this.filters = {
-        minPrice: null,
-        maxPrice: null,
-        minStars: null,
-        mealBasis: '',
-        searchName: '',
-        cancellationPolicy: 'all',
-        refundableOnly: false,
-        viewType: '',
-        availabilityType: 'all',
-      };
+      this.filters = createDefaultFilters();
       this.sortBy = 'price_asc';
       this.currentPage = 1;
       this.displayedCount = 20;

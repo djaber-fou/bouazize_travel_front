@@ -1338,9 +1338,11 @@ function toggleViewFilter(val) {
 function toggleMealFilter(val) {
   if (selectedMealPlan.value === val) {
     selectedMealPlan.value = 'all';
-    offersFilter.value = 'all';
   } else {
     selectedMealPlan.value = val;
+  }
+  // Preserve active 'refundable' filter so meal plan + free cancellation combine cleanly
+  if (offersFilter.value !== 'refundable') {
     offersFilter.value = 'all';
   }
 }
