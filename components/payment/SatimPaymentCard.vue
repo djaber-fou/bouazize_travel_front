@@ -14,9 +14,15 @@
         </div>
 
         <!-- Security Badge -->
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-bold text-slate-300">
-          <Icon name="heroicons:lock-closed" class="w-3.5 h-3.5 text-emerald-400" />
-          <span>Connexion Sécurisée SSL</span>
+        <div class="flex items-center gap-2">
+          <div v-if="isSandbox" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-[11px] font-black text-amber-300 uppercase">
+            <Icon name="heroicons:beaker" class="w-3.5 h-3.5" />
+            <span>Sandbox Test</span>
+          </div>
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-bold text-slate-300">
+            <Icon name="heroicons:lock-closed" class="w-3.5 h-3.5 text-emerald-400" />
+            <span>Connexion Sécurisée SSL</span>
+          </div>
         </div>
       </div>
     </div>
@@ -301,9 +307,17 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  paymentToken: {
+    type: String,
+    default: '',
+  },
+  isSandbox: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(['paymentSuccess', 'paymentFailed']);
+const emit = defineEmits(['paymentSuccess', 'paymentFailed', 'priceUpdated']);
 
 // Captcha State
 const captchaChallenge = ref({ num1: 0, num2: 0 });
@@ -346,21 +360,44 @@ onMounted(() => {
   generateCaptcha();
 });
 
+const idempotencyKey = ref('');
+
 const initiateSatimPayment = async () => {
   if (!canProceed.value || isLoading.value) return;
 
   errorMessage.value = '';
   isLoading.value = true;
 
+  if (!idempotencyKey.value) {
+    idempotencyKey.value = `bzz-${props.orderType}-${props.orderId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+
   try {
     const payload = {
       order_type: props.orderType,
       order_id: Number(props.orderId),
       card_type: 'cib',
+      payment_token: props.paymentToken || undefined,
+      idempotency_key: idempotencyKey.value,
     };
 
-    const res = await sendApi('/payment/cib/initialize', payload, 'POST');
+    const res = await sendApi('/payment/cib/initialize', payload, 'POST', {
+      silent: true,
+      headers: {
+        'Idempotency-Key': idempotencyKey.value,
+        ...(props.paymentToken ? { 'X-Payment-Token': props.paymentToken } : {}),
+      },
+    });
     const data = res?.data || res;
+
+    // Handle pre-payment hotel price update (HTTP 409 PRICE_CHANGED)
+    if (data?.code === 'PRICE_CHANGED' && typeof data?.new_amount === 'number') {
+      emit('priceUpdated', data.new_amount);
+      idempotencyKey.value = '';
+      errorMessage.value = res?.message || `Le tarif a été mis à jour (${data.new_amount} DZD). Veuillez vérifier le nouveau montant puis relancer le paiement.`;
+      isLoading.value = false;
+      return;
+    }
 
     // SATIM Mode: Redirect client's browser directly to the official SATIM 3D-Secure payment URL
     if (data?.checkout_url) {

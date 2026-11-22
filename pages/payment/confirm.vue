@@ -58,8 +58,15 @@
             <Icon name="heroicons:shield-check" class="w-7 h-7 text-emerald-400" />
             <h1 class="text-xl sm:text-2xl font-black">Règlement Sécurisé de votre Réservation</h1>
           </div>
-          <p class="text-slate-400 text-xs sm:text-sm">Agence Bouazize Travel • Transactions certifiées CCP &amp; BaridiMob</p>
-          
+          <p class="text-slate-400 text-xs sm:text-sm">
+            Agence Bouazize Travel • {{ showSatimMethod ? 'Transactions certifiées SATIM (CIB / Edahabia), CCP & BaridiMob' : 'Transactions certifiées CCP & BaridiMob' }}
+          </p>
+
+          <div v-if="showSatimMethod && isSandboxMode" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[11px] font-black uppercase tracking-wider">
+            <Icon name="heroicons:beaker" class="w-3.5 h-3.5" />
+            <span>Mode Test Sandbox SATIM (Aucun débit réel)</span>
+          </div>
+
           <div v-if="amount" class="mt-4 inline-flex items-center gap-2 bg-slate-800 border border-slate-700 px-5 py-2.5 rounded-xl">
             <span class="text-slate-400 text-xs uppercase tracking-wider font-semibold">Montant à régler :</span>
             <span class="text-2xl sm:text-3xl font-black text-emerald-400">{{ formatPrice(amount) }}</span>
@@ -72,18 +79,18 @@
           <div v-if="pending" class="flex justify-center py-12">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
-          
+
           <!-- Error State -->
           <div v-else-if="error" class="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-2xl text-center text-sm">
             {{ error }}
           </div>
-          
+
           <!-- Success State (CIB or CCP Submitted) -->
           <div v-else-if="isOrderPaid || paymentSubmittedSuccess" class="py-6 text-center flex flex-col items-center gap-4">
             <div class="w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center ring-8 ring-emerald-50 dark:ring-emerald-900/20">
               <Icon name="heroicons:check-badge" class="w-12 h-12" />
             </div>
-            
+
             <div class="space-y-1">
               <h2 class="text-2xl font-black text-gray-900 dark:text-white">
                 {{ isOrderPaid ? 'Paiement CIB Confirmé !' : 'Paiement CCP Transmis !' }}
@@ -122,7 +129,7 @@
 
             <div class="pt-3 flex flex-col sm:flex-row gap-3 w-full max-w-md">
               <nuxt-link to="/client/orders" class="flex-1 py-3 bg-primary hover:bg-primary-hover text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md text-center">
-                Mes Commandes & Vouchers
+                Mes Commandes &amp; Vouchers
               </nuxt-link>
               <nuxt-link to="/" class="flex-1 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors text-center">
                 Retour à l'Accueil
@@ -132,7 +139,7 @@
 
           <!-- Main Payment Selection Tabs & Forms -->
           <div v-else class="space-y-6">
-            <!-- Payment Method Switcher Tabs (CIB hidden per request) -->
+            <!-- Payment Method Switcher Tabs (Controlled by backend PAYMENT_ONLINE_ENABLED) -->
             <div v-if="showSatimMethod" class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
               <button
                 type="button"
@@ -163,6 +170,9 @@
                 :order-id="orderId"
                 :order-type="orderType"
                 :order-reference="bookingRef || ('BOUAZIZE-' + orderId)"
+                :payment-token="paymentToken"
+                :is-sandbox="isSandboxMode"
+                @price-updated="handlePriceUpdated"
               />
             </div>
 
@@ -199,14 +209,14 @@
                 <p class="text-gray-600 dark:text-slate-400 text-xs">
                   Après avoir effectué le virement, veuillez renseigner le numéro de transaction et télécharger le reçu.
                 </p>
-                
+
                 <div>
                   <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
                     Numéro de transaction (BaridiMob / Reçu CCP)
                   </label>
-                  <input 
-                    v-model="form.transaction_number" 
-                    type="text" 
+                  <input
+                    v-model="form.transaction_number"
+                    type="text"
                     required
                     placeholder="Ex: 0023456789"
                     class="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-shadow"
@@ -217,7 +227,7 @@
                   <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">
                     Reçu de paiement (PDF, JPG, PNG)
                   </label>
-                  <div 
+                  <div
                     class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-slate-700 border-dashed rounded-2xl hover:border-primary dark:hover:border-primary transition-colors cursor-pointer"
                     :class="{'border-primary bg-primary/5': fileSelected}"
                     @click="$refs.fileInput.click()"
@@ -237,8 +247,8 @@
                 </div>
 
                 <div class="pt-2">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     :disabled="isSubmitting || !fileSelected || !form.transaction_number"
                     class="w-full bg-primary hover:bg-primary-hover text-white font-black py-3.5 px-4 rounded-xl transition-all shadow-md flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs uppercase tracking-wider"
                   >
@@ -262,16 +272,19 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '#imports'
 import SatimPaymentCard from '~/components/payment/SatimPaymentCard.vue'
+import { usePaymentConfig } from '~/composables/usePaymentConfig'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const token = computed(() => authStore.Authorization?.token)
+const { onlinePaymentEnabled, isSandboxMode, loadPaymentConfig } = usePaymentConfig()
 
 const orderId = route.query.order_id
 const orderType = route.query.type
-const amount = route.query.amount
-const bookingRef = route.query.ref || null
+const paymentToken = ref(route.query.payment_token ? String(route.query.payment_token) : '')
+const amount = ref(Number(route.query.amount || 0))
+const bookingRef = ref(route.query.ref ? String(route.query.ref) : null)
 
 const pending = ref(true)
 const error = ref(null)
@@ -280,9 +293,8 @@ const paymentSubmittedSuccess = ref(false)
 const isOrderPaid = ref(route.query.status === 'paid')
 const cibReceiptNumber = ref(route.query.receipt || null)
 
-const showSatimMethod = ref(false) // Masqué selon la demande utilisateur
-const activeMethod = ref(showSatimMethod.value && route.query.method === 'cib' ? 'cib' : 'ccp')
-const isCibModalOpen = ref(false)
+const showSatimMethod = computed(() => onlinePaymentEnabled.value)
+const activeMethod = ref('ccp')
 
 const isSubmitting = ref(false)
 const fileSelected = ref(null)
@@ -299,19 +311,49 @@ onMounted(async () => {
     return
   }
 
+  // 1. Load backend payment feature flag (PAYMENT_ONLINE_ENABLED + PAYMENT_MODE)
+  await loadPaymentConfig()
+  if (showSatimMethod.value && (route.query.method === 'cib' || route.query.method === 'satim')) {
+    activeMethod.value = 'cib'
+  } else {
+    activeMethod.value = 'ccp'
+  }
+
+  // 2. Fetch authoritative server-side amount & status (never trust query amount alone)
+  try {
+    const qs = paymentToken.value ? `?payment_token=${encodeURIComponent(paymentToken.value)}` : ''
+    const summaryRes = await sendApi(`/payment/cib/order-summary/${encodeURIComponent(String(orderType))}/${encodeURIComponent(String(orderId))}${qs}`, null, 'GET', { silent: true })
+    const summary = summaryRes?.data
+    if (summary && typeof summary.amount === 'number' && summary.amount > 0) {
+      amount.value = summary.amount
+      bookingRef.value = summary.order_reference || bookingRef.value
+      isOrderPaid.value = Boolean(summary.is_paid)
+      if (summary.receipt_number) cibReceiptNumber.value = summary.receipt_number
+      if (summary.payment_token) paymentToken.value = summary.payment_token
+    }
+  } catch (err) {
+    console.warn('Notice: authoritative order summary fetch failed:', err?.message)
+  }
+
+  // 3. Load CCP / BaridiMob settings
   try {
     const endpoint = token.value ? '/client/ccp/settings' : '/ccp/settings'
-    const res = await sendApi(endpoint, null, 'GET')
+    const res = await sendApi(endpoint, null, 'GET', { silent: true })
     if (res?.data) {
       ccpSettings.value = res.data
     }
   } catch (err) {
-    // Non blocking if CIB is primary
-    console.warn("Notice: ccp settings fetch:", err?.message)
+    console.warn('Notice: ccp settings fetch:', err?.message)
   } finally {
     pending.value = false
   }
 })
+
+const handlePriceUpdated = (newAmount) => {
+  if (typeof newAmount === 'number' && newAmount > 0) {
+    amount.value = newAmount
+  }
+}
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0]
@@ -333,6 +375,9 @@ const submitPayment = async () => {
   formData.append('order_id', orderId)
   formData.append('transaction_number', form.value.transaction_number)
   formData.append('proof_file', fileSelected.value)
+  if (paymentToken.value) {
+    formData.append('payment_token', paymentToken.value)
+  }
 
   try {
     const endpoint = token.value ? '/client/ccp/submit' : '/ccp/submit'
@@ -347,11 +392,6 @@ const submitPayment = async () => {
   } finally {
     isSubmitting.value = false
   }
-}
-
-const handleCibSuccess = (data) => {
-  isOrderPaid.value = true
-  cibReceiptNumber.value = data?.receiptNumber || 'CIB-' + Date.now()
 }
 
 const formatPrice = (price) => {

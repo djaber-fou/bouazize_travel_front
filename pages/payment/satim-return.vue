@@ -361,7 +361,8 @@ const rejection = ref({
 const cibId = route.query.cib_id;
 const orderType = route.query.order_type;
 const orderId = route.query.order_id;
-const explicitStatus = route.query.status;
+const explicitStatus = route.query.status ? String(route.query.status) : null;
+const paymentToken = route.query.payment_token ? String(route.query.payment_token) : '';
 
 const currentDateTime = computed(() => {
   return new Date().toLocaleString('fr-DZ', {
@@ -383,7 +384,8 @@ const formatAmount = (val) => {
 
 const retryPayment = () => {
   if (orderId && orderType) {
-    router.push(`/payment/confirm?order_id=${orderId}&type=${orderType}`);
+    const tokenPart = paymentToken ? `&payment_token=${encodeURIComponent(paymentToken)}` : '';
+    router.push(`/payment/confirm?order_id=${orderId}&type=${orderType}&method=cib${tokenPart}`);
   } else {
     router.push('/');
   }
@@ -430,9 +432,12 @@ const sendEmailReceipt = async () => {
     const payload = {
       payment_id: Number(cibId),
       email: recipientEmail.value,
+      payment_token: paymentToken || undefined,
     };
 
-    const res = await sendApi('/payment/cib/send-receipt', payload, 'POST');
+    const res = await sendApi('/payment/cib/send-receipt', payload, 'POST', {
+      headers: paymentToken ? { 'X-Payment-Token': paymentToken } : {},
+    });
     emailSuccessMessage.value = res?.message || `Le reçu a été envoyé avec succès à ${recipientEmail.value}`;
     setTimeout(() => {
       showEmailBox.value = false;
@@ -451,53 +456,20 @@ onMounted(async () => {
     return;
   }
 
-  // Handle immediate failure from failUrl redirect
-  if (explicitStatus === 'failed') {
-    state.value = 'rejected';
-    const msg = route.query.msg ? decodeURIComponent(route.query.msg) : null;
-    rejection.value = {
-      message: msg || 'Votre transaction a été rejetée / تم رفض معاملتك',
-      orderId: route.query.orderId || cibId,
-      orderNumber: `ORD-${cibId}`,
-      satim_green_number: '3020',
-    };
-    return;
-  }
-
-  // Simulator mode handler (local dev)
-  if (route.query.mode === 'simulator') {
-    try {
-      const simRes = await sendApi('/payment/cib/simulate', {
-        payment_id: Number(cibId),
-        card_number: '6280581110007215',
-        otp: '123456',
-      }, 'POST');
-      const simData = simRes?.data || simRes;
-
-      state.value = 'success';
-      receipt.value = {
-        respCode_desc: 'Transaction approuvée (Mode Test)',
-        orderId: `SIM-${cibId}`,
-        orderNumber: `ORD-${cibId}`,
-        approvalCode: simData?.receipt_number || 'SIM-AUT-123456',
-        transaction_date: currentDateTime.value,
-        amount: simData?.amount || route.query.amount || 5966.56,
-        currency: 'DZD',
-        card_type: 'carte CIB/EDAHABIA',
-        satim_green_number: '3020',
-        receipt_number: simData?.receipt_number || 'SIM-AUT-123456',
-      };
-      return;
-    } catch (simErr) {
-      console.warn('Simulator error:', simErr);
-    }
-  }
-
-  // Call acknowledge API to verify transaction with SATIM
+  // ALWAYS reconcile transaction server-side with SATIM (even on failUrl redirect so cancelled/failed/expired states are authoritative)
   try {
+    const returnHint = ['paid', 'failed', 'cancelled', 'error'].includes(explicitStatus || '')
+      ? explicitStatus
+      : undefined;
+
     const res = await sendApi('/payment/cib/acknowledge', {
       payment_id: Number(cibId),
-    }, 'POST');
+      payment_token: paymentToken || undefined,
+      return_status: returnHint,
+    }, 'POST', {
+      silent: true,
+      headers: paymentToken ? { 'X-Payment-Token': paymentToken } : {},
+    });
 
     const data = res?.data || res;
 
@@ -517,7 +489,7 @@ onMounted(async () => {
         receipt_number: data.receipt_number || data.approvalCode,
       };
     } else {
-      // CASE 2: REJECTED
+      // CASE 2: REJECTED / CANCELLED / EXPIRED / SUPPLIER COMPENSATION
       state.value = 'rejected';
       rejection.value = {
         message: data?.message || 'Votre transaction a été rejetée / تم رفض معاملتك',

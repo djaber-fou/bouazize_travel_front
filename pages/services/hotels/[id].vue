@@ -785,7 +785,7 @@
                                     Confirmation Immédiate
                                   </span>
                                   <span class="pay-brand-tag" style="background:#2563eb; color:white; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px; margin-right:4px;">CIB</span>
-                                  <span class="pay-brand-tag" style="background:#f59e0b; color:#0f172a; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">الذهبية EDAHABIA</span>
+                                  <span class="pay-brand-tag" style="background:#f59e0b; color:#0f172a; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">الذهبية EDAHABIA</span><span v-if="isSandboxMode" class="pay-brand-tag" style="background:#fef3c7; color:#92400e; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px; margin-left:4px;">Mode Test Sandbox</span>
                                 </div>
                                 <span class="pay-title">Carte CIB / EDAHABIA (Passerelle SATIM)</span>
                               </div>
@@ -1180,7 +1180,7 @@ const hotelStore = useHotelStore();
 const authStore  = useAuthStore();
 const isDark     = useDark();
 
-const showSatimPayment      = ref(false); // Masqué selon la demande utilisateur
+const { onlinePaymentEnabled: showSatimPayment, isSandboxMode, loadPaymentConfig } = usePaymentConfig();
 const selectedPaymentMethod = ref(authStore.isAdmin ? 'wallet' : 'baridimob'); // 'baridimob' | 'wallet' | 'cib'
 const guestInfo             = ref({ name: '', email: '', phone: '' });
 
@@ -1410,6 +1410,7 @@ function getDefaultCheckOut() {
 
 // ── Lifecycle ──────────────────────────────────────────────────────────
 onMounted(async () => {
+  loadPaymentConfig();
   if (authStore.isLoggedIn) {
     authStore.refreshUser().catch(() => {});
   }
@@ -2089,7 +2090,7 @@ async function submitBookingOrder() {
       const targetMethod = selectedPaymentMethod.value === 'baridimob' ? 'ccp' : 'cib';
       const redirectUrl = res.payment_redirect
         ? `${res.payment_redirect}&method=${targetMethod}`
-        : `/payment/confirm?order_id=${res.order_id}&type=hotel&amount=${res.price_dzd || currentPrice.value}&ref=${res.reference || ('BZZ-ORD-' + res.order_id)}&method=${targetMethod}`;
+        : `/payment/confirm?order_id=${res.order_id}&type=hotel&method=${targetMethod}${res.payment_token ? '&payment_token=' + encodeURIComponent(res.payment_token) : ''}`;
 
       navigateTo(redirectUrl);
     } else {

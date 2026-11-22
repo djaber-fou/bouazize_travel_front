@@ -412,7 +412,13 @@
                     
                     <!-- Payment Method Selector -->
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
-                        <PaymentMethodSelector v-model="clientOrder.payment_method" :disableCredit="disableCredit" :showCredit="isBusiness" />
+                        <PaymentMethodSelector
+                            v-model="clientOrder.payment_method"
+                            :disableCredit="disableCredit"
+                            :showCredit="isBusiness"
+                            :showCib="onlinePaymentEnabled"
+                            :isSandbox="isSandboxMode"
+                        />
                     </div>
 
                     <!-- Submission Button -->
@@ -438,8 +444,12 @@
 <script setup>
 import { useAuthStore } from '#imports'
 import PaymentMethodSelector from '~/components/payment/PaymentMethodSelector.vue'
+import { usePaymentConfig } from '~/composables/usePaymentConfig'
 import { useRouter } from 'vue-router'
 import { computed, ref, watch, onMounted } from 'vue'
+
+const { onlinePaymentEnabled, isSandboxMode, loadPaymentConfig } = usePaymentConfig()
+onMounted(() => { loadPaymentConfig() })
 
 const router = useRouter()
 const props = defineProps({
@@ -952,8 +962,11 @@ const submitOrder = async ()=>{
                         router.push('/client/orders')
                     }
                 } else {
-                    toast.add({ title: "Réservation enregistrée ! Redirection vers la page de paiement électronique...", color: 'green' })
-                    router.push(`/payment/confirm?order_id=${orderId}&type=${props.service}&amount=${amount}`)
+                    const payToken = response?.data?.payment_token || '';
+                    const tokenQs = payToken ? `&payment_token=${encodeURIComponent(payToken)}` : '';
+                    const methodQs = paymentMethod === 'cib' ? '&method=cib' : '&method=ccp';
+                    toast.add({ title: "Réservation enregistrée ! Redirection vers la page de paiement...", color: 'green' })
+                    router.push(`/payment/confirm?order_id=${orderId}&type=${props.service}${methodQs}${tokenQs}`)
                 }
             }
             loading.value = false

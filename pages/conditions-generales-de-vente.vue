@@ -87,7 +87,7 @@
             <ul class="list-disc pl-5 space-y-1">
               <li><strong>Cartes acceptées :</strong> Toutes les cartes interbancaires algériennes <strong>CIB</strong> dotées de la fonction de paiement en ligne, ainsi que la carte <strong>EDAHABIA</strong> d'Algérie Poste.</li>
               <li><strong>Sécurité 3D-Secure :</strong> Toute transaction en ligne est obligatoirement soumise au protocole de double authentification 3D-Secure 2.0, requérant la saisie d'un code confidentiel à usage unique (OTP) transmis par SMS par la banque de l'acheteur.</li>
-              <li><strong>Protection stricte des données bancaires :</strong> En conformité absolue avec la législation algérienne et les normes PCI-DSS, <strong>l'agence Bouazize Travel ne collecte, ne visualise, ne traite et ne conserve aucune information relative à votre carte bancaire</strong> (numéro à 16 chiffres, date de validité, cryptogramme CVV2 ou code OTP). La saisie est intégralement déportée sur le serveur bancaire crypté et sécurisé de la SATIM (test2.satim.dz / satim.dz).</li>
+              <li><strong>Protection stricte des données bancaires :</strong> En conformité absolue avec la législation algérienne et les normes PCI-DSS, <strong>l'agence Bouazize Travel ne collecte, ne visualise, ne traite et ne conserve aucune information relative à votre carte bancaire</strong> (numéro à 16 chiffres, date de validité, cryptogramme CVV2 ou code OTP). La saisie est intégralement déportée sur le serveur bancaire crypté et sécurisé de la SATIM (satim.dz).</li>
             </ul>
           </div>
 

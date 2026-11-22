@@ -34,6 +34,7 @@
               <span class="inline-flex items-center px-2 py-0.5 rounded bg-[#008250] text-white text-[10px] font-black">الذهبية</span>
               <span>Carte CIB / EDAHABIA (Passerelle SATIM)</span>
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-primary">Confirmation Immédiate</span>
+              <span v-if="isSandbox" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">Mode Test Sandbox</span>
             </span>
             <span class="mt-1.5 text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
               Paiement électronique direct et 100% sécurisé via la plateforme officielle SATIM (protocole 3D-Secure avec SMS OTP). Reçu officiel et voucher immédiats.
@@ -190,6 +191,10 @@ const props = defineProps({
     default: true
   },
   showCib: {
+    type: Boolean,
+    default: false
+  },
+  isSandbox: {
     type: Boolean,
     default: false
   }
