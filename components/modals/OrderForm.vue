@@ -76,6 +76,22 @@
                         <p class="text-gray-500">Configurez votre séjour et sélectionnez le type de chambre souhaité.</p>
                     </div>
 
+                    <!-- Offer Presentation / Bio (Server-Sanitized Rich Text) -->
+                    <div
+                        v-if="offer?.bio"
+                        class="flex flex-col gap-3 bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm"
+                    >
+                        <div class="font-bold text-secondary dark:text-white text-lg flex items-center gap-2 border-b border-gray-100 dark:border-slate-800 pb-3">
+                            <UIcon name="i-heroicons-document-text" class="text-primary w-5 h-5" />
+                            <span>Présentation &amp; Programme de l'offre</span>
+                        </div>
+                        <div
+                            dir="auto"
+                            class="offer-bio-prose text-sm text-gray-700 dark:text-slate-300 leading-relaxed space-y-2"
+                            v-html="offer.bio"
+                        ></div>
+                    </div>
+
                     <!-- Guest Contact Form (shown only for non-logged-in users) -->
                     <div v-if="!authorization?.token" class="flex flex-col gap-4 bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
                         <div class="font-bold text-secondary text-lg flex items-center gap-2 border-b border-gray-100 dark:border-slate-800 pb-3">
@@ -956,4 +972,35 @@ const submitOrder = async ()=>{
         })
     }
 }
-</script>  
+</script>
+
+<style scoped>
+.offer-bio-prose :deep(h2),
+.offer-bio-prose :deep(h3),
+.offer-bio-prose :deep(h4) {
+    font-weight: 700;
+    color: inherit;
+    margin-top: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+.offer-bio-prose :deep(h3) {
+    font-size: 1.05rem;
+}
+.offer-bio-prose :deep(ul) {
+    list-style: disc;
+    padding-inline-start: 1.25rem;
+}
+.offer-bio-prose :deep(ol) {
+    list-style: decimal;
+    padding-inline-start: 1.25rem;
+}
+.offer-bio-prose :deep(blockquote) {
+    border-inline-start: 3px solid #d97706;
+    padding-inline-start: 0.75rem;
+    opacity: 0.85;
+}
+.offer-bio-prose :deep(a) {
+    color: #2563eb;
+    text-decoration: underline;
+}
+</style>

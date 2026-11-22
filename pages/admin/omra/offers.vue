@@ -106,6 +106,13 @@
                                 <UInput placeholder="Ex: 15 Jours / 14 Nuits" v-model="offer.duration" class="w-full"/>
                             </UFormField>
                         </div>
+
+                        <!-- Offer Bio / Rich Presentation -->
+                        <div class="pt-4 border-t border-gray-100 dark:border-slate-800 space-y-2">
+                            <label class="block text-sm font-bold text-secondary">Présentation &amp; Programme détaillé (Bio)</label>
+                            <p class="text-xs text-gray-500">Affiché sur la fiche de l'offre et en aperçu sur les cartes. Prend en charge le français et l'arabe.</p>
+                            <RichTextEditor v-model="offer.bio" placeholder="Décrivez les hôtels à La Mecque et Médine, les vols, les visites religieuses, les prestations incluses..." />
+                        </div>
                     </div>
 
                     <!-- Dynamic Rooms & Pricing Management (1 to 5 Places) -->
@@ -271,6 +278,7 @@ import { refDebounced } from '#imports'
 import { UIcon } from '#components'
 import { uploadToCloudinary } from '~/composables/useCloudinaryUpload'
 import ExpandableTitle from '~/components/common/ExpandableTitle.vue'
+import RichTextEditor from '~/components/common/RichTextEditor.vue'
 
 const UAvatar = resolveComponent('UAvatar')
 const UBadge = resolveComponent('UBadge')
@@ -289,6 +297,7 @@ const offer = ref({
     country_id:null,
     provider_id:null,
     offer_name:null,
+    bio:'',
     departure_date:null,
     return_date:null,
     duration:null,
@@ -457,6 +466,7 @@ const openForm = ()=>{
         country_id: country.value?.value || null,
         provider_id: provider.value?.value || null,
         offer_name:'',
+        bio:'',
         departure_date: '',
         return_date: '',
         duration:'',
@@ -607,6 +617,7 @@ const getOffer = async (id)=>{
             country_id: res.country?.id,
             provider_id: res.provider?.value || res.provider?.id,
             offer_name: res.name,
+            bio: res.bio || '',
             departure_date: res.departure_date || '',
             return_date: res.return_date || '',
             duration: res.duration,
@@ -648,6 +659,7 @@ const buildOfferPayload = (imageUrl) => {
     if (providerId) fd.append('provider_id', providerId)
 
     if (offer.value.offer_name) fd.append('offer_name', offer.value.offer_name)
+    fd.append('bio', offer.value.bio ?? '')
     if (offer.value.guarantee) fd.append('guarantee', offer.value.guarantee)
     if (offer.value.duration) fd.append('duration', offer.value.duration)
     if (offer.value.departure_date) fd.append('departure_date', offer.value.departure_date)

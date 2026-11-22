@@ -32,6 +32,9 @@
                                 </div>
 
                                 <h3 class="text-xl font-bold text-white uppercase tracking-wider mb-2 line-clamp-2" :title="offer?.name">{{ offer?.name }}</h3>
+                                <p v-if="offer?.bio_excerpt" dir="auto" class="text-xs text-gray-200/90 line-clamp-2 mb-1 max-w-[90%]">
+                                    {{ offer.bio_excerpt }}
+                                </p>
                                 
                                 <div class="flex flex-col gap-1 items-center mt-2 mb-4 text-gray-200 text-sm">
                                     <div class="flex items-center gap-2">

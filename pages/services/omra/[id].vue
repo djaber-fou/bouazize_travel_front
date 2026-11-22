@@ -136,6 +136,9 @@
                                 <UIcon name="i-heroicons-clock" class="w-4 h-4 text-primary" />
                                 <span>{{ truncate(offer?.duration || 'Séjour complet', 30) }}</span>
                             </div>
+                            <p v-if="offer?.bio_excerpt" dir="auto" class="text-xs text-gray-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                                {{ offer.bio_excerpt }}
+                            </p>
                         </div>
                     </template>
                     <template #footer>
