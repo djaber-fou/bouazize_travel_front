@@ -11,11 +11,11 @@
     </div>
     
     <div class="grid gap-4" :class="gridColsClass">
-      <!-- 1. E-Payment Option (Carte CIB / EDAHABIA - SATIM) -->
+      <!-- 1. E-Payment Option (Carte CIB / EDAHABIA) -->
       <label 
         v-if="showCib"
         for="payment-method-cib"
-        class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all sm:col-span-2"
+        class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all"
         :class="modelValue === 'cib' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
       >
         <input 
@@ -29,14 +29,15 @@
         >
         <span class="flex flex-1 pr-8">
           <span class="flex flex-col">
-            <span class="text-sm font-black text-gray-900 dark:text-white flex flex-wrap items-center gap-2">
-              <span class="inline-flex items-center px-2 py-0.5 rounded bg-[#004b93] text-white text-[10px] font-black">CIB</span>
-              <span class="inline-flex items-center px-2 py-0.5 rounded bg-[#008250] text-white text-[10px] font-black">الذهبية</span>
-              <span>Carte CIB / EDAHABIA (Passerelle SATIM)</span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-primary">Confirmation Immédiate</span>
-              <span v-if="isSandbox" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">Mode Test Sandbox</span>
+            <span class="text-sm font-black text-gray-900 dark:text-white flex flex-wrap items-center gap-3">
+              <img
+                src="/images/payment/cib-edahabia-official.png"
+                alt="Carte CIB / EDAHABIA"
+                class="h-8 w-auto object-contain rounded-sm bg-white keep-white-bg px-1.5 py-0.5 border border-slate-200"
+              />
+              <span>Carte CIB / EDAHABIA</span>
             </span>
-            <span class="mt-1.5 text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
+            <span class="mt-2 text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
               Paiement électronique direct et 100% sécurisé via la plateforme officielle SATIM (protocole 3D-Secure avec SMS OTP). Reçu officiel et voucher immédiats.
             </span>
             <span class="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
@@ -47,43 +48,6 @@
         </span>
         <Icon 
           v-if="modelValue === 'cib'" 
-          name="heroicons:check-circle-solid" 
-          class="h-6 w-6 text-primary absolute top-5 right-5" 
-        />
-      </label>
-
-      <!-- 2. E-Payment Option (BaridiMob / CCP) -->
-      <label 
-        for="payment-method-ccp"
-        class="relative flex cursor-pointer rounded-2xl border p-5 shadow-sm focus:outline-none transition-all"
-        :class="modelValue === 'ccp' ? 'border-primary ring-2 ring-primary/30 bg-primary/5 dark:bg-primary/10 shadow-md' : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'"
-      >
-        <input 
-          id="payment-method-ccp"
-          type="radio" 
-          name="payment_method" 
-          value="ccp" 
-          class="sr-only"
-          :checked="modelValue === 'ccp'"
-          @change="$emit('update:modelValue', 'ccp')"
-        >
-        <span class="flex flex-1 pr-8">
-          <span class="flex flex-col">
-            <span class="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
-              <Icon name="heroicons:device-phone-mobile" class="w-5 h-5 text-primary" />
-              Virement CCP / BaridiMob
-            </span>
-            <span class="mt-1.5 text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
-              Virement direct vers le compte CCP de l'agence avec justificatif. Confirmation officielle dès vérification par l'équipe administrative.
-            </span>
-            <span class="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-              <Icon name="heroicons:document-arrow-up" class="w-4 h-4 text-slate-400" />
-              Reçu de transaction requis
-            </span>
-          </span>
-        </span>
-        <Icon 
-          v-if="modelValue === 'ccp'" 
           name="heroicons:check-circle-solid" 
           class="h-6 w-6 text-primary absolute top-5 right-5" 
         />
@@ -203,13 +167,15 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 onMounted(() => {
-  if (props.modelValue === 'cib' && !props.showCib) {
-    emit('update:modelValue', 'ccp');
+  if (props.modelValue === 'ccp') {
+    emit('update:modelValue', props.showCib ? 'cib' : 'cash');
+  } else if (props.modelValue === 'cib' && !props.showCib) {
+    emit('update:modelValue', 'cash');
   }
 });
 
 const gridColsClass = computed(() => {
-  const visibleCount = (props.showCib ? 1 : 0) + 1 + (props.showCash ? 1 : 0) + (props.showCredit ? 1 : 0);
+  const visibleCount = (props.showCib ? 1 : 0) + (props.showCash ? 1 : 0) + (props.showCredit ? 1 : 0);
   if (visibleCount >= 2) return 'sm:grid-cols-2';
   return 'grid-cols-1';
 });

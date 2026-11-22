@@ -53,24 +53,19 @@
 
       <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-slate-800">
         <!-- Header -->
-        <div class="bg-slate-900 dark:bg-slate-950 p-6 text-white text-center border-b border-slate-700">
+        <div class="bg-[#0C1C39] p-6 text-white text-center border-b border-slate-700">
           <div class="flex items-center justify-center gap-2 mb-2">
-            <Icon name="heroicons:shield-check" class="w-7 h-7 text-emerald-400" />
+            <Icon name="heroicons:shield-check" class="w-7 h-7 text-primary" />
             <h1 class="text-xl sm:text-2xl font-black">Règlement Sécurisé de votre Réservation</h1>
           </div>
-          <p class="text-slate-400 text-xs sm:text-sm">
-            Agence Bouazize Travel • {{ showSatimMethod ? 'Transactions certifiées SATIM (CIB / Edahabia), CCP & BaridiMob' : 'Transactions certifiées CCP & BaridiMob' }}
+          <p class="text-slate-300 text-xs sm:text-sm">
+            Agence Bouazize Travel • Paiement électronique sécurisé par Carte CIB / EDAHABIA
           </p>
 
-          <div v-if="showSatimMethod && isSandboxMode" class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[11px] font-black uppercase tracking-wider">
-            <Icon name="heroicons:beaker" class="w-3.5 h-3.5" />
-            <span>Mode Test Sandbox SATIM (Aucun débit réel)</span>
-          </div>
-
-          <div v-if="amount" class="mt-4 inline-flex items-center gap-2 bg-slate-800 border border-slate-700 px-5 py-2.5 rounded-xl">
-            <span class="text-slate-400 text-xs uppercase tracking-wider font-semibold">Montant à régler :</span>
-            <span class="text-2xl sm:text-3xl font-black text-emerald-400">{{ formatPrice(amount) }}</span>
-            <span class="text-slate-400 text-xs font-bold">DZD</span>
+          <div v-if="amount" class="mt-4 inline-flex items-center gap-2 bg-[#071124] border border-white/15 px-5 py-2.5 rounded-xl">
+            <span class="text-slate-300 text-xs uppercase tracking-wider font-semibold">Montant à régler :</span>
+            <span class="text-2xl sm:text-3xl font-black text-primary">{{ formatPrice(amount) }}</span>
+            <span class="text-slate-300 text-xs font-bold">DZD</span>
           </div>
         </div>
 
@@ -137,34 +132,10 @@
             </div>
           </div>
 
-          <!-- Main Payment Selection Tabs & Forms -->
+          <!-- Main Payment Form -->
           <div v-else class="space-y-6">
-            <!-- Payment Method Switcher Tabs (Controlled by backend PAYMENT_ONLINE_ENABLED) -->
-            <div v-if="showSatimMethod" class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
-              <button
-                type="button"
-                @click="activeMethod = 'cib'"
-                class="flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2"
-                :class="activeMethod === 'cib' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
-              >
-                <Icon name="heroicons:credit-card" class="w-4 h-4 text-emerald-500" />
-                <span>Carte CIB / EDAHABIA</span>
-                <span class="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold">Immédiat</span>
-              </button>
-
-              <button
-                type="button"
-                @click="activeMethod = 'ccp'"
-                class="flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2"
-                :class="activeMethod === 'ccp' ? 'bg-white dark:bg-slate-900 text-primary shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'"
-              >
-                <Icon name="heroicons:device-phone-mobile" class="w-4 h-4 text-blue-500" />
-                <span>Virement CCP / BaridiMob</span>
-              </button>
-            </div>
-
-            <!-- View 1: Certified SATIM CIB / EDAHABIA Gateway Component -->
-            <div v-if="showSatimMethod && activeMethod === 'cib'">
+            <!-- Certified SATIM CIB / EDAHABIA Gateway Component -->
+            <div v-if="showSatimMethod">
               <SatimPaymentCard
                 :amount="amount"
                 :order-id="orderId"
@@ -176,7 +147,7 @@
               />
             </div>
 
-            <!-- View 2: CCP / BaridiMob Payment View -->
+            <!-- Fallback View: CCP / BaridiMob Payment View only if SATIM is disabled -->
             <div v-else-if="ccpSettings" class="space-y-6 pt-2">
               <!-- Agency CCP Info -->
               <div class="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-5 sm:p-6 border border-blue-100 dark:border-blue-800">

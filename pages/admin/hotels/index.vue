@@ -217,11 +217,21 @@
 
               <!-- Client -->
               <td class="py-3.5 px-4">
-                <div class="font-bold text-slate-800 dark:text-slate-200">
-                  {{ order.user?.name || 'Client Web' }}
+                <div class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 flex-wrap">
+                  <span>{{ order.guest_name || order.user?.name || 'Client Web' }}</span>
+                  <span
+                    v-if="order.attributed_to === 'troveseek'"
+                    class="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-black uppercase bg-primary/15 text-primary border border-primary/30"
+                    :title="order.attribution_source || 'Client TroveSeek Production'"
+                  >
+                    TroveSeek
+                  </span>
                 </div>
                 <div class="text-[11px] text-slate-400">
-                  {{ order.user?.phone || order.user?.email || '-' }}
+                  {{ order.guest_phone || order.user?.phone || order.guest_email || order.user?.email || '-' }}
+                </div>
+                <div v-if="Number(order.troveseek_commission_dzd || 0) > 0" class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  Part TroveSeek : {{ formatCurrency(order.troveseek_commission_dzd) }} DZD
                 </div>
               </td>
 
@@ -490,6 +500,83 @@
                 <span>Total Facturé au Client :</span>
                 <span>{{ formatCurrency(selectedOrder.final_price_dzd) }} DZD</span>
               </div>
+              <div v-if="Number(selectedOrder.troveseek_commission_dzd || 0) > 0" class="flex justify-between font-bold text-xs text-emerald-600 dark:text-emerald-400 pt-1">
+                <span>Part TroveSeek Production enregistrée :</span>
+                <span>{{ formatCurrency(selectedOrder.troveseek_commission_dzd) }} DZD</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TroveSeek Production Attribution & Post-Confirmation Commission Card -->
+          <div class="p-4 rounded-xl border border-primary/40 bg-primary/5 dark:bg-[#071124] space-y-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="flex items-center gap-2">
+                <img src="/images/logo/troveseek-logo-light.png" alt="TroveSeek" class="h-6 w-auto object-contain block dark:hidden" />
+                <img src="/images/logo/troveseek-logo-dark.png" alt="TroveSeek" class="h-6 w-auto object-contain hidden dark:block" />
+                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
+                  Suivi Média &amp; Part TroveSeek Production
+                </span>
+              </div>
+              <span
+                v-if="selectedOrder.attributed_to === 'troveseek'"
+                class="px-2 py-0.5 text-[10px] font-black uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+              >
+                Client Confirmé TroveSeek ({{ selectedOrder.attribution_proof?.confidence_score || 100 }}%)
+              </span>
+              <span
+                v-else
+                class="px-2 py-0.5 text-[10px] font-semibold bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+              >
+                Source: {{ selectedOrder.attribution_source || 'Direct / Agence' }}
+              </span>
+            </div>
+
+            <!-- Attribution Proof Details if present -->
+            <div v-if="selectedOrder.attributed_to === 'troveseek' || selectedOrder.attribution_source || selectedOrder.attribution_code || selectedOrder.attribution_survey" class="p-3 bg-white dark:bg-[#0C1C39] border border-slate-200 dark:border-[#1e3a6d] text-xs space-y-1">
+              <div v-if="selectedOrder.attribution_source" class="flex justify-between gap-2">
+                <span class="text-slate-500 dark:text-slate-400">Canal détecté :</span>
+                <span class="font-bold text-slate-900 dark:text-white">{{ selectedOrder.attribution_source }}</span>
+              </div>
+              <div v-if="selectedOrder.attribution_code" class="flex justify-between gap-2">
+                <span class="text-slate-500 dark:text-slate-400">Code Média saisi :</span>
+                <span class="font-mono font-bold text-primary">{{ selectedOrder.attribution_code }}</span>
+              </div>
+              <div v-if="selectedOrder.attribution_survey" class="flex justify-between gap-2">
+                <span class="text-slate-500 dark:text-slate-400">Réponse Client :</span>
+                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ selectedOrder.attribution_proof?.survey_label || selectedOrder.attribution_survey }}</span>
+              </div>
+            </div>
+
+            <!-- Direct Input for TroveSeek Commission on Confirmed Hotel Reservations -->
+            <div v-if="selectedOrder.status === 'confirmed' || editForm.status === 'confirmed'" class="pt-1 space-y-2">
+              <label class="block text-xs font-extrabold text-slate-800 dark:text-white">
+                Montant / Part TroveSeek Production pour cette réservation (DZD) :
+              </label>
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <UInput
+                  v-model.number="editForm.troveseek_commission_dzd"
+                  type="number"
+                  min="0"
+                  step="100"
+                  placeholder="Ex: 4500"
+                  class="flex-1 font-mono"
+                />
+                <UButton
+                  color="primary"
+                  size="sm"
+                  icon="i-heroicons-check"
+                  :loading="updatingStatus"
+                  @click="saveOrderChanges"
+                >
+                  Enregistrer Part TroveSeek
+                </UButton>
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                Saisissez le montant revenant à <strong>TroveSeek Production</strong> une fois la réservation d'hôtel confirmée.
+              </p>
+            </div>
+            <div v-else class="text-[11px] text-amber-600 dark:text-amber-400 italic">
+              Confirmez d'abord la réservation (Statut = Confirmé) pour saisir la part TroveSeek Production sur cet hôtel.
             </div>
           </div>
 
@@ -1154,6 +1241,7 @@ const editForm = ref({
   status: '',
   payment_status: '',
   admin_notes: '',
+  troveseek_commission_dzd: 0,
 });
 
 // ─── Filter Options ─────────────────────────────────────────────────────────
@@ -1300,6 +1388,7 @@ function openOrderDetails(order) {
     status: order.status,
     payment_status: order.payment_status,
     admin_notes: order.admin_notes || '',
+    troveseek_commission_dzd: Number(order.troveseek_commission_dzd || 0),
   };
   trackingResult.value = null;
   showDetails.value = true;
@@ -1313,6 +1402,7 @@ async function saveOrderChanges() {
     selectedOrder.value.status = editForm.value.status;
     selectedOrder.value.payment_status = editForm.value.payment_status;
     selectedOrder.value.admin_notes = editForm.value.admin_notes;
+    selectedOrder.value.troveseek_commission_dzd = Number(editForm.value.troveseek_commission_dzd || 0);
     await fetchOrders();
     await fetchStats();
   } catch (e) {

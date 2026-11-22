@@ -2,21 +2,26 @@
 @import "@nuxt/ui";
 
 @theme{
-    --color-primary: #d2a749;
-    --color-primary-hover: #b8923f;
-    --color-secondary: #0A0B25;
-    --color-secondary-light: #151740;
-    --font-display: "Inter";
+    --color-primary: #E1AF5A;
+    --color-primary-hover: #C99742;
+    --color-secondary: #0C1C39;
+    --color-secondary-light: #162D56;
+    --font-sans: "Poppins", sans-serif;
+    --font-display: "Poppins", sans-serif;
 }
 
 :root {
-    --ui-primary: #d2a749;
-    --ui-primary-hover: #b8923f;
-    --ui-secondary: #0A0B25;
-    --ui-secondary-light: #151740;
-    --ui-violet: #0A0B25;
+    --ui-primary: #E1AF5A;
+    --ui-primary-hover: #C99742;
+    --ui-secondary: #0C1C39;
+    --ui-secondary-light: #162D56;
+    --ui-violet: #0C1C39;
     --font-weight-header: 600;
     --ui-radius: 0rem;
+}
+
+body {
+    font-family: "Poppins", sans-serif;
 }
 
 /* Dark mode theme configuration */
@@ -25,7 +30,7 @@
 }
 
 .dark body {
-    background-color: #050617;
+    background-color: #071124;
     color: #ffffff;
 }
 
@@ -89,14 +94,14 @@
     border-color: #334155 !important;
 }
 
-.dark .bg-white:not(.pdf-content):not(.pdf-content *):not(.document-paper-white):not(.document-paper-white *):not(#official-hotel-voucher-printable):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable):not(#official-hotel-invoice-printable *) {
-    background-color: #0f172a !important;
+.dark .bg-white:not(.keep-white-bg):not(.pdf-content):not(.pdf-content *):not(.document-paper-white):not(.document-paper-white *):not(#official-hotel-voucher-printable):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable):not(#official-hotel-invoice-printable *) {
+    background-color: #0C1C39 !important;
     color: #ffffff !important;
 }
 
 .dark .bg-gray-50:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),
 .dark .bg-slate-50:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *) {
-    background-color: #050617 !important;
+    background-color: #071124 !important;
 }
 
 .dark .border-gray-100:not(.pdf-content *):not(.document-paper-white *):not(#official-hotel-voucher-printable *):not(#official-hotel-invoice-printable *),

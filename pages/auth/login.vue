@@ -2,7 +2,8 @@
     <div class="min-h-[calc(100vh-140px)] flex flex-col items-center justify-center py-10 px-4 bg-slate-50/60 dark:bg-slate-950/60 transition-colors">
         <!-- Brand Logo Header -->
         <nuxt-link to="/" class="mb-6 flex flex-col items-center group transition-transform hover:scale-105">
-            <img src="/images/logo/bouazize-logo.png" class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-md" alt="Bouazize Travel"/>
+            <img src="/images/logo/bouazize-logo-light.png" class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-md block dark:hidden" alt="Bouazize Travel"/>
+            <img src="/images/logo/bouazize-logo-dark.png" class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-md hidden dark:block" alt="Bouazize Travel"/>
             <span class="mt-2 text-xl font-bold text-secondary dark:text-white tracking-tight">
                 Bouazize <span class="text-primary">Travel</span>
             </span>

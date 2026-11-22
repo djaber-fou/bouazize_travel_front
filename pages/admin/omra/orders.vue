@@ -111,6 +111,26 @@
                         </div>
                     </div>
 
+                    <!-- TroveSeek Production Attribution & Commission Summary -->
+                    <div class="p-4 bg-primary/5 dark:bg-[#071124] border border-primary/30 space-y-2">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-secondary dark:text-white">
+                                Partenaire Média : TroveSeek Production
+                            </span>
+                            <UBadge :color="order?.attributed_to === 'troveseek' ? 'success' : 'neutral'" variant="subtle" size="xs" class="font-bold">
+                                {{ order?.attributed_to === 'troveseek' ? 'Client TroveSeek Confirmé' : (order?.attribution_source || 'Direct / Agence') }}
+                            </UBadge>
+                        </div>
+                        <div class="text-xs space-y-1 text-gray-600 dark:text-slate-300">
+                            <div v-if="order?.attribution_source"><strong>Source :</strong> {{ order.attribution_source }}</div>
+                            <div v-if="order?.attribution_code"><strong>Code Média :</strong> <span class="font-mono text-primary font-bold">{{ order.attribution_code }}</span></div>
+                            <div v-if="order?.attribution_survey"><strong>Réponse Client :</strong> {{ order?.attribution_proof?.survey_label || order.attribution_survey }}</div>
+                            <div class="pt-1 font-bold text-primary text-sm">
+                                Part TroveSeek Production sur cette offre : {{ Number(order?.troveseek_commission_dzd || order?.Omra?.troveseek_commission || 0).toLocaleString('fr-FR') }} DZD
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Acceptance / Response Documents Sent -->
                     <div v-if="order?.acceptance_documents && order.acceptance_documents.length > 0" class="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-2.5">
                         <div class="flex items-center justify-between">

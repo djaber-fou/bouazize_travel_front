@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
     <!-- Header: Clean Navy Secondary matching Bouazize Travel design system -->
-    <div class="bg-[#0A0B25] text-white p-5 sm:p-6 border-b border-slate-800">
+    <div class="bg-[#0C1C39] text-white p-5 sm:p-6 border-b border-slate-800">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
@@ -15,10 +15,6 @@
 
         <!-- Security Badge -->
         <div class="flex items-center gap-2">
-          <div v-if="isSandbox" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-[11px] font-black text-amber-300 uppercase">
-            <Icon name="heroicons:beaker" class="w-3.5 h-3.5" />
-            <span>Mode Test Sandbox</span>
-          </div>
           <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-bold text-slate-300">
             <Icon name="heroicons:lock-closed" class="w-3.5 h-3.5 text-emerald-400" />
             <span>Connexion Sécurisée SSL</span>
@@ -29,7 +25,7 @@
 
     <div class="p-5 sm:p-6 space-y-6">
       <!-- 1. FINAL AMOUNT (Mis en évidence, caractère gras, grande taille selon exigence SATIM) -->
-      <div class="p-5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 text-center space-y-1">
+      <div class="p-5 rounded-xl bg-slate-50 dark:bg-[#071124] border border-slate-200 dark:border-slate-800 text-center space-y-1">
         <p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
           Montant final à payer
         </p>
@@ -44,17 +40,16 @@
         </p>
       </div>
 
-      <!-- Supported Cards Notice with Official CIB & EDAHABIA SVG Logos -->
+      <!-- Supported Cards Notice with Official CIB & EDAHABIA Logo -->
       <div class="flex flex-wrap items-center justify-between gap-3 py-3 border-y border-slate-100 dark:border-slate-800 text-xs">
         <span class="font-bold text-slate-600 dark:text-slate-400">Cartes bancaires acceptées :</span>
         <div class="flex items-center gap-2.5">
-          <img src="/images/payment/cib-logo.svg" alt="Carte CIB" class="h-7 w-auto rounded shadow-xs" />
-          <img src="/images/payment/edahabia-logo.svg" alt="Carte EDAHABIA" class="h-7 w-auto rounded shadow-xs" />
+          <img src="/images/payment/cib-edahabia-official.png" alt="Carte CIB / EDAHABIA" class="h-9 w-auto object-contain rounded bg-white keep-white-bg px-2 py-0.5 border border-slate-200 shadow-xs" />
         </div>
       </div>
 
       <!-- 2. CAPTCHA ANTI-ROBOT (Exigence SATIM: Éviter les robots) -->
-      <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 space-y-3">
+      <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#071124] border border-slate-200 dark:border-slate-800 space-y-3">
         <div class="flex items-center justify-between">
           <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
             <Icon name="heroicons:check-badge" class="w-4 h-4 text-primary" />
@@ -96,23 +91,16 @@
       </div>
 
       <!-- 3. CONDITIONS GÉNÉRALES DE PAIEMENT EN LIGNE ET DE VENTE (Exigence SATIM: affichées directement sur la page avant paiement) -->
-      <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-850/40 space-y-3">
+      <div class="p-4 rounded-xl border border-slate-200 dark:border-[#1e3a6d] bg-slate-50 dark:bg-[#071124] space-y-3">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+          <span class="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white flex items-center gap-1.5">
             <Icon name="heroicons:document-text" class="w-4 h-4 text-primary" />
             <span>Conditions Générales de Paiement en Ligne &amp; de Vente</span>
           </span>
-          <button
-            type="button"
-            @click="showTermsModal = true"
-            class="text-[11px] font-bold text-primary hover:underline cursor-pointer"
-          >
-            Agrandir
-          </button>
         </div>
 
         <!-- Inline Scrollable Conditions Summary Directly on Checkout Page (SATIM IHM Compliance) -->
-        <div class="max-h-36 overflow-y-auto p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
+        <div class="max-h-36 overflow-y-auto p-3 rounded-lg bg-white dark:bg-[#0C1C39] border border-slate-200 dark:border-[#1e3a6d] text-[11px] text-slate-600 dark:text-slate-200 leading-relaxed space-y-2">
           <p>
             <strong>1. Cadre légal :</strong> Le règlement électronique sur la plateforme <strong>SARL Bouazize Travel</strong> (Agrément N° 4484 · RC 19/00-5345775 A 23) s'effectue via la passerelle nationale <strong>SATIM-EPG / GIE Monétique</strong>, conformément à la Loi n° 18-05 relative au commerce électronique.
           </p>
@@ -150,7 +138,7 @@
           <NuxtLink
             to="/conditions-generales-de-vente"
             target="_blank"
-            class="text-[11px] text-slate-400 hover:text-primary inline-flex items-center gap-1 transition-colors"
+            class="text-[11px] text-slate-500 dark:text-slate-400 hover:text-primary inline-flex items-center gap-1 transition-colors"
           >
             <Icon name="heroicons:document-text" class="w-3.5 h-3.5" />
             <span>Consulter le document complet (nouvel onglet)</span>
@@ -170,17 +158,16 @@
         type="button"
         :disabled="!canProceed || isLoading"
         @click="initiateSatimPayment"
-        class="w-full py-4 px-6 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider text-white transition-all shadow-md flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        :class="canProceed && !isLoading ? 'bg-primary hover:bg-primary-hover shadow-primary/20' : 'bg-slate-400 dark:bg-slate-700'"
+        class="w-full py-4 px-6 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider text-[#0C1C39] transition-all shadow-md flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        :class="canProceed && !isLoading ? 'bg-primary hover:bg-primary-hover shadow-primary/20' : 'bg-slate-400 dark:bg-slate-700 text-white'"
       >
         <template v-if="isLoading">
           <Icon name="heroicons:arrow-path" class="w-5 h-5 animate-spin" />
           <span>Connexion à la passerelle SATIM...</span>
         </template>
         <template v-else>
-          <!-- Official CIB & EDAHABIA Logos Directly on Payment Button (SATIM IHM Requirement) -->
-          <img src="/images/payment/cib-logo.svg" alt="CIB" class="h-6 w-auto rounded-xs bg-white/10" />
-          <img src="/images/payment/edahabia-logo.svg" alt="EDAHABIA" class="h-6 w-auto rounded-xs bg-white/10" />
+          <!-- Official CIB & EDAHABIA Logo Directly on Payment Button (SATIM IHM Requirement) -->
+          <img src="/images/payment/cib-edahabia-official.png" alt="Carte CIB / EDAHABIA" class="h-7 w-auto object-contain rounded-xs bg-white keep-white-bg px-1.5 py-0.5 shadow-2xs" />
           <span>Payer par Carte CIB / EDAHABIA</span>
           <Icon name="heroicons:arrow-right" class="w-4 h-4" />
         </template>

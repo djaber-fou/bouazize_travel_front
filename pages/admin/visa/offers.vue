@@ -70,6 +70,9 @@
                     <UFormField :ui="{label:'text-secondary'}" label="Prix individuel" name="individual_price">
                         <UInput placeholder="0.00" v-model="offer.b2c_price" class="lg:w-100 md:w-80 w-60"/>
                     </UFormField>
+                    <UFormField :ui="{label:'text-primary font-bold'}" label="Part / Commission TroveSeek Production (DZD)" name="troveseek_commission">
+                        <UInput type="number" min="0" placeholder="Ex: 3000" v-model="offer.troveseek_commission" class="lg:w-100 md:w-80 w-60"/>
+                    </UFormField>
                     <UFormField :ui="{label:'text-secondary'}" label="Documents" name="documents">
                         <div class="flex flex-col gap-3">
                             <UInput placeholder="Document" v-model="newDocument" class="lg:w-100 md:w-80 w-60">
@@ -141,6 +144,7 @@ const openForm = ()=>{
         purchase_price:null,
         b2b_price:null,
         b2c_price:null,
+        troveseek_commission:0,
         documents:[],
     }
 }
@@ -155,6 +159,7 @@ const offer = ref({
     purchase_price:null,
     b2b_price:null,
     b2c_price:null,
+    troveseek_commission:0,
     documents:[],
 })
 
@@ -215,6 +220,14 @@ const columns = [
     {
         accessorKey: 'purchase_price',
         header: "Prix d'achat",
+    },
+    {
+        accessorKey: 'troveseek_commission',
+        header: 'Part TroveSeek',
+        cell:({row})=>{
+            const amt = Number(row.original.troveseek_commission || 0)
+            return h('span', { class: 'font-bold text-primary' }, `${amt.toLocaleString('fr-FR')} DZD`)
+        }
     },
     {
         accessorKey: 'available',
@@ -355,6 +368,7 @@ const getOffer = async (id)=>{
         offer.value.purchase_price=response.data.purchase_price,
         offer.value.b2b_price=response.data.business_price,
         offer.value.b2c_price=response.data.individual_price,
+        offer.value.troveseek_commission=response.data.troveseek_commission ?? 0,
         response.data.documents.forEach(doc => {
             offer.value.documents.push(doc.name)
         });

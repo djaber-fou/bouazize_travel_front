@@ -3,7 +3,8 @@
         <div class="w-full px-6 md:px-12">
             <nav class="flex justify-between items-center">
                 <nuxt-link to="/" class="flex gap-3 items-center z-[101]">
-                    <img src="/images/logo/bouazize-logo.png" class="w-12 h-12 object-contain" alt="Bouazize Logo"/>
+                    <img src="/images/logo/bouazize-logo-light.png" class="w-12 h-12 object-contain block dark:hidden" alt="Bouazize Travel"/>
+                    <img src="/images/logo/bouazize-logo-dark.png" class="w-12 h-12 object-contain hidden dark:block" alt="Bouazize Travel"/>
                     <div class="max-[400px]:hidden">
                         <p class="font-bold text-2xl tracking-tight transition-colors duration-300 text-secondary dark:text-white">
                             Bouazize <span class="text-primary">Travel</span>
@@ -257,13 +258,14 @@
 
                 <!-- Drawer Panel -->
                 <div 
-                    class="relative w-full sm:max-w-md h-full bg-white dark:bg-[#0A0B25] text-secondary dark:text-white shadow-2xl flex flex-col z-20 border-l border-gray-200 dark:border-slate-800 drawer-content"
+                    class="relative w-full sm:max-w-md h-full bg-white dark:bg-[#0C1C39] text-secondary dark:text-white shadow-2xl flex flex-col z-20 border-l border-gray-200 dark:border-slate-800 drawer-content"
                     @click.stop
                 >
                     <!-- Drawer Top Bar -->
-                    <div class="px-5 py-4 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#0A0B25] shrink-0">
+                    <div class="px-5 py-4 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#0C1C39] shrink-0">
                         <nuxt-link to="/" class="flex items-center gap-2.5" @click="showMenu = false">
-                            <img src="/images/logo/bouazize-logo.png" class="w-9 h-9 object-contain" alt="Bouazize Logo"/>
+                            <img src="/images/logo/bouazize-logo-light.png" class="w-9 h-9 object-contain block dark:hidden" alt="Bouazize Travel"/>
+                            <img src="/images/logo/bouazize-logo-dark.png" class="w-9 h-9 object-contain hidden dark:block" alt="Bouazize Travel"/>
                             <span class="font-bold text-lg tracking-tight text-secondary dark:text-white">
                                 Bouazize <span class="text-primary">Travel</span>
                             </span>

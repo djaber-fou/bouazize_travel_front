@@ -1247,18 +1247,18 @@ useHead({
   --portal-label-color: #64748b;
   --portal-box-bg: #f8fafc;
   --portal-box-border: #e2e8f0;
-  --portal-title-color: #0f172a;
+  --portal-title-color: #0C1C39;
   --portal-sub-color: #64748b;
   --portal-subbar-bg: #ffffff;
   --portal-subbar-border: #e2e8f0;
-  --portal-gold: #d4a03c;
-  --portal-gold-hover: #c4912c;
-  --portal-gold-light: rgba(212, 160, 60, 0.12);
+  --portal-gold: #E1AF5A;
+  --portal-gold-hover: #C99742;
+  --portal-gold-light: rgba(225, 175, 90, 0.14);
   --portal-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 
   background: var(--portal-page-bg);
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--portal-title-color);
   transition: background 0.25s ease, color 0.25s ease;
 }
@@ -1267,23 +1267,23 @@ useHead({
 .hotel-portal.dark-theme,
 :global(html.dark) .hotel-portal,
 :global(.dark) .hotel-portal {
-  --portal-page-bg: #070a14;
-  --portal-card-bg: #0b1022;
-  --portal-card-border: #1a2542;
-  --portal-input-bg: #080d1c;
-  --portal-input-border: #18233e;
+  --portal-page-bg: #071124;
+  --portal-card-bg: #0C1C39;
+  --portal-card-border: #1a2f57;
+  --portal-input-bg: #071124;
+  --portal-input-border: #1a2f57;
   --portal-input-text: #ffffff;
   --portal-placeholder: #475569;
   --portal-label-color: #7b8ba5;
-  --portal-box-bg: #080d1c;
-  --portal-box-border: #151d34;
+  --portal-box-bg: #071124;
+  --portal-box-border: #162D56;
   --portal-title-color: #ffffff;
   --portal-sub-color: #94a3b8;
-  --portal-subbar-bg: #0a0f20;
-  --portal-subbar-border: #172038;
-  --portal-gold: #d4a03c;
-  --portal-gold-hover: #c4912c;
-  --portal-gold-light: rgba(212, 160, 60, 0.15);
+  --portal-subbar-bg: #09162e;
+  --portal-subbar-border: #162D56;
+  --portal-gold: #E1AF5A;
+  --portal-gold-hover: #C99742;
+  --portal-gold-light: rgba(225, 175, 90, 0.16);
   --portal-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
 }
 

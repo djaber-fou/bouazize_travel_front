@@ -755,6 +755,9 @@
                         </div>
                       </div>
 
+                      <!-- ── TROVESEEK PRODUCTION MEDIA ATTRIBUTION (SURVEY + CODE) ── -->
+                      <CommonTroveSeekAttributionFields />
+
                       <!-- ── MODE DE PAIEMENT SÉCURISÉ ── -->
                       <div class="payment-method-section">
                         <div class="section-subheading-row">
@@ -765,7 +768,7 @@
                         </div>
 
                         <div class="payment-options-grid">
-                          <!-- OPTION 1: Carte CIB / EDAHABIA (Passerelle SATIM 3D-Secure) -->
+                          <!-- OPTION 1: Carte CIB / EDAHABIA -->
                           <label
                             v-if="showSatimPayment"
                             class="pay-method-card"
@@ -780,48 +783,17 @@
                             />
                             <div class="pay-method-content">
                               <div class="pay-method-top">
-                                <div class="pay-badges-row">
-                                  <span class="pay-badge-instant" style="background:#10b981; color:white; font-size:10px; font-weight:900; padding:2px 8px; border-radius:6px;">
-                                    Confirmation Immédiate
-                                  </span>
-                                  <span class="pay-brand-tag" style="background:#2563eb; color:white; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px; margin-right:4px;">CIB</span>
-                                  <span class="pay-brand-tag" style="background:#f59e0b; color:#0f172a; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px;">الذهبية EDAHABIA</span><span v-if="isSandboxMode" class="pay-brand-tag" style="background:#fef3c7; color:#92400e; font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px; margin-left:4px;">Mode Test Sandbox</span>
+                                <div class="pay-badges-row flex items-center gap-2">
+                                  <img
+                                    src="/images/payment/cib-edahabia-official.png"
+                                    alt="Carte CIB / EDAHABIA"
+                                    class="h-8 w-auto object-contain bg-white keep-white-bg px-1.5 py-0.5 border border-slate-200"
+                                  />
+                                  <span class="pay-title">Carte CIB / EDAHABIA</span>
                                 </div>
-                                <span class="pay-title">Carte CIB / EDAHABIA (Passerelle SATIM)</span>
                               </div>
                               <p class="pay-desc">
-                                Règlement électronique sécurisé par carte CIB ou Edahabia via la passerelle officielle <strong>SATIM (3D-Secure OTP)</strong>. Votre bon d'échange (Voucher) et votre réservation sont <strong>confirmés instantanément</strong>.
-                              </p>
-                            </div>
-                          </label>
-
-                          <!-- OPTION 2: BaridiMob / CCP (Manual Admin Confirmation) -->
-                          <label
-                            class="pay-method-card"
-                            :class="{ active: selectedPaymentMethod === 'baridimob' }"
-                          >
-                            <input
-                              type="radio"
-                              value="baridimob"
-                              v-model="selectedPaymentMethod"
-                              name="hotel_payment_choice"
-                              class="pay-radio"
-                            />
-                            <div class="pay-method-content">
-                              <div class="pay-method-top">
-                                <div class="pay-badges-row">
-                                  <span class="pay-badge-manual">
-                                    <svg class="pay-badge-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" />
-                                    </svg>
-                                    Validation Admin
-                                  </span>
-                                  <span class="pay-brand-tag">BARIDIMOB • CCP</span>
-                                </div>
-                                <span class="pay-title">Virement BaridiMob / CCP</span>
-                              </div>
-                              <p class="pay-desc">
-                                Effectuez le versement sur le compte de l'agence et envoyez le reçu. Dès validation par l'administration, la réservation est <strong>automatiquement validée et confirmée</strong>.
+                                Règlement électronique sécurisé par carte CIB ou Edahabia via la plateforme officielle <strong>SATIM (3D-Secure OTP)</strong>. Votre bon d'échange (Voucher) et votre réservation sont <strong>confirmés instantanément</strong>.
                               </p>
                             </div>
                           </label>
@@ -1173,15 +1145,17 @@ import { useAuthStore } from '~/stores/auth';
 import { fetchHotelDetails } from '~/services/hotel';
 import { useDark } from '@vueuse/core';
 import { resolveHotelImage, resolveHotelGallery, onHotelImageError } from '~/composables/useHotelImages';
+import { useTroveSeekAttribution } from '~/composables/useTroveSeekAttribution';
 
 const route      = useRoute();
 const router     = useRouter();
 const hotelStore = useHotelStore();
 const authStore  = useAuthStore();
 const isDark     = useDark();
+const { mediaCode: tsMediaCode, surveyAnswer: tsSurveyAnswer } = useTroveSeekAttribution();
 
 const { onlinePaymentEnabled: showSatimPayment, isSandboxMode, loadPaymentConfig } = usePaymentConfig();
-const selectedPaymentMethod = ref(authStore.isAdmin ? 'wallet' : 'baridimob'); // 'baridimob' | 'wallet' | 'cib'
+const selectedPaymentMethod = ref(authStore.isAdmin ? 'wallet' : 'cib'); // 'cib' | 'wallet'
 const guestInfo             = ref({ name: '', email: '', phone: '' });
 
 // Number of rooms requested (from URL query, store, or default 1)
@@ -2078,6 +2052,8 @@ async function submitBookingOrder() {
     guest_email: fullGuestEmail,
     guest_phone: fullGuestPhone,
     is_on_request: isAgOnRequest,
+    attribution_code: tsMediaCode.value || undefined,
+    attribution_survey: tsSurveyAnswer.value || undefined,
   };
 
   const res = await hotelStore.bookRoom(allPax, bookingPayload);
@@ -2173,20 +2149,20 @@ useHead({
   --dt-card-border: #e2e8f0;
   --dt-box-bg: #f8fafc;
   --dt-box-border: #e2e8f0;
-  --dt-text-main: #0f172a;
+  --dt-text-main: #0C1C39;
   --dt-text-sub: #64748b;
   --dt-text-label: #475569;
   --dt-input-bg: #ffffff;
   --dt-input-border: #cbd5e1;
-  --dt-input-text: #0f172a;
-  --dt-gold: #d4a03c;
-  --dt-gold-hover: #c4912c;
-  --dt-gold-light: rgba(212, 160, 60, 0.12);
+  --dt-input-text: #0C1C39;
+  --dt-gold: #E1AF5A;
+  --dt-gold-hover: #C99742;
+  --dt-gold-light: rgba(225, 175, 90, 0.14);
   --dt-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 
   background: var(--dt-page-bg);
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: var(--dt-text-main);
   transition: background 0.25s ease, color 0.25s ease;
   overflow: visible !important;
@@ -2195,20 +2171,20 @@ useHead({
 .hotel-detail-page.dark-theme,
 :global(html.dark) .hotel-detail-page,
 :global(.dark) .hotel-detail-page {
-  --dt-page-bg: #070a14;
-  --dt-card-bg: #0b1022;
-  --dt-card-border: #1a2542;
-  --dt-box-bg: #080d1c;
-  --dt-box-border: #16203a;
+  --dt-page-bg: #071124;
+  --dt-card-bg: #0C1C39;
+  --dt-card-border: #1a2f57;
+  --dt-box-bg: #071124;
+  --dt-box-border: #162D56;
   --dt-text-main: #ffffff;
   --dt-text-sub: #94a3b8;
   --dt-text-label: #7b8ba5;
-  --dt-input-bg: #080d1c;
-  --dt-input-border: #18233e;
+  --dt-input-bg: #071124;
+  --dt-input-border: #1a2f57;
   --dt-input-text: #ffffff;
-  --dt-gold: #d4a03c;
-  --dt-gold-hover: #c4912c;
-  --dt-gold-light: rgba(212, 160, 60, 0.16);
+  --dt-gold: #E1AF5A;
+  --dt-gold-hover: #C99742;
+  --dt-gold-light: rgba(225, 175, 90, 0.16);
   --dt-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
 }
 

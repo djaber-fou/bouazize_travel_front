@@ -410,6 +410,9 @@
                         </div>
                     </div>
                     
+                    <!-- TroveSeek Production 4-Layer Attribution (Survey + Media Code) -->
+                    <TroveSeekAttributionFields />
+
                     <!-- Payment Method Selector -->
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
                         <PaymentMethodSelector
@@ -444,11 +447,14 @@
 <script setup>
 import { useAuthStore } from '#imports'
 import PaymentMethodSelector from '~/components/payment/PaymentMethodSelector.vue'
+import TroveSeekAttributionFields from '~/components/common/TroveSeekAttributionFields.vue'
+import { useTroveSeekAttribution } from '~/composables/useTroveSeekAttribution'
 import { usePaymentConfig } from '~/composables/usePaymentConfig'
 import { useRouter } from 'vue-router'
 import { computed, ref, watch, onMounted } from 'vue'
 
 const { onlinePaymentEnabled, isSandboxMode, loadPaymentConfig } = usePaymentConfig()
+const { mediaCode, surveyAnswer } = useTroveSeekAttribution()
 onMounted(() => { loadPaymentConfig() })
 
 const router = useRouter()
@@ -892,6 +898,12 @@ const submitOrder = async ()=>{
         const formData = new FormData()
         formData.append('members', clientOrder.value.members)
         formData.append('payment_method', clientOrder.value.payment_method)
+        if (mediaCode.value) {
+            formData.append('attribution_code', mediaCode.value)
+        }
+        if (surveyAnswer.value) {
+            formData.append('attribution_survey', surveyAnswer.value)
+        }
         
         if (chosenDepartureDate.value) {
             formData.append('selected_date', chosenDepartureDate.value)

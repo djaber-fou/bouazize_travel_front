@@ -55,9 +55,21 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
     };
     if (token) {
         reqHeaders['Authorization'] = 'Bearer ' + token;
+        if (typeof window !== 'undefined') {
+            try {
+                const rawTs = window.localStorage.getItem('bzz_ts_attribution');
+                if (rawTs) reqHeaders['X-TS-Attribution'] = btoa(unescape(encodeURIComponent(rawTs)));
+            } catch {}
+        }
     }
 
     const { headers: _, silent = false, ...restConfigOpts } = configOpts;
+    if (typeof window !== 'undefined' && !reqHeaders['X-TS-Attribution']) {
+        try {
+            const rawTs = window.localStorage.getItem('bzz_ts_attribution');
+            if (rawTs) reqHeaders['X-TS-Attribution'] = btoa(unescape(encodeURIComponent(rawTs)));
+        } catch {}
+    }
 
     const isFormDataPayload = typeof FormData !== 'undefined' && Data instanceof FormData;
     const response = await axios({
