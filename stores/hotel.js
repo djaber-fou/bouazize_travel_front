@@ -442,7 +442,7 @@ export const useHotelStore = defineStore('hotel', {
         exchange_rate: Number(this.selectedRoom.exchange_rate || 1),
         markup_percent: Number(this.selectedRoom.markup_percent || 10),
         cancellation_deadline: this.selectedRoom?.deadline || this.evaluationResult?.cancellation_deadline || null,
-        cancellation_policy: this.selectedRoom?.is_fully_refundable !== false ? 'refundable' : 'non_refundable',
+        cancellation_policy: this.selectedRoom?.is_fully_refundable === true ? 'refundable' : 'non_refundable',
         pax: paxList,
         ...extraData,
       };

@@ -561,12 +561,33 @@
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="card-pin">
                         <path fill-rule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clip-rule="evenodd"/>
                       </svg>
-                      {{ hotel.hotel_city }}
+                      {{ hotel.hotel_city }}<span v-if="hotel.location_name"> · {{ hotel.location_name }}</span>
                     </p>
                   </div>
 
                   <!-- Badges / Tags -->
                   <div class="card-tags-list">
+                    <!-- T4: Clear Refundable / Non-Refundable Indicator with Policy Tooltip -->
+                    <span
+                      v-if="isHotelRefundable(hotel)"
+                      class="board-tag refund-badge-ok"
+                      :title="hotelRefundTooltip(hotel)"
+                      style="background: rgba(16, 185, 129, 0.14); color: #047857; border-color: rgba(16, 185, 129, 0.4); font-weight: 700; cursor: help;"
+                      @click.stop
+                    >
+                      <UIcon name="i-heroicons-shield-check" class="w-3.5 h-3.5 text-emerald-600 inline mr-1" />
+                      {{ hotelRefundBadgeLabel(hotel) }}
+                    </span>
+                    <span
+                      v-else
+                      class="board-tag refund-badge-nr"
+                      :title="hotelRefundTooltip(hotel)"
+                      style="background: rgba(225, 29, 72, 0.1); color: #be123c; border-color: rgba(225, 29, 72, 0.3); font-weight: 700; cursor: help;"
+                      @click.stop
+                    >
+                      <UIcon name="i-heroicons-no-symbol" class="w-3.5 h-3.5 text-rose-600 inline mr-1" />
+                      Non remboursable
+                    </span>
                     <span v-if="hasKaabaHaram(hotel)" class="board-tag" style="background: rgba(217, 119, 6, 0.15); color: #d97706; border-color: rgba(217, 119, 6, 0.35); font-weight: 700;">
                       <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 text-amber-600 inline mr-1" />Vue Kaaba / Haram
                     </span>
@@ -743,6 +764,7 @@ import {
   parseFiltersFromQuery,
   serializeFiltersToQuery,
   resolveEffectiveCancellationPolicy,
+  hotelHasRefundableOffer,
 } from '~/utils/hotelFilterEngine';
 
 const route      = useRoute();
@@ -802,6 +824,34 @@ const activeFiltersCount = computed(() => {
 
 const KAABA_REGEX = /(kaaba|kabaa|kaba|الكعبة)/i;
 const HARAM_REGEX = /(haram|al[\s-]?haram|el[\s-]?haram|الحرم)/i;
+
+function isHotelRefundable(hotel) {
+  return hotelHasRefundableOffer(hotel);
+}
+
+function hotelRefundBadgeLabel(hotel) {
+  if (!isHotelRefundable(hotel)) return 'Non remboursable';
+  if (hotel?.best_refundable_deadline_display) {
+    return `Annulation gratuite jusqu'au ${hotel.best_refundable_deadline_display}`;
+  }
+  const raw = hotel?.best_refundable_deadline || hotel?.cancellation_deadline || hotel?.deadline;
+  if (raw) {
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) {
+      const formatted = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      return `Annulation gratuite jusqu'au ${formatted}`;
+    }
+  }
+  return 'Remboursable';
+}
+
+function hotelRefundTooltip(hotel) {
+  if (hotel?.cancellation_policy_tooltip) return hotel.cancellation_policy_tooltip;
+  if (hotel?.cancellation_policy) return hotel.cancellation_policy;
+  return isHotelRefundable(hotel)
+    ? "Cet établissement propose au moins une offre avec annulation gratuite."
+    : "Tarif non remboursable. Aucun remboursement en cas d'annulation.";
+}
 
 function hasKaabaHaram(hotel) {
   if (!hotel) return false;

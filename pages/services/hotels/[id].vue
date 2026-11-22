@@ -1026,8 +1026,8 @@
                   </svg>
                   <span class="sb-cancel-label">Politique d'annulation</span>
                 </div>
-                <p v-if="selectedAgreement?.is_fully_refundable !== false" class="sb-cancel-desc">
-                  Annulation sans frais garantie jusqu'au : <strong>{{ cancellationDeadlineFormatted }}</strong>. Au-delà de cette date, les pénalités contractuelles de l'hôtelier s'appliquent.
+                <p v-if="selectedAgreement?.is_fully_refundable === true && cancellationDeadlineFormatted" class="sb-cancel-desc">
+                  Annulation sans frais garantie jusqu'au : <strong>{{ cancellationDeadlineFormatted }}</strong> (heure d'Algérie). Au-delà de cette date, les pénalités contractuelles de l'hôtelier s'appliquent.
                 </p>
                 <p v-else class="sb-cancel-desc">
                   Tarif non-remboursable. En cas d'annulation ou de non-présentation, la totalité du séjour sera retenue.
@@ -1764,22 +1764,20 @@ const currentPrice = computed(() => {
 });
 
 const cancellationDeadlineFormatted = computed(() => {
-  if (evaluation.value?.cancellation_deadline) {
-    return evaluation.value.cancellation_deadline;
+  const raw = evaluation.value?.cancellation_deadline || selectedAgreement.value?.deadline || null;
+  if (!raw) return null;
+  if (selectedAgreement.value?.deadline_display && !evaluation.value?.cancellation_deadline) {
+    return selectedAgreement.value.deadline_display;
   }
-  if (selectedAgreement.value?.deadline) {
-    return selectedAgreement.value.deadline;
-  }
-  if (hotelStore.searchForm.check_in) {
-    try {
-      const d = new Date(hotelStore.searchForm.check_in);
-      if (!isNaN(d.getTime())) {
-        d.setDate(d.getDate() - 2);
-        return d.toISOString().split('T')[0];
-      }
-    } catch (_) {}
-  }
-  return '2026-10-01';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return String(raw);
+  return d.toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 });
 
 const paxFormValid = computed(() => {
