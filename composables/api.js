@@ -55,23 +55,25 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
     };
     if (token) {
         reqHeaders['Authorization'] = 'Bearer ' + token;
-        if (typeof window !== 'undefined') {
-            try {
-                const rawTs = window.localStorage.getItem('bzz_ts_attribution');
-                if (rawTs) reqHeaders['X-TS-Attribution'] = btoa(unescape(encodeURIComponent(rawTs)));
-            } catch {}
-        }
     }
 
     const { headers: _, silent = false, ...restConfigOpts } = configOpts;
-    if (typeof window !== 'undefined' && !reqHeaders['X-TS-Attribution']) {
-        try {
-            const rawTs = window.localStorage.getItem('bzz_ts_attribution');
-            if (rawTs) reqHeaders['X-TS-Attribution'] = btoa(unescape(encodeURIComponent(rawTs)));
-        } catch {}
-    }
 
     const isFormDataPayload = typeof FormData !== 'undefined' && Data instanceof FormData;
+
+    // Attach TroveSeek attribution inside POST/PUT payload (avoids custom CORS preflight headers)
+    if (typeof window !== 'undefined' && Data && ['POST', 'PUT', 'PATCH'].includes(String(Method).toUpperCase())) {
+        try {
+            const rawTs = window.localStorage.getItem('bzz_ts_attribution');
+            if (rawTs) {
+                if (isFormDataPayload) {
+                    if (!Data.has('attribution')) Data.append('attribution', rawTs);
+                } else if (typeof Data === 'object' && !Array.isArray(Data) && Data.attribution === undefined) {
+                    Data = { ...Data, attribution: rawTs };
+                }
+            }
+        } catch {}
+    }
     const response = await axios({
         method: Method,
         url: url,
