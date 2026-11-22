@@ -1,7 +1,7 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║           NETSTORMING HOTEL — Frontend API Service               ║
- * ║  Communicates with Laravel backend /api/hotels/* endpoints.     ║
+ * ║           BOUAZIZE TRAVEL HOTEL — Frontend API Service           ║
+ * ║  Communicates with Laravel backend /api/hotels/* endpoints.      ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
@@ -56,15 +56,14 @@ export const searchHotelAvailability = async (criteria) => {
 };
 
 /**
- * Pre-warm Netstorming cache for a destination (fire-and-forget).
+ * Pre-warm availability cache for a destination (fire-and-forget).
  *
  * Uses raw fetch with keepalive:true + AbortSignal.timeout(1200ms):
  *  - keepalive: request survives page navigation
  *  - Short timeout: browser drops the connection after the backend sends its 200 response,
- *    triggering the PHP ignore_user_abort pattern — PHP continues the Netstorming query
- *    in the background even after the HTTP connection is closed.
+ *    allowing the backend to complete availability caching in the background.
  *
- * @param {string} destinationCode - Netstorming city code (e.g. "SYD", "TYO")
+ * @param {string} destinationCode - Destination city code (e.g. "ALG", "TUN")
  * @param {string} [checkIn]       - YYYY-MM-DD (optional hint)
  * @param {string} [checkOut]      - YYYY-MM-DD (optional hint)
  * @param {number} [adults]        - default 2
@@ -188,7 +187,7 @@ export const getHotelOrder = async (orderId) => {
 // ── Track Order ───────────────────────────────────────────────────────────────
 
 /**
- * Track booking status from Netstorming.
+ * Track live booking status.
  * @param {number} orderId
  * @returns {Promise<Object>}
  */

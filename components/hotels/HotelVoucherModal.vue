@@ -13,7 +13,7 @@
           <UIcon name="i-heroicons-ticket" class="w-6 h-6 text-emerald-600" />
           <div>
             <h3 class="text-base font-bold text-slate-900 leading-tight">Bon de Réservation Officiel (Voucher)</h3>
-            <p class="text-xs text-slate-500 font-mono">Dossier #{{ order.id }} · {{ supplierReference }}</p>
+            <p class="text-xs text-slate-500 font-mono">Dossier #{{ order.id }} · {{ reservationReference }}</p>
           </div>
         </div>
 
@@ -46,7 +46,7 @@
         </div>
       </div>
 
-      <!-- Printable Voucher Core Document (A4 format matching official myGO voucher) -->
+      <!-- Printable Voucher Core Document (A4 official hotel voucher) -->
       <div
         id="official-hotel-voucher-printable"
         ref="voucherCardRef"
@@ -54,7 +54,7 @@
         style="max-width: 820px; margin: 0 auto;"
       >
         
-        <!-- ─── TOP SECTION: Bouazize Travel Logo & SUPPLIER REFERENCE ──────────── -->
+        <!-- ─── TOP SECTION: Bouazize Travel Logo & RESERVATION REFERENCE ──────── -->
         <div class="flex justify-between items-start border-b border-slate-200 pb-3">
           <!-- Left: Official Bouazize Travel Logo (SINGLE LOGO ON VOUCHER) -->
           <div class="flex items-center gap-3">
@@ -70,16 +70,16 @@
             </div>
           </div>
 
-          <!-- Right: Supplier Reference & Hotel QR Code Check -->
+          <!-- Right: Reservation Reference & Hotel QR Code Check -->
           <div class="text-right flex flex-col items-end">
             <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
               ▼ FOR HOTEL: RESERVATION CODE AND QR CODE CHECK
             </span>
             <div class="flex items-center gap-3 mt-1">
               <div class="text-right">
-                <span class="text-[10px] text-slate-500 uppercase font-bold block">SUPPLIER REFERENCE</span>
+                <span class="text-[10px] text-slate-500 uppercase font-bold block">RESERVATION REFERENCE</span>
                 <span class="text-lg sm:text-xl font-black text-[#15803d] tracking-wide font-mono">
-                  {{ supplierReference }}
+                  {{ reservationReference }}
                 </span>
                 <p class="text-[10px] text-slate-400 mt-0.5">Hotel confirmation number: -</p>
               </div>
@@ -211,7 +211,7 @@
           </div>
         </div>
 
-        <!-- ─── EMERGENCY NUMBER BOX (Exact Red Layout from myGO Voucher) ─────── -->
+        <!-- ─── EMERGENCY NUMBER BOX ───────────────────────────────────────── -->
         <div class="border-2 border-rose-600 rounded-lg p-3 sm:p-4 bg-rose-50/40 flex flex-col sm:flex-row items-start sm:items-center gap-4 text-xs">
           <!-- Big Phone Callout -->
           <div class="flex items-center gap-3 shrink-0">
@@ -327,9 +327,9 @@ const downloadingPdf = ref(false)
 const hotelCheckQrDataUrl = ref('')
 const hotelMapQrDataUrl = ref('')
 
-const supplierReference = computed(() => {
-  if (!props.order) return '8048573819/17740164'
-  return props.order.ns_booking_reference || `8048573819/${props.order.id}`
+const reservationReference = computed(() => {
+  if (!props.order) return 'BZZ-HOTEL'
+  return props.order.booking_reference || props.order.reference || `BZZ-${props.order.id}`
 })
 
 const customerReference = computed(() => {
@@ -361,7 +361,7 @@ const currentFormattedDate = computed(() => {
 // Scannable QR Payload
 const qrCodePayload = computed(() => {
   if (!props.order) return 'https://bouazizetravel.com'
-  const refCode = supplierReference.value
+  const refCode = reservationReference.value
   return `https://bouazizetravel.com/verify?ref=${encodeURIComponent(refCode)}&hotel=${encodeURIComponent(props.order.hotel_name || '')}&checkin=${props.order.check_in || ''}`
 })
 
@@ -410,7 +410,7 @@ function formatFullDateTime(val) {
 
 function triggerPrint() {
   if (voucherCardRef.value) {
-    printDocumentElement(voucherCardRef.value, `VOUCHER_${props.order?.ns_booking_reference || props.order?.id || 'HOTEL'}`)
+    printDocumentElement(voucherCardRef.value, `VOUCHER_${reservationReference.value || props.order?.id || 'HOTEL'}`)
   } else if (typeof window !== 'undefined') {
     window.print()
   }
@@ -442,7 +442,7 @@ async function downloadPdf() {
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width
 
     pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
-    const refCode = props.order?.ns_booking_reference || ('BZZ-' + props.order?.id)
+    const refCode = reservationReference.value || ('BZZ-' + props.order?.id)
     pdf.save(`VOUCHER_${refCode}.pdf`)
   } catch (err) {
     console.error('Failed to generate PDF:', err)

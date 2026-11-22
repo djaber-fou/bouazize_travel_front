@@ -1,5 +1,5 @@
 /**
- * HOTEL PINIA STORE — Netstorming Integration
+ * HOTEL PINIA STORE — Bouazize Travel Availability Engine
  *
  * KEY DESIGN: Full dataset loaded into allHotels in background after initial 50.
  * All filters operate on allHotels (not just the loaded chunk).
@@ -169,7 +169,7 @@ export const useHotelStore = defineStore('hotel', {
       }
       this.destinationSuggestions = [];
 
-      // Fire-and-forget warmup: pre-heat Netstorming cache for this destination
+      // Fire-and-forget warmup: pre-heat availability cache for this destination
       // so that by the time the user clicks Search, the bedbanks are already warm.
       if (code && destination.type !== 'hotel') {
         warmupDestination(
@@ -392,7 +392,7 @@ export const useHotelStore = defineStore('hotel', {
       this.loadingBooking = true;
       this.bookingError = null;
       this.bookingConfirmation = null;
-      // Per Netstorming Section 33 & 37: prefer agreement_id and search_number returned by evaluate
+      // Prefer agreement_id and search_number returned by live evaluation
       const roomCode = this.evaluationResult?.agreement_id || this.selectedRoom.agreement_id || this.selectedRoom.room_code || this.selectedHotel.room_code;
       const roomBasisCode = this.selectedRoom.room_basis || this.selectedRoom.room_basis_code || this.evaluationResult?.room_basis_code || this.selectedHotel.room_basis_code;
       const roomBasisName = this.selectedRoom.room_basis_name || this.evaluationResult?.room_basis_name || this.selectedHotel.room_basis_name || this.selectedRoom.room_type;
@@ -429,16 +429,15 @@ export const useHotelStore = defineStore('hotel', {
         rooms_config: roomsConfig,
         nationality: this.searchForm.nationality || 'DZ',
         room_type: this.evaluationResult?.room_type_code || this.selectedRoom?.room_type_code || this.searchForm.room_type || 'dbl',
-        // ns_price = NET price in original currency (EUR/USD/DZD) — sent to NS for booking
-        // Priority: evaluate result raw_price > agreement raw_price > agreement ns_price > fallback
+        // net_price = NET price in original currency (EUR/USD/DZD)
+        // Priority: evaluate result raw_price > agreement raw_price > fallback
         // NEVER divide final_price_dzd by exchange_rate (exchange_rate = DZD multiplier, not divisor)
-        ns_price: Number(
+        net_price: Number(
           this.evaluationResult?.raw_price ||
           this.selectedRoom.raw_price ||
-          this.selectedRoom.ns_price ||
           0
         ),
-        ns_currency: this.selectedRoom.currency || this.selectedRoom.ns_currency || this.evaluationResult?.currency || 'DZD',
+        net_currency: this.selectedRoom.currency || this.evaluationResult?.currency || 'DZD',
         exchange_rate: Number(this.selectedRoom.exchange_rate || 1),
         markup_percent: Number(this.selectedRoom.markup_percent || 10),
         cancellation_deadline: this.selectedRoom?.deadline || this.evaluationResult?.cancellation_deadline || null,

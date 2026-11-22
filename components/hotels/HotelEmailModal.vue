@@ -13,7 +13,7 @@
             <UIcon name="i-heroicons-envelope" class="w-6 h-6 text-primary" />
             <div>
               <h3 class="text-base font-bold text-slate-900 leading-tight">Email Officiel de Confirmation</h3>
-              <p class="text-xs text-slate-500 font-mono">Dossier #{{ order.id }} · Modèle Email MyGO / Bouazize</p>
+              <p class="text-xs text-slate-500 font-mono">Dossier #{{ order.id }} · Modèle Email Bouazize Travel</p>
             </div>
           </div>
 
@@ -86,7 +86,8 @@ const isOpen = computed({
 })
 
 const config = useRuntimeConfig()
-const apiBase = config.public?.apiBase || 'http://127.0.0.1:8000/api'
+const authStore = useAuthStore()
+const apiBase = import.meta.env.VITE_BASE_URL || config.public?.apiBase || 'http://127.0.0.1:8000/api'
 const emailHtml = ref('')
 const loadingEmail = ref(false)
 const emailContainerRef = ref(null)
@@ -100,10 +101,15 @@ watch(() => [isOpen.value, props.order?.id], async ([openVal, orderId]) => {
 async function fetchEmailPreview(orderId) {
   loadingEmail.value = true
   try {
+    const token = authStore?.Authorization?.token
+    const headers = {
+      Accept: 'text/html, application/json',
+    }
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
+    }
     const res = await $fetch(`${apiBase}/hotels/orders/${orderId}/email-preview`, {
-      headers: {
-        Accept: 'text/html, application/json'
-      }
+      headers,
     })
     emailHtml.value = typeof res === 'string' ? res : (res?.data || '')
   } catch (err) {
@@ -115,8 +121,11 @@ async function fetchEmailPreview(orderId) {
 }
 
 function openInNewTab() {
-  if (!props.order?.id) return
-  window.open(`${apiBase}/hotels/orders/${props.order.id}/email-preview`, '_blank')
+  if (typeof window === 'undefined' || !emailHtml.value) return
+  const blob = new Blob([emailHtml.value], { type: 'text/html;charset=utf-8' })
+  const blobUrl = URL.createObjectURL(blob)
+  window.open(blobUrl, '_blank', 'noopener,noreferrer')
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
 }
 
 function triggerPrint() {

@@ -139,8 +139,8 @@
               <template v-else>Recherche des meilleurs tarifs en cours...</template>
             </h4>
             <p class="loading-sub">
-              <template v-if="isRetrying">Netstorming interroge à nouveau les fournisseurs pour <strong>{{ currentDestName }}</strong> — résultats attendus dans quelques secondes.</template>
-              <template v-else>Interrogation en direct du moteur Netstorming pour <strong>{{ currentDestName }}</strong></template>
+              <template v-if="isRetrying">Nouvelle vérification des disponibilités pour <strong>{{ currentDestName }}</strong> — résultats attendus dans quelques secondes.</template>
+              <template v-else>Interrogation en temps réel des disponibilités hôtelières pour <strong>{{ currentDestName }}</strong></template>
             </p>
           </div>
         </div>
@@ -190,7 +190,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-portal-gold inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             Recherche en cours...
           </h4>
-          <p>Netstorming interroge les fournisseurs pour <strong>{{ currentDestName }}</strong>. Les résultats arrivent dans quelques secondes. (Tentative {{ retryCount }}/{{ maxRetries }})</p>
+          <p>Vérification en cours des disponibilités pour <strong>{{ currentDestName }}</strong>. Les résultats arrivent dans quelques secondes. (Tentative {{ retryCount }}/{{ maxRetries }})</p>
         </div>
         <div class="feedback-actions">
           <span class="btn-spinner" style="display:inline-block;margin-right:8px;"></span>
@@ -991,7 +991,7 @@ function getRouteSearchKey() {
   return `${destCode}|${hotelId}|${hotelName}|${cIn}|${cOut}|${adults}|${children}|${rooms}|${ages}|${rcKey}`;
 }
 
-// ── Auto-retry state (for cold Netstorming destinations) ─────────────────
+// ── Auto-retry state (for cold destination cache) ─────────────────────────
 const retryCount  = ref(0);
 const isRetrying  = ref(false);
 const maxRetries  = 2;      // retry up to 2 times after empty result
@@ -1063,7 +1063,7 @@ async function executeSearch(isAutoRetry = false) {
     hotelStore.filters.searchName = q.hotel_name ? String(q.hotel_name) : '';
   }
   const parsedUrlFilters = parseFiltersFromQuery(q);
-  if (!isRetry) {
+  if (!isAutoRetry) {
     hotelStore.filters = {
       ...parsedUrlFilters.filters,
       searchName: q.hotel_id ? '' : (parsedUrlFilters.filters.searchName || (q.hotel_name ? String(q.hotel_name) : '')),
@@ -1076,8 +1076,8 @@ async function executeSearch(isAutoRetry = false) {
   try {
     await hotelStore.searchAvailability();
 
-    // ── Smart auto-retry for cold Netstorming cache ───────────────────────
-    // Netstorming sometimes returns 0 results on first call for cold destinations.
+    // ── Smart auto-retry for cold availability cache ──────────────────────
+    // Availability sometimes returns 0 results on first call for cold destinations.
     // If we got 0 hotels and haven't exhausted retries, wait and try again.
     const gotResults = (hotelStore.searchResults.total > 0) || (hotelStore.allHotels.length > 0);
     if (!gotResults && retryCount.value < maxRetries && !hotelStore.searchError) {

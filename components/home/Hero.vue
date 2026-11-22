@@ -171,7 +171,7 @@
                                 Réservez Votre Hôtel
                             </h3>
                             <p class="text-[11px] text-slate-400 font-medium">
-                                Moteur Netstorming en direct · {{ hotelsTotalLabel }} hôtels dans {{ destinationsTotalLabel }} destinations
+                                Disponibilités en temps réel · {{ hotelsTotalLabel }} hôtels dans {{ destinationsTotalLabel }} destinations
                             </p>
                         </div>
                     </div>
@@ -528,7 +528,7 @@ function chooseDestination(dest) {
     destinationCode.value = dest.ns_code || dest.code || dest.city_code || ''
     destinationName.value = dest.name || dest.label || ''
     showSuggestions.value = false
-    // Pre-warm Netstorming cache for this destination so the first search is fast
+    // Pre-warm availability cache for this destination so the first search is fast
     if (destinationCode.value && dest.type !== 'hotel') {
         warmupDestination(destinationCode.value, checkIn.value, checkOut.value, adults.value)
     }
@@ -541,7 +541,7 @@ function selectQuickChip(chip) {
     selectedHotelId.value = null
     selectedHotelName.value = ''
     showSuggestions.value = false
-    // Pre-warm Netstorming cache for popular destinations
+    // Pre-warm availability cache for popular destinations
     warmupDestination(chip.code, checkIn.value, checkOut.value, adults.value)
 }
 

@@ -287,7 +287,7 @@
                 </div>
               </div>
 
-              <!-- Berceau (Netstorming: allowed on dbl/twn/trp only) -->
+              <!-- Berceau (autorisé uniquement sur chambres Double/Twin/Triple) -->
               <div class="room-field-item berceau-item">
                 <label class="field-micro-label">Berceau</label>
                 <div class="berceau-checkbox-wrap" :title="(Number(room.adults) < 2 || Number(room.adults) > 3) ? 'Berceau autorisé uniquement pour les chambres Double, Twin et Triple' : 'Ajouter un lit bébé (berceau)'">

@@ -51,7 +51,7 @@
         ]"
       >
         <UIcon name="i-heroicons-building-office-2" class="w-5 h-5" />
-        <span>Hôtels (Netstorming)</span>
+        <span>Réservations Hôtels</span>
         <UBadge
           v-if="hotelOrders.length > 0 || hotelPagination.total > 0"
           :color="activeTab === 'hotels' ? 'white' : 'primary'"
@@ -137,7 +137,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <!--  TAB 1: HÔTELS NETSTORMING                                              -->
+    <!--  TAB 1: RÉSERVATIONS HÔTELS                                             -->
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
     <div v-show="activeTab === 'hotels'" class="space-y-6 animate-in fade-in duration-200">
       
@@ -192,7 +192,7 @@
             <UInput
               v-model="hotelSearch"
               icon="i-heroicons-magnifying-glass"
-              placeholder="Rechercher par hôtel, ville, réf. Netstorming..."
+              placeholder="Rechercher par hôtel, ville, référence dossier..."
               class="w-full"
               @update:model-value="debounceHotelFetch"
             />
@@ -266,15 +266,15 @@
                   <div class="font-mono font-bold text-slate-900 dark:text-white">
                     #HOTEL-{{ order.id }}
                   </div>
-                  <div v-if="order.ns_booking_reference" class="flex items-center gap-1.5 mt-1">
+                  <div v-if="order.booking_reference || order.reference" class="flex items-center gap-1.5 mt-1">
                     <span class="inline-flex items-center gap-1 text-[11px] font-mono bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md font-semibold">
-                      {{ order.ns_booking_reference }}
+                      {{ order.booking_reference || order.reference }}
                     </span>
                     <button
                       type="button"
                       class="text-slate-400 hover:text-primary transition-colors"
                       title="Copier référence"
-                      @click.stop="copyToClipboard(order.ns_booking_reference)"
+                      @click.stop="copyToClipboard(order.booking_reference || order.reference)"
                     >
                       <UIcon name="i-heroicons-clipboard-document" class="w-3.5 h-3.5" />
                     </button>
@@ -604,13 +604,13 @@
           </div>
         </div>
 
-        <!-- Netstorming Live Status Box -->
+        <!-- Live Reservation Status Box -->
         <div class="p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <UIcon name="i-heroicons-arrow-path-rounded-square" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <h4 class="text-xs font-bold text-blue-900 dark:text-blue-200 uppercase tracking-wider">
-                Suivi Direct Netstorming
+                Suivi Direct de la Réservation
               </h4>
             </div>
             <UButton
@@ -626,15 +626,15 @@
 
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <span class="text-slate-400 block text-[10px]">Référence Netstorming:</span>
+              <span class="text-slate-400 block text-[10px]">Référence Réservation :</span>
               <span class="font-mono font-bold text-slate-800 dark:text-slate-200">
-                {{ selectedHotelOrder.ns_booking_reference || 'Non assigné' }}
+                {{ selectedHotelOrder.booking_reference || selectedHotelOrder.reference || 'Non assigné' }}
               </span>
             </div>
             <div>
-              <span class="text-slate-400 block text-[10px]">Statut Fournisseur:</span>
+              <span class="text-slate-400 block text-[10px]">Statut Réservation :</span>
               <span class="font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400">
-                {{ selectedHotelOrder.ns_booking_status || selectedHotelOrder.status }}
+                {{ selectedHotelOrder.booking_status || selectedHotelOrder.status }}
               </span>
             </div>
           </div>
@@ -642,8 +642,8 @@
           <div v-if="hotelTrackingData" class="p-2.5 bg-white dark:bg-slate-900 rounded-lg text-xs border border-blue-100 dark:border-blue-900 text-slate-700 dark:text-slate-300">
             <p class="font-bold text-blue-600 mb-1">Rapport de synchronisation en direct :</p>
             <div class="space-y-1 text-[11px]">
-              <p><strong>Statut :</strong> {{ hotelTrackingData.ns_booking_status }}</p>
-              <p v-if="hotelTrackingData.supplier_reference"><strong>Réf. Fournisseur :</strong> {{ hotelTrackingData.supplier_reference }}</p>
+              <p><strong>Statut :</strong> {{ hotelTrackingData.booking_status || hotelTrackingData.status }}</p>
+              <p v-if="hotelTrackingData.booking_reference"><strong>Référence :</strong> {{ hotelTrackingData.booking_reference }}</p>
               <p v-if="hotelTrackingData.booked_at"><strong>Horodatage :</strong> {{ hotelTrackingData.booked_at }}</p>
             </div>
           </div>
@@ -956,7 +956,7 @@
             <div>
               <h4 class="font-bold text-slate-900 dark:text-white">Annuler la réservation ?</h4>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Êtes-vous sûr de vouloir annuler votre réservation pour <strong>{{ orderToCancel.hotel_name }}</strong> (Réf: {{ orderToCancel.ns_booking_reference || orderToCancel.id }}) ?
+                Êtes-vous sûr de vouloir annuler votre réservation pour <strong>{{ orderToCancel.hotel_name }}</strong> (Réf: {{ orderToCancel.booking_reference || orderToCancel.reference || orderToCancel.id }}) ?
               </p>
               <p v-if="orderToCancel.cancellation_deadline" class="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-2">
                 Date limite sans frais : {{ formatDateShort(orderToCancel.cancellation_deadline) }}
@@ -1439,19 +1439,20 @@ async function trackHotelBooking(order) {
     const res = await sendApi(`/hotels/orders/${order.id}/track`, null, 'GET')
     if (res?.data) {
       hotelTrackingData.value = res.data
-      if (res.data.ns_booking_status) {
-        order.ns_booking_status = res.data.ns_booking_status
+      const latestStatus = res.data.booking_status || res.data.status
+      if (latestStatus) {
+        order.booking_status = latestStatus
       }
       toast.add({
-        title: 'Suivi Netstorming mis à jour',
-        description: `Statut en direct : ${res.data.ns_booking_status || 'Confirmé'}`,
+        title: 'Suivi de réservation mis à jour',
+        description: `Statut en direct : ${latestStatus || 'Confirmé'}`,
         color: 'emerald'
       })
     }
   } catch (err) {
     toast.add({
       title: 'Erreur de suivi',
-      description: err?.response?.data?.message || 'Impossible de contacter Netstorming en direct.',
+      description: err?.response?.data?.message || 'Impossible de récupérer le statut en direct pour le moment.',
       color: 'red'
     })
   } finally {

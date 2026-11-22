@@ -15,7 +15,6 @@ import echoInit from './plugins/echo';
 import { useAuthStore } from '#imports';
 import Pusher from 'pusher-js';
 import Echo from 'laravel-echo';
-import SideBar from '../components/SideBar.vue';
 // import Axios from './composables/api';
 
 onMounted(()=>{

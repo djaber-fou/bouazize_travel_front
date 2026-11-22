@@ -111,7 +111,7 @@
               <div class="hotel-highlights-chips">
                 <span class="highlight-chip">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="chip-svg"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>
-                  Confirmation certifiée Netstorming
+                  Confirmation certifiée Bouazize Travel
                 </span>
                 <span class="highlight-chip">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="chip-svg"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/></svg>
@@ -163,7 +163,7 @@
               <div class="feedback-text-wrap">
                 <h4 class="feedback-main-title">Interrogation des offres en temps réel...</h4>
                 <p class="feedback-main-sub">
-                  Vérification en direct auprès de la passerelle Netstorming pour récupérer toutes les formules de chambres, options repas et tarifs actualisés.
+                  Vérification en temps réel des disponibilités pour récupérer toutes les formules de chambres, options repas et tarifs actualisés.
                 </p>
               </div>
             </div>
@@ -790,7 +790,7 @@
                                 <span class="pay-title">Carte CIB / EDAHABIA (Passerelle SATIM)</span>
                               </div>
                               <p class="pay-desc">
-                                Règlement électronique sécurisé par carte CIB ou Edahabia via la passerelle officielle <strong>SATIM (3D-Secure OTP)</strong>. Votre bon d'échange (Voucher) et réservation sont <strong>confirmés instantanément sur Netstorming</strong>.
+                                Règlement électronique sécurisé par carte CIB ou Edahabia via la passerelle officielle <strong>SATIM (3D-Secure OTP)</strong>. Votre bon d'échange (Voucher) et votre réservation sont <strong>confirmés instantanément</strong>.
                               </p>
                             </div>
                           </label>
@@ -821,7 +821,7 @@
                                 <span class="pay-title">Virement BaridiMob / CCP</span>
                               </div>
                               <p class="pay-desc">
-                                Effectuez le versement sur le compte de l'agence et envoyez le reçu. Dès validation par l'administration, la réservation est <strong>automatiquement envoyée et confirmée sur Netstorming / MyGo</strong>.
+                                Effectuez le versement sur le compte de l'agence et envoyez le reçu. Dès validation par l'administration, la réservation est <strong>automatiquement validée et confirmée</strong>.
                               </p>
                             </div>
                           </label>
@@ -867,7 +867,7 @@
                                 </span>
                               </div>
                               <p class="pay-desc">
-                                Confirmation instantanée transmise à Netstorming / MyGo.
+                                Confirmation instantanée de votre réservation hôtelière.
                                 <span v-if="authStore.isAdmin">
                                   Tarif Administrateur Net : <strong>{{ formatPrice(b2bPayablePrice) }} DZD</strong> (Crédit illimité, confirmation immédiate).
                                 </span>
@@ -879,7 +879,7 @@
                               <!-- Live Wallet Balance Status -->
                               <div v-if="authStore.isAdmin" class="wallet-success-msg">
                                 <UIcon name="i-heroicons-check-circle" class="w-4 h-4 text-emerald-600 shrink-0 inline mr-1" />
-                                <span>Privilège Administrateur : Crédit illimité actif. La réservation sera immédiatement confirmée auprès de Netstorming / MyGo.</span>
+                                <span>Privilège Administrateur : Crédit illimité actif. La réservation sera immédiatement confirmée.</span>
                               </div>
                               <div v-else-if="!isWalletSufficient" class="wallet-warning-msg">
                                 <UIcon name="i-heroicons-exclamation-triangle" class="w-4 h-4 text-amber-600 shrink-0 inline mr-1" />
@@ -888,11 +888,11 @@
                               <div v-else class="wallet-success-msg">
                                 <span v-if="b2bCreditAvailable > 0 && b2bPrepaidAvailable <= 0">
                                   <UIcon name="i-heroicons-check-circle" class="w-4 h-4 text-emerald-600 shrink-0 inline mr-1" />
-                                  <span>Ligne de crédit autorisée suffisante ({{ formatPrice(b2bCreditAvailable) }} DZD). La réservation sera immédiatement confirmée auprès de MyGo et inscrite sur votre compte.</span>
+                                  <span>Ligne de crédit autorisée suffisante ({{ formatPrice(b2bCreditAvailable) }} DZD). La réservation sera immédiatement confirmée et inscrite sur votre compte.</span>
                                 </span>
                                 <span v-else>
                                   <UIcon name="i-heroicons-check-circle" class="w-4 h-4 text-emerald-600 shrink-0 inline mr-1" />
-                                  <span>Solde / Crédit disponible suffisant ({{ formatPrice(userWalletBalance) }} DZD disponible pour {{ formatPrice(requiredWalletAmount) }} DZD requis). Confirmation instantanée auprès de MyGo.</span>
+                                  <span>Solde / Crédit disponible suffisant ({{ formatPrice(userWalletBalance) }} DZD disponible pour {{ formatPrice(requiredWalletAmount) }} DZD requis). Confirmation instantanée.</span>
                                 </span>
                               </div>
                             </div>
@@ -956,11 +956,11 @@
               <UIcon name="i-heroicons-check-badge" class="w-12 h-12 text-emerald-500" />
             </div>
             <h2 class="success-title">Réservation Confirmée avec Succès !</h2>
-            <p class="success-sub">Votre réservation d'hôtel a été validée par la passerelle officielle Netstorming.</p>
+            <p class="success-sub">Votre réservation d'hôtel a été validée par notre centrale de réservation.</p>
 
             <div class="reference-code-box">
               <span class="ref-title">RÉFÉRENCE OFFICIELLE DE RÉSERVATION</span>
-              <span class="ref-code">{{ hotelStore.bookingConfirmation.reference || hotelStore.bookingConfirmation.ns_booking_reference }}</span>
+              <span class="ref-code">{{ hotelStore.bookingConfirmation.booking_reference || hotelStore.bookingConfirmation.reference }}</span>
             </div>
 
             <div class="success-actions">
@@ -995,7 +995,7 @@
               </div>
             </div>
 
-            <!-- ── DISPONIBILITÉ & PRIX CONFIRMÉS (NETSTORMING) ── -->
+            <!-- ── DISPONIBILITÉ & PRIX CONFIRMÉS ── -->
             <div v-if="!loadingOffersAndImages && selectedAgreement" class="sb-verified-card">
               <div class="sb-verified-header">
                 <div class="sb-check-icon">
@@ -1005,7 +1005,7 @@
                 </div>
                 <div class="sb-verified-titles">
                   <h4 class="sb-verified-title">Disponibilité &amp; Prix Confirmés</h4>
-                  <p class="sb-verified-sub">Tarif et conditions vérifiés en temps réel auprès de Netstorming</p>
+                  <p class="sb-verified-sub">Tarif et conditions vérifiés en temps réel</p>
                 </div>
               </div>
 
@@ -1041,7 +1041,7 @@
                 <span class="btn-spinner"></span>
                 <div class="sb-verified-titles">
                   <h4 class="sb-verified-title">Vérification en direct...</h4>
-                  <p class="sb-verified-sub">Recherche des meilleurs tarifs en cours auprès de Netstorming</p>
+                  <p class="sb-verified-sub">Recherche des meilleurs tarifs en cours...</p>
                 </div>
               </div>
             </div>
@@ -1514,7 +1514,7 @@ onMounted(async () => {
   }
 
   // 3. Fetch full hotel static details AND live room agreements
-  //    Pass rooms_config so Netstorming queries exact per-room occupancy matching MyGo
+  //    Pass rooms_config to query exact per-room occupancy
   loadingOffersAndImages.value = true;
   try {
     const res = await fetchHotelDetails(hotelId, {
@@ -1668,7 +1668,7 @@ const filteredAgreements = computed(() => {
   const FB_CODES = ['FB', 'RRR', 'FBB', 'FBH', 'FBS', 'FBPR', 'FBP', 'NDR', 'DD'];
   const AI_CODES = ['AI', 'ALL', 'SAI', 'AIS', 'UAI', 'UAIS', 'AIPL', 'GAI', 'UAL', 'PLLL', 'SAIV', 'DALL', 'GA', 'PA', 'CG', 'XL', 'GB', 'IP'];
 
-  // 2. Régime de repas (Meal plan) Filter according to official Netstorming 77-code room_basis dictionary
+  // 2. Régime de repas (Meal plan) Filter according to hotel room_basis codes
   if (selectedMealPlan.value && selectedMealPlan.value !== 'all') {
     const target = selectedMealPlan.value.toUpperCase();
     list = list.filter((a) => {
@@ -3991,7 +3991,7 @@ useHead({
   color: var(--dt-text-sub);
 }
 
-/* ── Sidebar Verified Netstorming Confirmation Box ── */
+/* ── Sidebar Verified Availability Confirmation Box ── */
 .sb-verified-card {
   display: flex;
   flex-direction: column;

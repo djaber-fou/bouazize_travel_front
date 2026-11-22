@@ -91,7 +91,7 @@
               Date d'émission : {{ formatDate(order.created_at || new Date()) }}
             </p>
             <p class="text-xs font-mono text-primary font-bold mt-0.5">
-              Dossier Fournisseur : {{ order.ns_booking_reference || ('BZZ-' + order.id) }}
+              Référence Dossier : {{ order.booking_reference || order.reference || ('BZZ-' + order.id) }}
             </p>
           </div>
         </div>
