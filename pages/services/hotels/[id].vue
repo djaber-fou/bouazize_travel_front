@@ -1523,6 +1523,7 @@ onMounted(async () => {
       children_ages: hotelStore.searchForm.children_ages,
       rooms: hotelStore.searchForm.rooms,
       rooms_config: resolvedRoomsConfig,
+      nationality: route.query.nationality || hotelStore.searchForm.nationality || 'DZ',
       session_id: sessId,
     });
     const details = res?.data;
@@ -2041,6 +2042,7 @@ async function evaluateCurrentOffer() {
 }
 
 async function submitBookingOrder() {
+  if (hotelStore.loadingBooking) return;
   if (!paxFormValid.value) return;
   if (evaluation.value && evaluation.value.is_available === false) return;
   hotelStore.selectedRoom = selectedAgreement.value;

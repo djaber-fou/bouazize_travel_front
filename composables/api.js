@@ -59,15 +59,15 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
 
     const { headers: _, silent = false, ...restConfigOpts } = configOpts;
 
+    const isFormDataPayload = typeof FormData !== 'undefined' && Data instanceof FormData;
     const response = await axios({
         method: Method,
         url: url,
         data: Data,
         headers: reqHeaders,
-        timeout: configOpts.timeout ?? (typeof FormData !== 'undefined' && Data instanceof FormData ? 900000 : 90000),
+        timeout: configOpts.timeout ?? (isFormDataPayload ? 900000 : 125000),
         ...restConfigOpts
     }).then(response=>{
-        console.log(response)
         // Only show global toast if NOT silent mode AND response has a meaningful message
         if (!silent && response.data?.message) {
             const toast = useToast()
@@ -133,7 +133,9 @@ export const sendApi = async (path, Data, Method, configOpts = {}) => {
         } else if (error.request) {
             // No response received (Network error, timeout, or PHP aborted due to post_max_size)
             if (error.code === 'ECONNABORTED' || (error.message && error.message.toLowerCase().includes('timeout'))) {
-            errorMsg = "Le délai d'attente pour l'envoi des documents a été dépassé. Veuillez vérifier votre connexion ou compresser les fichiers volumineux.";
+            errorMsg = isFormDataPayload
+                ? "Le délai d'attente pour l'envoi des documents a été dépassé. Veuillez vérifier votre connexion ou compresser les fichiers volumineux."
+                : "Le délai d'attente de la requête a été dépassé. Veuillez réessayer.";
         } else {
             errorMsg = "Erreur de connexion avec le serveur ou délai d'attente dépassé.";
         }

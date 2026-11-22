@@ -267,7 +267,7 @@
                     v-model.number="room.adults"
                     class="room-select"
                   >
-                    <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
+                    <option v-for="n in maxAdultsForRoom(idx)" :key="n" :value="n">{{ n }}</option>
                   </select>
                 </div>
               </div>
@@ -282,7 +282,7 @@
                     class="room-select"
                     @change="updateChildAges(idx)"
                   >
-                    <option v-for="n in 7" :key="n-1" :value="n-1">{{ n-1 }}</option>
+                    <option v-for="n in (maxChildrenForRoom(idx) + 1)" :key="n-1" :value="n-1">{{ n-1 }}</option>
                   </select>
                 </div>
               </div>
@@ -849,12 +849,43 @@ const canSearch = computed(() => {
 });
 
 // ── Methods ────────────────────────────────────────────────────────────
+function formatLocalYmd(dateObj) {
+  return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+}
+
+function addDaysLocal(ymd, days) {
+  const [y, m, d] = String(ymd || '').split('-').map(Number);
+  const dt = (y && m && d) ? new Date(y, m - 1, d) : new Date();
+  dt.setDate(dt.getDate() + days);
+  return formatLocalYmd(dt);
+}
+
+function maxAdultsForRoom(idx) {
+  const otherPax = rooms.value.reduce((s, r, i) => i === idx ? s : s + (Number(r.adults) || 1) + (Number(r.children) || 0), 0);
+  const currentChildren = Number(rooms.value[idx]?.children) || 0;
+  return Math.max(1, Math.min(9, 9 - otherPax - currentChildren));
+}
+
+function maxChildrenForRoom(idx) {
+  const otherPax = rooms.value.reduce((s, r, i) => i === idx ? s : s + (Number(r.adults) || 1) + (Number(r.children) || 0), 0);
+  const currentAdults = Number(rooms.value[idx]?.adults) || 1;
+  return Math.max(0, Math.min(6, 9 - otherPax - currentAdults));
+}
+
 function calculateNights() {
   if (hotelStore.searchForm.check_in && hotelStore.searchForm.check_out) {
-    const t1 = new Date(hotelStore.searchForm.check_in).getTime();
-    const t2 = new Date(hotelStore.searchForm.check_out).getTime();
+    const t1 = new Date(hotelStore.searchForm.check_in + 'T00:00:00').getTime();
+    const t2 = new Date(hotelStore.searchForm.check_out + 'T00:00:00').getTime();
     const diff = Math.round((t2 - t1) / (1000 * 60 * 60 * 24));
-    nights.value = Math.max(1, diff);
+    if (diff < 1) {
+      hotelStore.searchForm.check_out = addDaysLocal(hotelStore.searchForm.check_in, 1);
+      nights.value = 1;
+    } else if (diff > 30) {
+      hotelStore.searchForm.check_out = addDaysLocal(hotelStore.searchForm.check_in, 30);
+      nights.value = 30;
+    } else {
+      nights.value = diff;
+    }
   }
 }
 
@@ -863,13 +894,11 @@ function onDateChange() {
 }
 
 function changeNights(delta) {
-  const newNights = Math.max(1, nights.value + delta);
+  const newNights = Math.max(1, Math.min(30, nights.value + delta));
   nights.value = newNights;
 
   if (hotelStore.searchForm.check_in) {
-    const d = new Date(hotelStore.searchForm.check_in);
-    d.setDate(d.getDate() + newNights);
-    hotelStore.searchForm.check_out = d.toISOString().split('T')[0];
+    hotelStore.searchForm.check_out = addDaysLocal(hotelStore.searchForm.check_in, newNights);
   }
 }
 
@@ -911,7 +940,7 @@ const popularDestinations = [
   { type: 'city', name: 'PARIS', label: 'PARIS, France', code: 'PAR', country_code: 'F', country_name: 'France', hotel_count: 3554, hotel_id: null },
   { type: 'city', name: 'LONDON', label: 'LONDON, United Kingdom', code: 'LON', country_code: 'GB', country_name: 'United Kingdom', hotel_count: 5263, hotel_id: null },
   { type: 'city', name: 'ISTANBUL', label: 'ISTANBUL, Turquie', code: 'IST', country_code: 'TR', country_name: 'Turquie', hotel_count: 5065, hotel_id: null },
-  { type: 'city', name: 'DUBAI', label: 'DUBAI, Émirats Arabes Unis', code: 'DXB', country_code: 'AE', country_name: 'Émirats Arabes Unis', hotel_count: 1890, hotel_id: null },
+  { type: 'city', name: 'DUBAI', label: 'DUBAI, Émirats Arabes Unis', code: 'DXB', country_code: 'EM', country_name: 'Émirats Arabes Unis', hotel_count: 1890, hotel_id: null },
   { type: 'city', name: 'TOKYO', label: 'TOKYO, Japon', code: 'TYO', country_code: 'J', country_name: 'Japon', hotel_count: 3048, hotel_id: null },
   { type: 'city', name: 'BANGKOK', label: 'BANGKOK, Thaïlande', code: 'BKK', country_code: 'TH', country_name: 'Thaïlande', hotel_count: 4846, hotel_id: null },
   { type: 'city', name: 'NEW YORK', label: 'NEW YORK (NY), United States', code: 'NYC', country_code: 'US', country_name: 'United States', hotel_count: 1267, hotel_id: null },
@@ -962,6 +991,9 @@ function onFocusDest() {
 
 async function onDestinationInput() {
   clearTimeout(debounceTimer);
+  hotelStore.searchForm.destination_code = '';
+  hotelStore.searchForm.hotel_id = null;
+  hotelStore.searchForm.hotel_name = null;
 
   if (destinationQuery.value.trim().length < 2) {
     destinationSuggestions.value = popularDestinations;
@@ -1100,6 +1132,7 @@ async function triggerSearch() {
   if (hotelStore.searchForm.children_ages?.length) {
     query.children_ages = hotelStore.searchForm.children_ages.join(',');
   }
+  if (hotelStore.searchForm.nationality) query.nationality = hotelStore.searchForm.nationality;
   if (hotelStore.searchForm.hotel_id) query.hotel_id = hotelStore.searchForm.hotel_id;
   if (hotelStore.searchForm.hotel_name) query.hotel_name = hotelStore.searchForm.hotel_name;
   if (advancedOptions.value.stars) query.stars = advancedOptions.value.stars;

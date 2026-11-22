@@ -863,6 +863,8 @@ const retryCount  = ref(0);
 const isRetrying  = ref(false);
 const maxRetries  = 2;      // retry up to 2 times after empty result
 const retryDelay  = 8000;   // 8 seconds between retries
+let retryTimer    = null;
+let isUnmounted   = false;
 
 // ── Execute Search ────────────────────────────────────────────────────────
 async function executeSearch(isAutoRetry = false) {
@@ -916,15 +918,16 @@ async function executeSearch(isAutoRetry = false) {
       }))));
     } catch {}
   }
+  if (q.nationality) {
+    hotelStore.searchForm.nationality = String(q.nationality).toUpperCase();
+  }
   if (q.hotel_id) {
     hotelStore.searchForm.hotel_id = String(q.hotel_id);
+    // Do not apply text searchName filter when querying by exact hotel_id (prevents 0-result spelling mismatches)
+    hotelStore.filters.searchName = '';
   } else {
     hotelStore.searchForm.hotel_id = null;
-  }
-  if (q.hotel_name) {
-    hotelStore.filters.searchName = String(q.hotel_name);
-  } else {
-    hotelStore.filters.searchName = '';
+    hotelStore.filters.searchName = q.hotel_name ? String(q.hotel_name) : '';
   }
   if (q.refundable_only === '1' || q.refundable_only === 'true' || q.refundable_only === true) {
     hotelStore.filters.refundableOnly = true;
@@ -944,8 +947,9 @@ async function executeSearch(isAutoRetry = false) {
       retryCount.value++;
       isRetrying.value = true;
       console.info(`[HotelResults] 0 hotels returned — auto-retry ${retryCount.value}/${maxRetries} in ${retryDelay / 1000}s`);
-      setTimeout(() => {
-        executeSearch(true); // recurse as auto-retry
+      if (retryTimer) clearTimeout(retryTimer);
+      retryTimer = setTimeout(() => {
+        if (!isUnmounted) executeSearch(true);
       }, retryDelay);
     } else {
       isRetrying.value = false;
@@ -1047,6 +1051,11 @@ function goToPage(page) {
 }
 
 onUnmounted(() => {
+  isUnmounted = true;
+  if (retryTimer) {
+    clearTimeout(retryTimer);
+    retryTimer = null;
+  }
   hotelStore.loadingSearch = false;
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', updateStickyHeights);
@@ -1075,7 +1084,8 @@ function openHotelDetails(hotel) {
     ? hotelStore.searchForm.children_ages.join(',')
     : (route.query.children_ages || '');
   const rcParam = encodeURIComponent(JSON.stringify(hotelStore.searchForm.rooms_config || []));
-  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&children_ages=${encodeURIComponent(chAges)}&rooms=${rm}&rooms_config=${rcParam}`);
+  const nat = encodeURIComponent(hotelStore.searchForm.nationality || route.query.nationality || 'DZ');
+  navigateTo(`/services/hotels/${hotel.hotel_code}?session=${sessId}&room=${encodeURIComponent(rCode)}&check_in=${cIn}&check_out=${cOut}&adults=${ad}&children=${ch}&children_ages=${encodeURIComponent(chAges)}&rooms=${rm}&rooms_config=${rcParam}&nationality=${nat}`);
 }
 
 function onImageError(event, stars) {

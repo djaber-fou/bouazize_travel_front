@@ -289,7 +289,8 @@
                             type="date"
                             v-model="checkOut"
                             size="lg"
-                            :min="checkIn || minDate"
+                            :min="minCheckOut"
+                            :max="maxCheckOut"
                             class="w-full !h-12 font-medium"
                             :ui="{ root: '!h-12', base: '!h-12 font-medium text-sm' }"
                         />
@@ -306,7 +307,7 @@
                                 type="number"
                                 v-model.number="adults"
                                 min="1"
-                                max="8"
+                                :max="Math.max(1, 9 - children)"
                                 placeholder="Adultes"
                                 size="lg"
                                 class="!h-12 text-center font-bold"
@@ -316,7 +317,7 @@
                                 type="number"
                                 v-model.number="children"
                                 min="0"
-                                max="6"
+                                :max="Math.min(6, Math.max(0, 9 - adults))"
                                 placeholder="Enfants"
                                 size="lg"
                                 class="!h-12 text-center font-bold"
@@ -343,13 +344,27 @@
 
                 </div>
 
+                <!-- Child ages selector when children > 0 -->
+                <div v-if="children > 0" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Âges des enfants (0–17 ans) :</span>
+                    <div v-for="(age, cIdx) in childrenAges" :key="cIdx" class="flex items-center gap-1">
+                        <span class="text-[11px] text-slate-500">E{{ cIdx + 1 }}</span>
+                        <select
+                            v-model.number="childrenAges[cIdx]"
+                            class="h-8 px-2 text-xs font-bold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white"
+                        >
+                            <option v-for="a in 18" :key="a - 1" :value="a - 1">{{ a - 1 }} ans</option>
+                        </select>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from '#imports'
 import { useHotelStore } from '~/stores/hotel'
 import { getHotelStats, warmupDestination } from '~/services/hotel'
@@ -394,6 +409,44 @@ const checkIn = ref(defaultIn)
 const checkOut = ref(defaultOut)
 const adults = ref(2)
 const children = ref(0)
+const childrenAges = ref([])
+
+function addDaysYmd(ymd, days) {
+    const [y, m, d] = String(ymd || '').split('-').map(Number)
+    const dt = (y && m && d) ? new Date(y, m - 1, d) : new Date()
+    dt.setDate(dt.getDate() + days)
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+}
+
+const minCheckOut = computed(() => addDaysYmd(checkIn.value || minDate.value, 1))
+const maxCheckOut = computed(() => addDaysYmd(checkIn.value || minDate.value, 30))
+
+watch(checkIn, (newIn) => {
+    if (!newIn) return
+    if (!checkOut.value || checkOut.value <= newIn) {
+        checkOut.value = addDaysYmd(newIn, 1)
+    } else if (checkOut.value > addDaysYmd(newIn, 30)) {
+        checkOut.value = addDaysYmd(newIn, 30)
+    }
+})
+
+watch(children, (cnt) => {
+    const clamped = Math.max(0, Math.min(6, Math.min(Number(cnt) || 0, Math.max(0, 9 - (Number(adults.value) || 1)))))
+    if (clamped !== cnt) children.value = clamped
+    const next = []
+    for (let i = 0; i < clamped; i++) {
+        next.push(childrenAges.value[i] ?? 5)
+    }
+    childrenAges.value = next
+})
+
+watch(adults, (val) => {
+    const clamped = Math.max(1, Math.min(9, Number(val) || 1))
+    if (clamped !== val) adults.value = clamped
+    if (clamped + (Number(children.value) || 0) > 9) {
+        children.value = Math.max(0, 9 - clamped)
+    }
+})
 
 const popularChips = [
     { name: 'Sétif', code: 'QSF' },
@@ -499,16 +552,37 @@ function triggerHotelSearch() {
     hotelStore.searchForm.hotel_name = selectedHotelName.value || null
     hotelStore.searchForm.check_in = checkIn.value
     hotelStore.searchForm.check_out = checkOut.value
-    hotelStore.searchForm.adults = adults.value
-    hotelStore.searchForm.children = children.value
-    hotelStore.searchForm.children_ages = []
+    if (!checkIn.value || !checkOut.value || checkOut.value <= checkIn.value) {
+        toast.add({
+            title: 'Dates invalides',
+            description: "La date de départ doit être postérieure à la date d'arrivée.",
+            color: 'amber'
+        })
+        return
+    }
+    const diffNights = Math.round((new Date(checkOut.value) - new Date(checkIn.value)) / 86400000)
+    if (diffNights > 30) {
+        toast.add({
+            title: 'Durée maximale dépassée',
+            description: 'La durée maximale par réservation est de 30 nuits.',
+            color: 'amber'
+        })
+        return
+    }
+    const safeAdults = Math.max(1, Math.min(9, Number(adults.value) || 2))
+    const safeChildren = Math.max(0, Math.min(6, Math.min(Number(children.value) || 0, 9 - safeAdults)))
+    const safeAges = Array.from({ length: safeChildren }, (_, i) => Math.max(0, Math.min(17, Number(childrenAges.value[i] ?? 5))))
+
+    hotelStore.searchForm.adults = safeAdults
+    hotelStore.searchForm.children = safeChildren
+    hotelStore.searchForm.children_ages = safeAges
     hotelStore.searchForm.rooms = 1
-    hotelStore.searchForm.room_type = 'dbl'
+    hotelStore.searchForm.room_type = safeAdults === 1 ? 'sgl' : (safeAdults === 3 ? 'trp' : (safeAdults === 4 ? 'qud' : 'dbl'))
     hotelStore.searchForm.rooms_config = [{
-        adults: Number(adults.value) || 2,
-        children: Number(children.value) || 0,
-        children_ages: [],
-        type: 'dbl',
+        adults: safeAdults,
+        children: safeChildren,
+        children_ages: safeAges,
+        type: hotelStore.searchForm.room_type,
         berceau: false,
     }]
     if (typeof sessionStorage !== 'undefined') {
@@ -523,8 +597,11 @@ function triggerHotelSearch() {
         destination_name: destinationName.value,
         check_in: checkIn.value,
         check_out: checkOut.value,
-        adults: adults.value,
-        children: children.value,
+        adults: safeAdults,
+        children: safeChildren,
+        rooms: 1,
+        rooms_config: JSON.stringify(hotelStore.searchForm.rooms_config),
+        ...(safeAges.length ? { children_ages: safeAges.join(',') } : {}),
     }
     if (selectedHotelId.value) {
         query.hotel_id = selectedHotelId.value
