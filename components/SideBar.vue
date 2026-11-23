@@ -1,57 +1,52 @@
 <template>
     <aside 
-        class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col border-r border-slate-200/80 dark:border-slate-800 transition-all duration-300 select-none shadow-xs !rounded-none"
-        :class="[
-            /* MOBILE: Force Full Screen */
-            'fixed inset-0 z-[9999] w-full h-[100dvh]',
-            /* DESKTOP: Revert to sidebar */
-            isCollapsed ? 'md:static md:w-20 md:h-full md:z-auto' : 'md:static md:w-80 md:h-full md:z-auto'
-        ]"
+        class="w-full h-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col border-r border-slate-200/80 dark:border-slate-800 transition-all duration-300 select-none shadow-xs !rounded-none overflow-hidden"
     >
         <!-- Sidebar Top Header / Brand Banner -->
-        <div class="h-16 px-4 border-b border-slate-100 dark:border-slate-800 flex items-center shrink-0 justify-between md:justify-start">
-            <nuxt-link to="/x8dj29msk" class="flex items-center gap-3 overflow-hidden">
-                <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1 flex items-center justify-center shrink-0 border border-slate-200/70 dark:border-slate-700/60 shadow-xs">
+        <div class="h-16 px-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center shrink-0 justify-between md:justify-start">
+            <nuxt-link to="/x8dj29msk" class="flex items-center gap-2.5 overflow-hidden" :class="isCollapsed ? 'md:mx-auto' : ''">
+                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1 flex items-center justify-center shrink-0 border border-slate-200/70 dark:border-slate-700/60 shadow-xs">
                     <img src="/images/logo/bouazize-logo-light.png" class="w-full h-full object-contain block dark:hidden" alt="Bouazize Logo"/>
                     <img src="/images/logo/bouazize-logo-dark.png" class="w-full h-full object-contain hidden dark:block" alt="Bouazize Logo"/>
                 </div>
-                <div v-if="!isCollapsed" class="flex flex-col min-w-0 transition-opacity duration-200">
-                    <span class="font-bold text-base text-slate-900 dark:text-slate-100 leading-snug truncate">
+                <div :class="isCollapsed ? 'flex md:hidden' : 'flex'" class="flex-col min-w-0 transition-opacity duration-200">
+                    <span class="font-bold text-sm text-slate-900 dark:text-slate-100 leading-snug truncate">
                         Bouazize <span class="text-primary">Travel</span>
                     </span>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                         Espace Admin
                     </span>
                 </div>
             </nuxt-link>
 
-            <!-- Close button for Mobile Fullscreen View -->
+            <!-- Close button for Mobile Drawer View -->
             <button 
                 @click="emit('toggle')" 
-                class="md:hidden p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 !rounded-none cursor-pointer"
+                class="md:hidden p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 !rounded-none cursor-pointer"
                 title="Fermer le menu"
             >
-                <UIcon name="i-heroicons-x-mark" class="w-7 h-7" />
+                <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
             </button>
         </div>
 
         <!-- Navigation Scroll Area -->
-        <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6 sidebar-scroll">
+        <div class="flex-1 overflow-y-auto px-2.5 py-3.5 space-y-5 sidebar-scroll">
             <div v-for="(group, gIdx) in navigationGroups" :key="gIdx" class="space-y-1">
                 <!-- Group Label -->
-                <div v-if="!isCollapsed && group.title" class="px-3 pb-1 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                <div :class="isCollapsed ? 'block md:hidden' : 'block'" v-if="group.title" class="px-2.5 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate">
                     {{ group.title }}
                 </div>
-                <div v-else-if="isCollapsed && group.title" class="my-2 border-t border-slate-100 dark:border-slate-800 hidden md:block"></div>
+                <div v-if="isCollapsed && group.title" class="my-2 border-t border-slate-100 dark:border-slate-800 hidden md:block"></div>
 
                 <!-- Group Items -->
-                <div class="space-y-1">
+                <div class="space-y-0.5">
                     <div v-for="item in group.items" :key="item.label">
                         <!-- Single Route Item -->
                         <template v-if="!item.children">
                             <nuxt-link 
-                                :to="item.to" 
-                                class="group relative flex items-center gap-3 px-3 py-2.5 !rounded-none font-medium text-sm transition-all duration-200 cursor-pointer"
+                                :to="item.to"
+                                @click="emit('toggle')"
+                                class="group relative flex items-center gap-2.5 px-2.5 py-2 !rounded-none font-medium text-[13px] transition-all duration-200 cursor-pointer"
                                 :class="[
                                     isRouteActive(item.to) 
                                         ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold shadow-xs' 
@@ -120,8 +115,9 @@
                                     <nuxt-link 
                                         v-for="subItem in item.children" 
                                         :key="subItem.to" 
-                                        :to="subItem.to" 
-                                        class="flex items-center gap-2 px-3 py-2 !rounded-none text-xs font-medium transition-all duration-150 cursor-pointer"
+                                        :to="subItem.to"
+                                        @click="emit('toggle')"
+                                        class="flex items-center gap-2 px-2.5 py-1.5 !rounded-none text-xs font-medium transition-all duration-150 cursor-pointer"
                                         :class="[
                                             isRouteActive(subItem.to)
                                                 ? 'bg-primary text-white font-bold shadow-xs'

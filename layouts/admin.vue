@@ -3,20 +3,20 @@
         <!-- Top Admin Header Bar -->
         <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-2xs h-16 px-4 md:px-6 flex items-center justify-between transition-all duration-300">
             <!-- Left Header: Toggle Button & Breadcrumbs -->
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
                 <button 
-                    @click="isCollapsed = !isCollapsed" 
-                    class="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center"
+                    @click="handleToggleSidebar" 
+                    class="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-center shrink-0"
                     :title="isCollapsed ? 'Déplier le menu' : 'Réduire le menu'"
                 >
                     <UIcon :name="isCollapsed ? 'i-heroicons-bars-3-bottom-left' : 'i-heroicons-bars-3'" class="w-6 h-6" />
                 </button>
 
                 <!-- Page Breadcrumb & Title -->
-                <div class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    <span class="text-slate-400 dark:text-slate-500 font-medium">Administration</span>
-                    <UIcon name="i-heroicons-chevron-right-20-solid" class="w-4 h-4 text-slate-300 dark:text-slate-600" />
-                    <span class="font-bold bg-primary/10 text-primary border border-primary/20 px-3 py-1 rounded-lg text-xs uppercase tracking-wider shadow-2xs">
+                <div class="flex items-center gap-1.5 sm:gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 min-w-0">
+                    <span class="hidden sm:inline text-slate-400 dark:text-slate-500 font-medium">Administration</span>
+                    <UIcon name="i-heroicons-chevron-right-20-solid" class="hidden sm:inline w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />
+                    <span class="font-bold bg-primary/10 text-primary border border-primary/20 px-2.5 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs uppercase tracking-wider shadow-2xs truncate">
                         {{ currentPageTitle }}
                     </span>
                 </div>
@@ -126,21 +126,31 @@
         </header>
 
         <!-- Main Body Frame: Sidebar + Content -->
-        <div class="flex flex-1 items-start min-h-[calc(100vh-64px)]">
-            <!-- Sidebar Shell -->
+        <div class="flex flex-1 items-start min-h-[calc(100vh-64px)] relative">
+            <!-- Mobile Backdrop Overlay -->
+            <div
+                v-if="isMobileOpen"
+                class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 md:hidden"
+                @click="isMobileOpen = false"
+            ></div>
+
+            <!-- Sidebar Shell (Compact w-56 on Desktop, Off-canvas Drawer on Mobile) -->
             <div 
-                class="sticky top-16 h-[calc(100vh-64px)] shrink-0 z-40 transition-all duration-300"
-                :class="isCollapsed ? 'w-20' : 'w-64'"
+                class="fixed md:sticky top-0 md:top-16 left-0 h-[100dvh] md:h-[calc(100vh-64px)] shrink-0 z-50 md:z-40 transition-all duration-300"
+                :class="[
+                    isMobileOpen ? 'translate-x-0 w-64 max-w-[82vw]' : '-translate-x-full md:translate-x-0 w-64',
+                    isCollapsed ? 'md:w-16' : 'md:w-56'
+                ]"
             >
                 <SideBar 
                     :is-collapsed="isCollapsed" 
-                    @toggle="isCollapsed = !isCollapsed" 
+                    @toggle="isMobileOpen = false" 
                     class="w-full h-full"
                 />
             </div>
 
             <!-- Page Workspace Container -->
-            <main class="flex-1 p-6 md:p-8 min-w-0 transition-all duration-300">
+            <main class="flex-1 w-full p-3 sm:p-5 md:p-6 lg:p-8 min-w-0 transition-all duration-300">
                 <div class="w-full max-w-7xl mx-auto">
                     <slot />
                 </div>
@@ -150,7 +160,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore, useCookie } from '#imports';
 import SideBar from '~/components/SideBar.vue';
@@ -159,8 +169,21 @@ import DarkModeToggle from '~/components/DarkModeToggle.vue';
 const route = useRoute();
 const authStore = useAuthStore();
 
-// Sidebar Collapse State (persisted in cookies)
+// Sidebar Collapse State (Desktop) & Drawer Open State (Mobile)
 const isCollapsed = useCookie('admin_sidebar_collapsed', { default: () => false });
+const isMobileOpen = ref(false);
+
+const handleToggleSidebar = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        isMobileOpen.value = !isMobileOpen.value;
+    } else {
+        isCollapsed.value = !isCollapsed.value;
+    }
+};
+
+watch(() => route.fullPath, () => {
+    isMobileOpen.value = false;
+});
 
 const userInitial = computed(() => {
     return authStore.User?.name ? authStore.User.name.charAt(0).toUpperCase() : 'A';
