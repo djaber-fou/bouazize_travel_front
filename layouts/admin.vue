@@ -214,6 +214,7 @@ const handleAdminKeyDown = (event) => {
 const currentPageTitle = computed(() => {
     const path = route.path;
     if (path.includes('/gfljgan5465ds')) return 'État Global';
+    if (path.includes('/t7r8v9s0k')) return 'TroveSeek Production';
     if (path.includes('/b2n3m4k5l')) return 'Bannière';
     if (path.includes('/x8dj29msk')) return 'Utilisateurs';
     if (path.includes('/p9q8w7e6r')) return 'Fournisseurs';

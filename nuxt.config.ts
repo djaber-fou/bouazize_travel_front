@@ -58,6 +58,7 @@ export default defineNuxtConfig({
     'pages:extend'(pages) {
       const hashes: Record<string, string> = {
         '/admin/global_state': '/gfljgan5465ds',
+        '/admin/troveseek': '/t7r8v9s0k',
         '/admin/users': '/x8dj29msk',
         '/admin/providers': '/p9q8w7e6r',
         '/admin/countries': '/c1m2n3b4v',

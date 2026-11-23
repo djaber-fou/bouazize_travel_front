@@ -205,6 +205,11 @@ const navigationGroups = [
                 label: 'État Global',
                 icon: 'i-heroicons-chart-bar-square',
                 to: '/gfljgan5465ds'
+            },
+            {
+                label: 'TroveSeek Média',
+                icon: 'i-heroicons-megaphone',
+                to: '/t7r8v9s0k'
             }
         ]
     },
