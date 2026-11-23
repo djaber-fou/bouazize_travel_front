@@ -32,7 +32,7 @@
                                 des destinations de <span class="text-secondary dark:text-white relative z-10">rêve</span>.
                             </h1>
                             <p class="text-xs sm:text-sm md:text-lg text-gray-600 dark:text-slate-300 max-w-lg leading-snug md:leading-relaxed font-light">
-                                Découvrez le monde avec Bouazize Travel. Nous organisons vos voyages sur mesure avec passion, sécurité et confort. L'excellence est notre standard depuis plus de 10 ans.
+                                Découvrez le monde avec Bouazize Travel. Nous organisons vos voyages sur mesure avec passion, sécurité et confort. L'excellence est notre standard depuis plus de 5 ans.
                             </p>
                             
                             <!-- Buttons -->
@@ -52,7 +52,7 @@
                             <!-- Analytics / Stats -->
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 sm:pt-8 pb-3 sm:pb-4 mt-6 border-t border-gray-200 dark:border-slate-800">
                                 <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
-                                    <h3 class="text-xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.years }}+</h3>
+                                    <h3 class="text-xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">5+</h3>
                                     <p class="text-[10px] leading-tight md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Années <br class="hidden sm:block"/>d'expérience</p>
                                 </div>
                                 <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
