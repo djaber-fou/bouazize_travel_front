@@ -178,167 +178,176 @@
 
             <!-- Offers Filter & Sort Bar -->
             <div class="offers-filter-bar">
-              <!-- Left: Filter Pills Group -->
-              <div class="filter-pills-group">
-                <button
-                  type="button"
-                  class="filter-pill"
-                  :class="{ active: offersFilter === 'all' && viewFilter === 'all' && selectedMealPlan === 'all' && availabilityFilter === 'all' }"
-                  @click="resetOffersFilters"
-                >
-                  Toutes les offres ({{ availableAgreements.length }})
-                </button>
+              <!-- Top Row: Availability, Policy & View Tabs + Selectors/Sort -->
+              <div class="offers-filter-top-row">
+                <div class="filter-pills-group">
+                  <button
+                    type="button"
+                    class="filter-pill"
+                    :class="{ active: offersFilter === 'all' && viewFilter === 'all' && selectedMealPlan === 'all' && availabilityFilter === 'all' }"
+                    @click="resetOffersFilters"
+                  >
+                    <span>Toutes les offres</span>
+                    <span class="pill-count-tag">{{ availableAgreements.length }}</span>
+                  </button>
 
-                <!-- Immediate Confirmation Filter Pill -->
-                <button
-                  type="button"
-                  class="filter-pill filter-pill-immediate"
-                  :class="{ active: availabilityFilter === 'immediate' }"
-                  @click="toggleAvailabilityFilter('immediate')"
-                >
-                  <UIcon name="i-heroicons-bolt" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 inline mr-1" />
-                  <span>Immédiat</span>
-                  <span v-if="immediateRoomsCount > 0" class="pill-count-tag">
-                    ({{ immediateRoomsCount }})
-                  </span>
-                </button>
+                  <!-- Immediate Confirmation Filter Pill -->
+                  <button
+                    type="button"
+                    class="filter-pill filter-pill-immediate"
+                    :class="{ active: availabilityFilter === 'immediate' }"
+                    @click="toggleAvailabilityFilter('immediate')"
+                  >
+                    <span>Immédiat</span>
+                    <span v-if="immediateRoomsCount > 0" class="pill-count-tag">
+                      {{ immediateRoomsCount }}
+                    </span>
+                  </button>
 
-                <!-- On Request Filter Pill -->
-                <button
-                  type="button"
-                  class="filter-pill filter-pill-on-request"
-                  :class="{ active: availabilityFilter === 'on_request' }"
-                  @click="toggleAvailabilityFilter('on_request')"
-                >
-                  <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 inline mr-1" />
-                  <span>Sur demande</span>
-                  <span v-if="onRequestRoomsCount > 0" class="pill-count-tag">
-                    ({{ onRequestRoomsCount }})
-                  </span>
-                </button>
+                  <!-- On Request Filter Pill -->
+                  <button
+                    type="button"
+                    class="filter-pill filter-pill-on-request"
+                    :class="{ active: availabilityFilter === 'on_request' }"
+                    @click="toggleAvailabilityFilter('on_request')"
+                  >
+                    <span>Sur demande</span>
+                    <span v-if="onRequestRoomsCount > 0" class="pill-count-tag">
+                      {{ onRequestRoomsCount }}
+                    </span>
+                  </button>
 
-                <!-- Kaaba / Haram View Filter Pill -->
-                <button
-                  type="button"
-                  class="filter-pill filter-pill-kaaba"
-                  :class="{ active: viewFilter === 'kaaba_haram' || viewFilter === 'kaaba' || viewFilter === 'haram' }"
-                  @click="toggleViewFilter('kaaba_haram')"
-                  :title="'Filtrer les chambres avec vue sur la Kaaba ou le Haram'"
-                >
-                  <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 inline mr-1" />
-                  <span>Vue Kaaba &amp; Haram</span>
-                  <span v-if="kaabaHaramRoomsCount > 0" class="pill-count-tag">
-                    ({{ kaabaHaramRoomsCount }})
-                  </span>
-                </button>
+                  <!-- Kaaba / Haram View Filter Pill -->
+                  <button
+                    type="button"
+                    class="filter-pill filter-pill-kaaba"
+                    :class="{ active: viewFilter === 'kaaba_haram' || viewFilter === 'kaaba' || viewFilter === 'haram' }"
+                    @click="toggleViewFilter('kaaba_haram')"
+                    :title="'Filtrer les chambres avec vue sur la Kaaba ou le Haram'"
+                  >
+                    <span>Vue Kaaba &amp; Haram</span>
+                    <span v-if="kaabaHaramRoomsCount > 0" class="pill-count-tag">
+                      {{ kaabaHaramRoomsCount }}
+                    </span>
+                  </button>
 
-                <!-- Quick Meal Filters -->
-                <button
-                  type="button"
-                  class="filter-pill"
-                  :class="{ active: selectedMealPlan === 'RB' || offersFilter === 'breakfast' }"
-                  @click="toggleMealFilter('RB')"
-                >
-                  <svg class="w-3.5 h-3.5 text-portal-gold inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>
-                  <span>Petit-déjeuner (BB)</span>
-                </button>
-                <button
-                  type="button"
-                  class="filter-pill"
-                  :class="{ active: selectedMealPlan === 'RD' || offersFilter === 'half_board' }"
-                  @click="toggleMealFilter('RD')"
-                >
-                  <svg class="w-3.5 h-3.5 text-portal-gold inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v20M2 12h16M18 2a5 5 0 0 0-5 5v5h5V2zM2 2v6a4 4 0 0 0 4 4h4V2"/></svg>
-                  <span>Demi-pension (HB)</span>
-                </button>
-                <button
-                  type="button"
-                  class="filter-pill"
-                  :class="{ active: selectedMealPlan === 'FB' || offersFilter === 'full_board' }"
-                  @click="toggleMealFilter('FB')"
-                >
-                  <svg class="w-3.5 h-3.5 text-portal-gold inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17"/></svg>
-                  <span>Pension complète (FB)</span>
-                </button>
-                <button
-                  type="button"
-                  class="filter-pill"
-                  :class="{ active: selectedMealPlan === 'RO' || offersFilter === 'room_only' }"
-                  @click="toggleMealFilter('RO')"
-                >
-                  <UIcon name="i-heroicons-home" class="w-3.5 h-3.5 text-slate-500 inline mr-1" />
-                  <span>Logement seul (RO)</span>
-                </button>
-                <button
-                  type="button"
-                  class="filter-pill"
-                  :class="{ active: offersFilter === 'refundable' }"
-                  @click="offersFilter = (offersFilter === 'refundable' ? 'all' : 'refundable')"
-                >
-                  <UIcon name="i-heroicons-check-circle" class="w-3.5 h-3.5 text-emerald-500 inline mr-1" />
-                  <span>Annulation Gratuite</span>
-                </button>
+                  <!-- Free Cancellation Filter Pill -->
+                  <button
+                    type="button"
+                    class="filter-pill"
+                    :class="{ active: offersFilter === 'refundable' }"
+                    @click="offersFilter = (offersFilter === 'refundable' ? 'all' : 'refundable')"
+                  >
+                    <span>Annulation Gratuite</span>
+                  </button>
+                </div>
+
+                <!-- Right: Detailed Selectors (Régime de repas + Dispo + View + Sort) -->
+                <div class="offers-selectors-group">
+                  <!-- Régime de repas Dropdown -->
+                  <div class="offers-select-item">
+                    <label for="offers-meal-select" class="offers-select-label">
+                      <span>Régime :</span>
+                    </label>
+                    <select id="offers-meal-select" v-model="selectedMealPlan" class="offers-custom-select">
+                      <option value="all">Tous les régimes</option>
+                      <option value="RO">Chambre seule (RO)</option>
+                      <option value="RB">Petit-déjeuner inclus (BB / RB)</option>
+                      <option value="RD">Demi-pension (HB / RD)</option>
+                      <option value="FB">Pension complète (FB)</option>
+                      <option value="AI">Tout compris (AI)</option>
+                    </select>
+                  </div>
+
+                  <!-- Disponibilité Dropdown -->
+                  <div class="offers-select-item">
+                    <label for="offers-avail-select" class="offers-select-label">
+                      <span>Dispo :</span>
+                    </label>
+                    <select id="offers-avail-select" v-model="availabilityFilter" class="offers-custom-select">
+                      <option value="all">Toutes les offres</option>
+                      <option value="immediate">Confirmation immédiate</option>
+                      <option value="on_request">Sur demande (On Request)</option>
+                    </select>
+                  </div>
+
+                  <!-- Vue Dropdown (Kaaba / Haram / Toutes) -->
+                  <div class="offers-select-item" v-if="isSaudiHotel || kaabaHaramRoomsCount > 0">
+                    <label for="offers-view-select" class="offers-select-label">
+                      <span>Vue :</span>
+                    </label>
+                    <select id="offers-view-select" v-model="viewFilter" class="offers-custom-select">
+                      <option value="all">Toutes les vues</option>
+                      <option value="kaaba_haram">Vue Kaaba &amp; Haram</option>
+                      <option value="kaaba">Vue Kaaba uniquement</option>
+                      <option value="haram">Vue Haram uniquement</option>
+                    </select>
+                  </div>
+
+                  <!-- Sort Wrap -->
+                  <div class="offers-select-item">
+                    <label for="offers-sort-select" class="offers-select-label">
+                      <span>Trier :</span>
+                    </label>
+                    <select id="offers-sort-select" v-model="offersSortOrder" class="offers-custom-select">
+                      <option value="price_asc">Prix croissant</option>
+                      <option value="price_desc">Prix décroissant</option>
+                      <option value="name_asc">Chambre (A - Z)</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <!-- Right: Detailed Selectors (Régime de repas + View selector + Sort) -->
-              <div class="offers-selectors-group">
-                <!-- Régime de repas Dropdown -->
-                <div class="offers-select-item">
-                  <label for="offers-meal-select" class="offers-select-label">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-portal-gold">
-                      <path fill-rule="evenodd" d="M2 3.75A.75.75 0 012.75 3h11.5a.75.75 0 010 1.5H2.75A.75.75 0 012 3.75zM2 7.5a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 7.5zm0 3.75a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75zM2.75 14.25a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z" clip-rule="evenodd" />
-                    </svg>
-                    <span>Régime :</span>
-                  </label>
-                  <select id="offers-meal-select" v-model="selectedMealPlan" class="offers-custom-select">
-                    <option value="all">Tous les régimes</option>
-                    <option value="RO">Chambre seule (RO)</option>
-                    <option value="RB">Petit-déjeuner inclus (BB / RB)</option>
-                    <option value="RD">Demi-pension (HB / RD)</option>
-                    <option value="FB">Pension complète (FB)</option>
-                    <option value="AI">Tout compris (AI)</option>
-                  </select>
+              <!-- Bottom Row: Meal Plan Quick Filters + Reset Action -->
+              <div class="offers-filter-sub-row">
+                <div class="meal-pills-strip">
+                  <span class="filter-strip-label">Pension :</span>
+                  <button
+                    type="button"
+                    class="filter-pill filter-pill-meal"
+                    :class="{ active: selectedMealPlan === 'RB' || offersFilter === 'breakfast' }"
+                    @click="toggleMealFilter('RB')"
+                  >
+                    <span>Petit-déjeuner (BB)</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="filter-pill filter-pill-meal"
+                    :class="{ active: selectedMealPlan === 'RD' || offersFilter === 'half_board' }"
+                    @click="toggleMealFilter('RD')"
+                  >
+                    <span>Demi-pension (HB)</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="filter-pill filter-pill-meal"
+                    :class="{ active: selectedMealPlan === 'FB' || offersFilter === 'full_board' }"
+                    @click="toggleMealFilter('FB')"
+                  >
+                    <span>Pension complète (FB)</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="filter-pill filter-pill-meal"
+                    :class="{ active: selectedMealPlan === 'RO' || offersFilter === 'room_only' }"
+                    @click="toggleMealFilter('RO')"
+                  >
+                    <span>Logement seul (RO)</span>
+                  </button>
                 </div>
 
-                <!-- Disponibilité Dropdown -->
-                <div class="offers-select-item">
-                  <label for="offers-avail-select" class="offers-select-label">
-                    <span>Dispo :</span>
-                  </label>
-                  <select id="offers-avail-select" v-model="availabilityFilter" class="offers-custom-select">
-                    <option value="all">Toutes les offres</option>
-                    <option value="immediate">Confirmation immédiate</option>
-                    <option value="on_request">Sur demande (On Request)</option>
-                  </select>
-                </div>
-
-                <!-- Vue Dropdown (Kaaba / Haram / Toutes) -->
-                <div class="offers-select-item" v-if="isSaudiHotel || kaabaHaramRoomsCount > 0">
-                  <label for="offers-view-select" class="offers-select-label">
-                    <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 text-amber-500 inline mr-1" />
-                    <span>Vue :</span>
-                  </label>
-                  <select id="offers-view-select" v-model="viewFilter" class="offers-custom-select">
-                    <option value="all">Toutes les vues</option>
-                    <option value="kaaba_haram">Vue Kaaba &amp; Haram</option>
-                    <option value="kaaba">Vue Kaaba uniquement</option>
-                    <option value="haram">Vue Haram uniquement</option>
-                  </select>
-                </div>
-
-                <!-- Sort Wrap -->
-                <div class="offers-select-item">
-                  <label for="offers-sort-select" class="offers-select-label">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="sort-icon">
-                      <path fill-rule="evenodd" d="M2.24 6.8a.75.75 0 001.06-.04l1.95-2.1v8.59a.75.75 0 001.5 0V4.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0L2.2 5.74a.75.75 0 00.04 1.06zm8 6.4a.75.75 0 00-.04 1.06l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V6.75a.75.75 0 00-1.5 0v8.59l-1.95-2.1a.75.75 0 00-1.06-.04z" clip-rule="evenodd" />
-                    </svg>
-                    <span>Trier :</span>
-                  </label>
-                  <select id="offers-sort-select" v-model="offersSortOrder" class="offers-custom-select">
-                    <option value="price_asc">Prix (DZD ↑)</option>
-                    <option value="price_desc">Prix (DZD ↓)</option>
-                    <option value="name_asc">Chambre (A - Z)</option>
-                  </select>
+                <div class="filter-sub-meta">
+                  <button
+                    v-if="offersFilter !== 'all' || viewFilter !== 'all' || selectedMealPlan !== 'all' || availabilityFilter !== 'all'"
+                    type="button"
+                    class="reset-inline-filters-btn"
+                    @click="resetOffersFilters"
+                  >
+                    Réinitialiser
+                  </button>
+                  <span class="filtered-count-indicator">
+                    <strong>{{ filteredAgreements.length }}</strong> / {{ availableAgreements.length }} affichée(s)
+                  </span>
                 </div>
               </div>
             </div>
@@ -379,19 +388,15 @@
                     <div class="room-type-title">
                       <h3>{{ agreement.room_type || hotel.room_basis_name || 'Chambre Standard' }}</h3>
                       <span v-if="agreement.is_on_request || agreement.available === false" class="on-request-pill" title="Sous réserve de confirmation du fournisseur (24-48h)">
-                        <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 mr-1" />
                         Sur demande
                       </span>
                       <span v-else class="immediate-pill" title="Confirmation immédiate garantie">
-                        <UIcon name="i-heroicons-bolt" class="w-3.5 h-3.5 mr-1" />
                         Confirmation immédiate
                       </span>
                       <span v-if="isKaabaView(agreement)" class="kaaba-view-pill">
-                        <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 mr-1" />
                         Vue Kaaba
                       </span>
                       <span v-else-if="isHaramView(agreement)" class="haram-view-pill">
-                        <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 mr-1" />
                         Vue Haram
                       </span>
                       <span v-if="selectedAgreement?.agreement_id === agreement.agreement_id" class="current-selected-badge">
@@ -2735,45 +2740,151 @@ useHead({
 }
 
 
-/* Kaaba & Haram View filter styles */
-.filter-pill-kaaba {
-  background: rgba(217, 119, 6, 0.08) !important;
-  color: #d97706 !important;
-  border: 1.5px solid rgba(217, 119, 6, 0.45) !important;
-  font-weight: 800 !important;
+/* Filter & Sort bar for room offers — Executive Structured Toolbar */
+.offers-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  background: var(--dt-box-bg);
+  border: 1px solid var(--dt-card-border);
 }
-.filter-pill-kaaba:hover {
-  background: rgba(217, 119, 6, 0.16) !important;
-  border-color: #d97706 !important;
+.offers-filter-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.filter-pill-kaaba.active {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
-  color: #ffffff !important;
-  border-color: #b45309 !important;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
+.offers-filter-sub-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--dt-card-border);
+  flex-wrap: wrap;
 }
-
+.meal-pills-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.filter-strip-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--dt-text-sub);
+  margin-right: 4px;
+}
+.filter-pills-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  border: 1px solid var(--dt-card-border);
+  background: var(--dt-card-bg);
+  color: var(--dt-text-main);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 0 12px;
+  border-radius: 0 !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.filter-pill-meal {
+  height: 29px;
+  font-size: 11px;
+  padding: 0 11px;
+  color: var(--dt-text-sub);
+}
+.filter-pill:hover:not(.active) {
+  border-color: var(--dt-gold);
+  color: var(--dt-gold);
+}
+.filter-pill.active,
+.filter-pill-kaaba.active,
+.filter-pill-immediate.active,
+.filter-pill-on-request.active {
+  background: var(--dt-gold) !important;
+  color: #0C1C39 !important;
+  border-color: var(--dt-gold) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(225, 175, 90, 0.25);
+}
 .pill-count-tag {
-  background: rgba(0, 0, 0, 0.12);
-  padding: 1px 6px;
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 17px;
+  padding: 0 5px;
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--dt-text-sub);
   font-size: 10px;
-  margin-left: 4px;
+  font-weight: 700;
+  border-radius: 0;
+  margin-left: 2px;
 }
-.filter-pill-kaaba.active .pill-count-tag {
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
+.filter-pill.active .pill-count-tag,
+.filter-pill-kaaba.active .pill-count-tag,
+.filter-pill-immediate.active .pill-count-tag,
+.filter-pill-on-request.active .pill-count-tag {
+  background: rgba(12, 28, 57, 0.18);
+  color: #0C1C39;
 }
 
-/* Availability badges & pills */
+.filter-sub-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+.reset-inline-filters-btn {
+  background: transparent;
+  border: 1px solid rgba(225, 175, 90, 0.45);
+  color: var(--dt-gold);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.reset-inline-filters-btn:hover {
+  background: var(--dt-gold);
+  color: #0C1C39;
+}
+.filtered-count-indicator {
+  font-size: 11px;
+  color: var(--dt-text-sub);
+}
+.filtered-count-indicator strong {
+  color: var(--dt-gold);
+  font-weight: 800;
+}
+
+/* Availability badges & pills on room cards */
 .immediate-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 0;
   background: rgba(16, 185, 129, 0.12);
   color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.35);
@@ -2784,54 +2895,40 @@ useHead({
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 0;
   background: rgba(245, 158, 11, 0.15);
   color: #b45309;
   border: 1px solid rgba(245, 158, 11, 0.4);
   margin-left: 6px;
 }
 
-.filter-pill-immediate.active {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-  color: #ffffff !important;
-  border-color: #047857 !important;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
-}
-
-.filter-pill-on-request.active {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
-  color: #ffffff !important;
-  border-color: #b45309 !important;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35);
-}
-
 .kaaba-view-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 3px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
   background: rgba(217, 119, 6, 0.12);
   color: #b45309;
   border: 1px solid rgba(217, 119, 6, 0.35);
-  border-radius: 4px;
+  border-radius: 0;
   margin-left: 8px;
 }
 .haram-view-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 3px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
   background: rgba(5, 150, 105, 0.12);
   color: #047857;
   border: 1px solid rgba(5, 150, 105, 0.35);
-  border-radius: 4px;
+  border-radius: 0;
   margin-left: 8px;
 }
 .dark-theme .kaaba-view-pill {
@@ -2848,27 +2945,28 @@ useHead({
 .offers-selectors-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 .offers-select-item {
   display: inline-flex;
   align-items: center;
+  height: 32px;
   gap: 6px;
-  background: var(--dt-box-bg);
+  background: var(--dt-card-bg);
   border: 1px solid var(--dt-card-border);
-  padding: 4px 10px;
+  padding: 0 10px;
   border-radius: 0 !important;
 }
 .offers-select-label {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--dt-text-sub);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   white-space: nowrap;
 }
 .offers-custom-select {
@@ -2877,7 +2975,7 @@ useHead({
   color: var(--dt-text-main);
   font-size: 11px;
   font-weight: 700;
-  padding: 3px 6px;
+  padding: 2px 4px;
   outline: none;
   cursor: pointer;
   border-radius: 0 !important;
@@ -2885,41 +2983,6 @@ useHead({
 .offers-custom-select option {
   background: var(--dt-card-bg);
   color: var(--dt-text-main);
-}
-
-/* Filter & Sort bar for room offers */
-.offers-filter-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.filter-pills-group {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.filter-pill {
-  border: 1px solid var(--dt-card-border);
-  background: var(--dt-box-bg);
-  color: var(--dt-text-sub);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 0 !important;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.filter-pill.active {
-  background: var(--dt-gold);
-  color: #111827;
-  border-color: var(--dt-gold);
-}
-.filter-pill:hover:not(.active) {
-  border-color: var(--dt-gold);
-  color: var(--dt-gold);
 }
 
 .offers-sort-wrap {

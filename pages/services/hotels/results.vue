@@ -575,7 +575,6 @@
                       style="background: rgba(16, 185, 129, 0.14); color: #047857; border-color: rgba(16, 185, 129, 0.4); font-weight: 700; cursor: help;"
                       @click.stop
                     >
-                      <UIcon name="i-heroicons-shield-check" class="w-3.5 h-3.5 text-emerald-600 inline mr-1" />
                       {{ hotelRefundBadgeLabel(hotel) }}
                     </span>
                     <span
@@ -585,17 +584,16 @@
                       style="background: rgba(225, 29, 72, 0.1); color: #be123c; border-color: rgba(225, 29, 72, 0.3); font-weight: 700; cursor: help;"
                       @click.stop
                     >
-                      <UIcon name="i-heroicons-no-symbol" class="w-3.5 h-3.5 text-rose-600 inline mr-1" />
                       Non remboursable
                     </span>
                     <span v-if="hasKaabaHaram(hotel)" class="board-tag" style="background: rgba(217, 119, 6, 0.15); color: #d97706; border-color: rgba(217, 119, 6, 0.35); font-weight: 700;">
-                      <UIcon name="i-heroicons-eye" class="w-3.5 h-3.5 text-amber-600 inline mr-1" />Vue Kaaba / Haram
+                      Vue Kaaba / Haram
                     </span>
                     <span v-if="hotel.is_on_request || hotel.has_on_request" class="board-tag" style="background: rgba(245, 158, 11, 0.15); color: #b45309; border-color: rgba(245, 158, 11, 0.4); font-weight: 700;">
-                      <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5 text-amber-600 inline mr-1" />Sur demande
+                      Sur demande
                     </span>
                     <span v-else class="board-tag" style="background: rgba(16, 185, 129, 0.12); color: #047857; border-color: rgba(16, 185, 129, 0.3); font-weight: 700;">
-                      <UIcon name="i-heroicons-bolt" class="w-3.5 h-3.5 text-emerald-600 inline mr-1" />Confirmation immédiate
+                      Confirmation immédiate
                     </span>
                     <span class="board-tag">{{ roomBasisName(hotel.room_basis_code) }}</span>
                     <span v-if="hotel.meal_basis_code && hotel.meal_basis_code !== 'X'" class="meal-tag">
@@ -714,14 +712,6 @@
                     </svg>
                   </button>
                 </div>
-              </div>
-
-              <!-- Quick speed badge -->
-              <div class="all-loaded-indicator" v-if="hotelStore.allHotelsLoaded && !hotelStore.loadingAllHotels">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 check-ico">
-                  <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/>
-                </svg>
-                <span>Catalogue complet synchronisé : <strong>{{ hotelStore.filteredHotels.length }}</strong> hôtel(s) disponible(s).</span>
               </div>
             </div>
 
