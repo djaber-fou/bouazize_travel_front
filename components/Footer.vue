@@ -80,28 +80,24 @@
 
             <!-- Bottom Bar & TroveSeek Production Official Partner Credit -->
             <div class="pt-8 border-t border-white/10 space-y-6">
-                <div class="p-4 sm:p-5 bg-[#071124]/80 border border-white/10 flex flex-col lg:flex-row items-center justify-between gap-5">
+                <div class="flex flex-col lg:flex-row items-center justify-between gap-5">
                     <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-                        <div class="px-3 py-2 bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                            <img src="/images/logo/troveseek-logo-dark.png" alt="TroveSeek Production" class="h-10 sm:h-11 w-auto object-contain" />
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                                <span class="text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 bg-primary/15 text-primary border border-primary/30">
-                                    Partenaire Officiel Tech &amp; Média
-                                </span>
-                                <span class="text-white font-bold text-sm">TroveSeek Production</span>
-                            </div>
-                            <p class="text-xs text-gray-400">
-                                Développement Plateforme, Marketing Digital &amp; Media Management — Lead Developer : <strong class="text-white font-semibold">Bouketir Djaber</strong>
+                        <img
+                            src="/images/logo/troveseek-logo-dark.png"
+                            alt="TroveSeek Production"
+                            class="h-8 sm:h-9 w-auto object-contain shrink-0"
+                        />
+                        <div class="space-y-0.5">
+                            <p class="text-xs text-gray-300">
+                                Développement, Marketing Digital &amp; Media Management — Développeur : <strong class="text-white font-semibold">Bouketir Djaber</strong>
                             </p>
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap items-center justify-center gap-3 text-xs">
+                    <div class="flex flex-wrap items-center justify-center gap-4 text-xs">
                         <a
                             href="mailto:troveseekltd@gmail.com"
-                            class="inline-flex items-center gap-1.5 px-3 py-2 bg-white/5 hover:bg-primary/20 border border-white/10 hover:border-primary/40 text-gray-200 hover:text-primary transition-colors"
+                            class="inline-flex items-center gap-1.5 text-gray-300 hover:text-primary transition-colors"
                         >
                             <Icon name="i-heroicons-envelope" class="w-4 h-4 text-primary" />
                             <span>troveseekltd@gmail.com</span>
@@ -110,9 +106,9 @@
                             href="https://wa.me/213561309037"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-semibold transition-colors"
+                            class="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
                         >
-                            <Icon name="i-mdi-whatsapp" class="w-4 h-4 text-emerald-400" />
+                            <Icon name="i-mdi-whatsapp" class="w-4 h-4" />
                             <span>WhatsApp : 0561 30 90 37</span>
                         </a>
                     </div>
