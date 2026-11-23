@@ -81,14 +81,14 @@
               <!-- Thumbnails row -->
               <div v-if="hotelPhotos.length > 1" class="gallery-thumbs-row">
                 <button
-                  v-for="(photo, pIdx) in hotelPhotos.slice(0, 5)"
-                  :key="pIdx"
+                  v-for="(photo, pIdx) in hotelPhotos.slice(0, 8)"
+                  :key="photo"
                   type="button"
                   class="thumb-btn"
                   :class="{ active: activePhoto === photo }"
                   @click="activePhoto = photo"
                 >
-                  <img :src="photo" :alt="`Photo ${pIdx + 1}`" class="thumb-img" @error="onThumbError($event, pIdx)" />
+                  <img :src="photo" :alt="`Photo ${pIdx + 1}`" class="thumb-img" @error="onThumbError($event, photo)" />
                 </button>
               </div>
             </div>
@@ -2085,7 +2085,14 @@ function onImageError(e) {
   onHotelImageError(e, hotel.value?.stars || 3);
 }
 
-function onThumbError(e) {
+function onThumbError(e, failedPhotoUrl) {
+  if (failedPhotoUrl && hotelPhotos.value.length > 1) {
+    hotelPhotos.value = hotelPhotos.value.filter(url => url !== failedPhotoUrl);
+    if (activePhoto.value === failedPhotoUrl) {
+      activePhoto.value = hotelPhotos.value[0] || '/images/services/hotels.jpg';
+    }
+    return;
+  }
   onHotelImageError(e, hotel.value?.stars || 3);
 }
 
