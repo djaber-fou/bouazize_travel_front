@@ -48,43 +48,66 @@
         </div>
       </div>
 
-      <!-- 2. CAPTCHA ANTI-ROBOT (Exigence SATIM: Éviter les robots) -->
+      <!-- 2. CAPTCHA ANTI-ROBOT (Exigence SATIM: Éviter les robots — Visual Graphic Captcha + Server Verification) -->
       <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#071124] border border-slate-200 dark:border-slate-800 space-y-3">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-2">
           <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-            <Icon name="heroicons:check-badge" class="w-4 h-4 text-primary" />
+            <Icon name="heroicons:shield-check" class="w-4 h-4 text-primary" />
             <span>Contrôle de sécurité anti-robot (Captcha)</span>
           </label>
           <span v-if="isCaptchaValid" class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
             <Icon name="heroicons:check-circle" class="w-3.5 h-3.5" />
-            Code correct
+            Code vérifié
+          </span>
+          <span v-else-if="captchaInput.trim().length === 5" class="text-[11px] font-bold text-rose-500 flex items-center gap-1">
+            <Icon name="heroicons:x-circle" class="w-3.5 h-3.5" />
+            Code incorrect
           </span>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-center gap-3">
-          <!-- Captcha Visual Box -->
-          <div class="flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2 select-none">
-            <span class="text-base font-mono font-black tracking-wider text-slate-900 dark:text-white">
-              {{ captchaChallenge.num1 }} + {{ captchaChallenge.num2 }} = ?
-            </span>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <!-- Graphic SVG Captcha Plate + Refresh Button -->
+          <div class="flex items-center justify-between sm:justify-start gap-2 bg-white dark:bg-[#0C1C39] border border-slate-300 dark:border-[#1e3a6d] rounded-xl p-1.5 select-none shrink-0">
+            <div class="relative h-[46px] w-[180px] rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center">
+              <img
+                v-if="captchaImage"
+                :src="captchaImage"
+                alt="Code de sécurité Captcha SATIM"
+                class="h-full w-full object-cover select-none pointer-events-none"
+                draggable="false"
+              />
+              <div v-else class="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
+                <Icon name="heroicons:arrow-path" class="w-4 h-4 animate-spin text-primary" />
+                <span>Chargement...</span>
+              </div>
+            </div>
+
             <button
               type="button"
               @click="refreshCaptcha"
-              title="Changer le calcul"
-              class="p-1 text-slate-400 hover:text-primary transition-colors cursor-pointer"
+              :disabled="loadingCaptcha"
+              title="Générer un nouveau code de sécurité"
+              class="p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:text-primary hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Icon name="heroicons:arrow-path" class="w-4 h-4" />
+              <Icon name="heroicons:arrow-path" class="w-4 h-4" :class="{ 'animate-spin': loadingCaptcha }" />
             </button>
           </div>
 
-          <!-- Captcha Input Field -->
+          <!-- Alphanumeric Captcha Code Input -->
           <div class="flex-1 w-full">
             <input
               v-model="captchaInput"
-              type="number"
-              placeholder="Entrez le résultat"
-              class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-              :class="{ 'border-emerald-500': isCaptchaValid }"
+              type="text"
+              maxlength="5"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              placeholder="Saisir les 5 caractères"
+              class="w-full h-[58px] sm:h-[60px] px-4 rounded-xl border border-slate-300 dark:border-[#1e3a6d] bg-white dark:bg-[#0C1C39] text-slate-900 dark:text-white font-mono font-black text-base uppercase tracking-[0.25em] placeholder:tracking-normal placeholder:font-sans placeholder:font-medium placeholder:text-xs placeholder:normal-case focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+              :class="{
+                'border-emerald-500 dark:border-emerald-500 ring-1 ring-emerald-500/30': isCaptchaValid,
+                'border-rose-500 dark:border-rose-500': !isCaptchaValid && captchaInput.trim().length === 5
+              }"
             />
           </div>
         </div>
@@ -325,20 +348,45 @@ const props = defineProps({
 
 const emit = defineEmits(['paymentSuccess', 'paymentFailed', 'priceUpdated']);
 
-// Captcha State
-const captchaChallenge = ref({ num1: 0, num2: 0 });
+// Captcha State (Server-Signed Visual SVG Captcha)
+const captchaImage = ref('');
+const captchaToken = ref('');
+const captchaNonce = ref('');
+const captchaExpectedDigest = ref('');
+const loadingCaptcha = ref(false);
 const captchaInput = ref('');
 const acceptedTerms = ref(false);
 const showTermsModal = ref(false);
 const isLoading = ref(false);
 const errorMessage = ref('');
 
-const generateCaptcha = () => {
-  captchaChallenge.value = {
-    num1: Math.floor(Math.random() * 8) + 2,
-    num2: Math.floor(Math.random() * 8) + 1,
-  };
+function computeClientDigest(nonce, code) {
+  const input = `${nonce}:${String(code || '').trim().toUpperCase()}`;
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+const generateCaptcha = async () => {
+  loadingCaptcha.value = true;
   captchaInput.value = '';
+  try {
+    const res = await sendApi('/payment/cib/captcha', null, 'GET', { silent: true });
+    const data = res?.data || res;
+    if (data?.captcha_image && data?.captcha_token) {
+      captchaImage.value = data.captcha_image;
+      captchaToken.value = data.captcha_token;
+      captchaNonce.value = data.nonce || '';
+      captchaExpectedDigest.value = data.client_digest || '';
+    }
+  } catch (e) {
+    console.warn('Could not load visual captcha:', e?.message);
+  } finally {
+    loadingCaptcha.value = false;
+  }
 };
 
 const refreshCaptcha = () => {
@@ -346,8 +394,12 @@ const refreshCaptcha = () => {
 };
 
 const isCaptchaValid = computed(() => {
-  const sum = captchaChallenge.value.num1 + captchaChallenge.value.num2;
-  return Number(captchaInput.value) === sum;
+  const clean = String(captchaInput.value || '').trim().toUpperCase();
+  if (clean.length !== 5 || !captchaToken.value) return false;
+  if (captchaNonce.value && captchaExpectedDigest.value) {
+    return computeClientDigest(captchaNonce.value, clean) === captchaExpectedDigest.value;
+  }
+  return true;
 });
 
 const canProceed = computed(() => {
@@ -385,6 +437,8 @@ const initiateSatimPayment = async () => {
       card_type: 'cib',
       payment_token: props.paymentToken || undefined,
       idempotency_key: idempotencyKey.value,
+      captcha_code: String(captchaInput.value || '').trim().toUpperCase(),
+      captcha_token: captchaToken.value,
     };
 
     const res = await sendApi('/payment/cib/initialize', payload, 'POST', {
@@ -400,6 +454,7 @@ const initiateSatimPayment = async () => {
     if (data?.code === 'PRICE_CHANGED' && typeof data?.new_amount === 'number') {
       emit('priceUpdated', data.new_amount);
       idempotencyKey.value = '';
+      generateCaptcha();
       errorMessage.value = res?.message || `Le tarif a été mis à jour (${data.new_amount} DZD). Veuillez vérifier le nouveau montant puis relancer le paiement.`;
       isLoading.value = false;
       return;
@@ -416,6 +471,7 @@ const initiateSatimPayment = async () => {
   } catch (err) {
     console.error('SATIM initialization error:', err);
     errorMessage.value = err?.message || 'Erreur lors de la connexion à la passerelle SATIM. Veuillez réessayer.';
+    generateCaptcha();
     isLoading.value = false;
   }
 };
