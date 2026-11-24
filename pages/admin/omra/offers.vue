@@ -219,7 +219,7 @@
                         <!-- Summary Base Prices (fallback / minimum) -->
                         <div class="pt-4 border-t border-gray-100 dark:border-slate-800">
                             <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Prix de base affichés &amp; Partenaire Média TroveSeek Production</div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                                 <UFormField :ui="{label:'text-secondary font-bold'}" label="Prix d'achat de base" name="purchase_price">
                                     <UInput placeholder="0.00" v-model="offer.purchase_price" class="w-full"/>
                                 </UFormField>
@@ -229,8 +229,11 @@
                                 <UFormField :ui="{label:'text-secondary font-bold'}" label="Prix individuel de base" name="individual_price">
                                     <UInput placeholder="0.00" v-model="offer.b2c_price" class="w-full"/>
                                 </UFormField>
-                                <UFormField :ui="{label:'text-primary font-extrabold'}" label="Part TroveSeek Production (DZD)" name="troveseek_commission">
+                                <UFormField :ui="{label:'text-primary font-extrabold'}" label="Part TroveSeek B2C (DZD)" name="troveseek_commission">
                                     <UInput type="number" min="0" placeholder="Ex: 5000" v-model="offer.troveseek_commission" class="w-full"/>
+                                </UFormField>
+                                <UFormField :ui="{label:'text-primary font-extrabold'}" label="Part TroveSeek B2B (DZD)" name="troveseek_commission_b2b">
+                                    <UInput type="number" min="0" placeholder="Ex: 2500" v-model="offer.troveseek_commission_b2b" class="w-full"/>
                                 </UFormField>
                             </div>
                         </div>
@@ -310,6 +313,7 @@ const offer = ref({
     b2b_price:null,
     b2c_price:null,
     troveseek_commission:0,
+    troveseek_commission_b2b:0,
     image:null,
     rooms:[],
     documents:[],
@@ -407,9 +411,14 @@ const columns = [
     },
     {
         accessorKey: 'troveseek_commission',
-        header: "Part TroveSeek",
+        header: "Part TroveSeek (B2C / B2B)",
         cell:({row})=>{
-            return h('span', {class: 'font-bold text-emerald-600 dark:text-emerald-400'}, `${Number(row.original.troveseek_commission || 0).toLocaleString('fr-FR')} DZD`)
+            const b2c = Number(row.original.troveseek_commission || 0)
+            const b2b = Number(row.original.troveseek_commission_b2b || 0)
+            return h('div', {class: 'flex flex-col text-xs'}, [
+                h('span', {class: 'font-bold text-primary'}, `B2C: ${b2c.toLocaleString('fr-FR')} DZD`),
+                h('span', {class: 'font-semibold text-emerald-600 dark:text-emerald-400'}, `B2B: ${b2b.toLocaleString('fr-FR')} DZD`),
+            ])
         }
     },
     {
@@ -487,6 +496,7 @@ const openForm = ()=>{
         b2b_price: null,
         b2c_price: null,
         troveseek_commission: 0,
+        troveseek_commission_b2b: 0,
         image: null,
         rooms:[
             createDefaultRoom(2, "Chambre Double (غرفة ثنائية)")
@@ -639,6 +649,7 @@ const getOffer = async (id)=>{
             b2b_price: res.business_price,
             b2c_price: res.individual_price,
             troveseek_commission: res.troveseek_commission ?? 0,
+            troveseek_commission_b2b: res.troveseek_commission_b2b ?? 0,
             image: res.image || null,
             rooms: res.rooms && Array.isArray(res.rooms) ? res.rooms : [],
             documents: (res.documents || []).map(doc => doc.name || doc)
@@ -682,6 +693,7 @@ const buildOfferPayload = (imageUrl) => {
     if (offer.value.b2b_price !== null && offer.value.b2b_price !== undefined && offer.value.b2b_price !== '') fd.append('b2b_price', offer.value.b2b_price)
     if (offer.value.b2c_price !== null && offer.value.b2c_price !== undefined && offer.value.b2c_price !== '') fd.append('b2c_price', offer.value.b2c_price)
     fd.append('troveseek_commission', offer.value.troveseek_commission ?? 0)
+    fd.append('troveseek_commission_b2b', offer.value.troveseek_commission_b2b ?? 0)
 
     // Image is now always a URL string (from Cloudinary or existing)
     if (imageUrl) {

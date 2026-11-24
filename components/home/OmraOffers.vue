@@ -57,7 +57,7 @@
                             <div class="w-12 h-12 rounded-none border border-primary/30 flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-secondary text-primary transition-all duration-300">
                                 <Icon name="i-heroicons-arrow-right" class="w-5 h-5"/>
                             </div>
-                            <h3 class="text-lg font-bold text-white uppercase tracking-widest text-center px-4 leading-relaxed">Toutes nos<br/>offres Omra</h3>
+                            <h3 class="text-lg font-bold text-white uppercase tracking-widest text-center px-4 leading-relaxed">Toutes nos<br/>destinations</h3>
                         </nuxt-link>
                     </swiper-slide>
                 </swiper-container>
@@ -135,7 +135,7 @@ const getOffers = async() => {
         const url = authorization?.token ? '/client/omra':'/omra'
         const response = await sendApi(`${url}/offers?page=1&per_page=12`, null, 'GET')
         if(response?.data?.data) {
-            offers.value = response.data.data
+            offers.value = response.data.data.slice(0, 3)
         }
     } catch (e) {
         console.error(e)

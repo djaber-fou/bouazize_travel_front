@@ -1,149 +1,113 @@
 <template>
     <div id="hero" class="relative bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
-        <!-- Remove key to prevent destroying the swiper instance -->
+        <!-- Hero & Banners Carousel (Booking.com-inspired compact viewport proportions) -->
         <swiper-container 
             ref="heroSwiper" 
             navigation="true" 
             pagination="true" 
-            class="w-full h-auto md:min-h-[75vh]"
+            class="w-full h-auto"
         >
-            
-            <!-- Slide 1: Static Hero -->
+            <!-- Slide 1: Main Brand Hero Banner -->
             <swiper-slide class="h-auto">
-                <div class="relative w-full min-h-[65vh] md:min-h-[80vh] lg:min-h-[88vh] flex items-center bg-gray-50 dark:bg-slate-950 overflow-hidden pt-6 sm:pt-10 pb-32 sm:pb-36 md:pb-40 lg:pb-48">
-                    <!-- Decorative background blur -->
-                    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-                    <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-secondary/10 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+                <div class="relative w-full min-h-[340px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[450px] flex items-center bg-[#0C1C39] text-white overflow-hidden pt-6 sm:pt-8 pb-16 sm:pb-20">
+                    <!-- Subtle ambient brand glow -->
+                    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary/15 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
 
-                    <div class="container mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-16 items-center relative z-10">
-                        <!-- Text Content -->
-                        <div class="flex flex-col justify-center gap-2 md:gap-8">
-                            <h1 class="text-2xl sm:text-4xl md:text-6xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-extrabold text-secondary dark:text-white leading-tight md:leading-[1.1] tracking-tight uppercase">
-                                Des expériences
-                                <span class="inline-block whitespace-nowrap">
-                                    <span class="text-primary italic font-serif relative inline-block">
-                                        inoubliables
-                                        <!-- Underline decoration -->
-                                        <svg class="absolute w-full h-3 -bottom-1 left-0 text-primary opacity-50" viewBox="0 0 100 10" preserveAspectRatio="none">
-                                            <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="4" fill="none" />
-                                        </svg>
-                                    </span>,
-                                </span> <br class="hidden xl:block"/>
-                                des destinations de <span class="text-secondary dark:text-white relative z-10">rêve</span>.
-                            </h1>
-                            <p class="text-xs sm:text-sm md:text-lg text-gray-600 dark:text-slate-300 max-w-lg leading-snug md:leading-relaxed font-light">
-                                Découvrez le monde avec Bouazize Travel. Nous organisons vos voyages sur mesure avec passion, sécurité et confort. L'excellence est notre standard depuis plus de 5 ans.
-                            </p>
-                            
-                            <!-- Buttons -->
-                            <div class="flex flex-wrap items-center gap-2 pt-1 md:gap-4 md:pt-2">
-                                <nuxt-link to="/services">
-                                    <button class="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 md:px-8 md:py-4 font-bold uppercase tracking-widest text-xs md:text-sm transition-all duration-300 flex items-center gap-3 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 rounded-xl">
-                                        Nos Services
-                                        <Icon name="i-heroicons-arrow-right" class="w-5 h-5"/>
-                                    </button>
-                                </nuxt-link>
-                                <button class="bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-800 hover:border-primary dark:hover:border-primary text-secondary dark:text-white px-3 py-1.5 md:px-8 md:py-4 font-bold uppercase tracking-widest text-xs md:text-sm transition-all duration-300 flex items-center gap-3 rounded-xl hover:-translate-y-1" @click="scrollDown">
-                                    Découvrir
-                                    <Icon name="i-heroicons-arrow-down" class="w-5 h-5 text-primary"/>
-                                </button>
+                    <div class="container mx-auto px-6 md:px-12 grid lg:grid-cols-12 gap-8 items-center relative z-10">
+                        <!-- Text Content (Left / Main) -->
+                        <div class="lg:col-span-7 flex flex-col justify-center gap-3 md:gap-4">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 border border-white/15 w-fit text-[11px] font-bold uppercase tracking-widest text-primary">
+                                <span>Bouazize Travel · Agence de Voyages &amp; Tourisme</span>
                             </div>
 
-                            <!-- Analytics / Stats -->
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 sm:pt-8 pb-3 sm:pb-4 mt-6 border-t border-gray-200 dark:border-slate-800">
-                                <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
-                                    <h3 class="text-xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">5+</h3>
-                                    <p class="text-[10px] leading-tight md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Années <br class="hidden sm:block"/>d'expérience</p>
-                                </div>
-                                <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
-                                    <h3 class="text-xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.clients }}+</h3>
-                                    <p class="text-[10px] leading-tight md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Clients <br class="hidden sm:block"/>satisfaits</p>
-                                </div>
-                                <div class="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-1 group">
-                                    <h3 class="text-xl md:text-4xl font-extrabold text-secondary dark:text-white group-hover:text-primary transition-colors">{{ stats.destinations }}+</h3>
-                                    <p class="text-[10px] leading-tight md:text-sm text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider">Destinations <br class="hidden sm:block"/>globales</p>
+                            <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] xl:text-5xl font-extrabold text-white leading-tight tracking-tight uppercase">
+                                Des expériences
+                                <span class="text-primary">inoubliables</span>,
+                                des destinations de <span class="text-primary">rêve</span>.
+                            </h1>
+
+                            <p class="text-xs sm:text-sm md:text-base text-slate-200 max-w-2xl leading-relaxed font-normal">
+                                Découvrez le monde avec Bouazize Travel. Réservez parmi <strong class="text-primary font-bold">{{ hotelsTotalLabel }} hôtels</strong>, offres Omra, voyages organisés et visas avec confirmation rapide et paiement sécurisé.
+                            </p>
+                            
+                            <!-- CTA Buttons + Inline Key Stats -->
+                            <div class="flex flex-wrap items-center gap-3 pt-1">
+                                <nuxt-link to="/services">
+                                    <button class="bg-primary hover:bg-primary-hover text-[#0C1C39] px-5 py-2.5 md:px-7 md:py-3 font-extrabold uppercase tracking-wider text-xs md:text-sm transition-all duration-200 flex items-center gap-2 shadow-lg cursor-pointer">
+                                        <span>Explorer nos offres</span>
+                                        <Icon name="i-heroicons-arrow-right" class="w-4 h-4"/>
+                                    </button>
+                                </nuxt-link>
+                                <button class="bg-white/10 hover:bg-white/15 border border-white/20 text-white px-5 py-2.5 md:px-6 md:py-3 font-bold uppercase tracking-wider text-xs md:text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer" @click="scrollDown">
+                                    <span>Découvrir</span>
+                                    <Icon name="i-heroicons-arrow-down" class="w-4 h-4 text-primary"/>
+                                </button>
+
+                                <!-- Compact Inline Stats Badges -->
+                                <div class="hidden sm:flex items-center gap-5 pl-4 ml-2 border-l border-white/15">
+                                    <div>
+                                        <span class="text-lg md:text-xl font-black text-primary">5+</span>
+                                        <span class="block text-[10px] uppercase tracking-wider text-slate-300">Années d'expérience</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-lg md:text-xl font-black text-white">{{ stats.clients || 500 }}+</span>
+                                        <span class="block text-[10px] uppercase tracking-wider text-slate-300">Clients satisfaits</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-lg md:text-xl font-black text-white">{{ stats.destinations || 50 }}+</span>
+                                        <span class="block text-[10px] uppercase tracking-wider text-slate-300">Destinations</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Professional Photo Collage with Flight Path -->
-                        <div class="relative w-full h-[250px] sm:h-[400px] lg:h-[600px] hidden lg:flex items-center justify-center mt-10 lg:mt-0">
-                            
-                            <!-- Animated Flight Path -->
-                            <svg class="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-                                <!-- Dashed loop connecting the images -->
-                                <path id="flightPath" d="M 50,50 C 70,20 90,20 90,50 C 90,80 70,80 50,50 C 30,20 10,20 10,50 C 10,80 30,80 50,50 Z" fill="transparent" stroke="url(#gradientPrimary)" stroke-width="0.4" stroke-dasharray="1.5,1.5" class="opacity-50"/>
-                                <defs>
-                                    <linearGradient id="gradientPrimary" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#CA8A04" />
-                                        <stop offset="100%" stop-color="#FCD34D" />
-                                    </linearGradient>
-                                </defs>
-                                <!-- The Airplane -->
-                                <g>
-                                    <!-- Rotated 90 degrees because SVG paths align with X axis initially for animateMotion -->
-                                    <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="#CA8A04" transform="scale(0.2) translate(-12, -12) rotate(90)" />
-                                    <animateMotion dur="20s" repeatCount="indefinite" rotate="auto">
-                                        <mpath href="#flightPath"/>
-                                    </animateMotion>
-                                </g>
-                            </svg>
-
-                            <!-- Image 1: Paris (Top Left) -->
-                            <div class="absolute left-0 top-0 w-2/5 h-[40%] rounded-3xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800 z-10 animate-[float_6s_ease-in-out_infinite]">
-                                <img src="/images/travel_collage_3.png" alt="Paris" class="w-full h-full object-cover" />
+                        <!-- Right Visual Showcase (Compact Booking-banner style collage) -->
+                        <div class="lg:col-span-5 relative w-full h-[260px] xl:h-[300px] hidden lg:flex items-center justify-center">
+                            <div class="grid grid-cols-2 gap-3 w-full h-full">
+                                <div class="relative rounded-xl overflow-hidden border-2 border-white/20 shadow-xl">
+                                    <img src="/images/travel_collage_1.png" alt="Séjours & Hôtels" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                </div>
+                                <div class="grid grid-rows-2 gap-3 h-full">
+                                    <div class="relative rounded-xl overflow-hidden border-2 border-white/20 shadow-xl">
+                                        <img src="/images/travel_collage_2.png" alt="Omra" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                    </div>
+                                    <div class="relative rounded-xl overflow-hidden border-2 border-white/20 shadow-xl">
+                                        <img src="/images/travel_collage_3.png" alt="Voyages Organisés" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <!-- Image 2: Beach (Top Right) -->
-                            <div class="absolute right-0 top-6 w-1/2 h-[42%] rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 z-30 animate-[float_5s_ease-in-out_infinite_0.5s]">
-                                <img src="/images/travel_collage_1.png" alt="Plage Tropicale" class="w-full h-full object-cover" />
-                            </div>
-                            
-                            <!-- Image 3: Mecca (Bottom Left) -->
-                            <div class="absolute left-6 bottom-8 w-[45%] h-[40%] rounded-3xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800 z-20 animate-[float_7s_ease-in-out_infinite_1s]">
-                                <img src="/images/travel_collage_2.png" alt="Omra" class="w-full h-full object-cover" />
-                            </div>
-                            
-                            <!-- Image 4: Algeria (Bottom Right) -->
-                            <div class="absolute right-4 bottom-0 w-[42%] h-[45%] rounded-3xl overflow-hidden shadow-xl border-4 border-white dark:border-slate-800 z-10 animate-[float_6s_ease-in-out_infinite_1.5s]">
-                                <img src="/images/travel_collage_4.png" alt="Algérie" class="w-full h-full object-cover" />
-                            </div>
-                            
-                            <!-- Decorative Elements -->
-                            <div class="absolute top-1/2 left-1/4 w-40 h-40 bg-primary/20 rounded-full blur-3xl -z-10"></div>
-                            <div class="absolute bottom-1/4 right-1/4 w-32 h-32 bg-secondary/10 rounded-full blur-2xl -z-10"></div>
                         </div>
                     </div>
                 </div>
             </swiper-slide>
 
-            <!-- Dynamic Banners Slides -->
+            <!-- Dynamic Banners Slides (Bright, clear photography with light gradient overlay) -->
             <swiper-slide v-for="banner in banners" :key="banner.id" class="h-auto">
-                <div class="relative w-full min-h-[65vh] md:min-h-[80vh] lg:min-h-[88vh] flex items-center justify-center bg-secondary text-white overflow-hidden pt-6 sm:pt-10 pb-32 sm:pb-36 md:pb-40 lg:pb-48">
-                    <!-- Background Image -->
+                <div class="relative w-full min-h-[340px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[450px] flex items-center justify-center bg-[#0C1C39] text-white overflow-hidden pt-6 sm:pt-8 pb-16 sm:pb-20">
+                    <!-- Background Image: 100% full brightness + light directional gradient instead of heavy dark veil -->
                     <div v-if="banner.image_url" class="absolute inset-0 z-0">
-                        <!-- Increased opacity and lighter overlay to make image visible -->
-                        <img :src="getFullImageUrl(banner.image_url)" class="w-full h-full object-cover opacity-80" alt="Banner Background" />
-                        <div class="absolute inset-0 bg-secondary/50"></div>
+                        <img :src="getFullImageUrl(banner.image_url)" class="w-full h-full object-cover opacity-100" alt="Banner Background" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#0C1C39]/55 via-[#0C1C39]/20 to-black/10"></div>
                     </div>
 
                     <!-- Content -->
-                    <div class="relative z-10 container mx-auto px-6 py-8 md:py-10 flex flex-col gap-6 w-full"
+                    <div class="relative z-10 container mx-auto px-6 md:px-12 py-6 flex flex-col gap-4 w-full"
                          :class="getAlignmentClasses(banner.alignment)">
                         <div class="max-w-3xl">
-                            <h2 v-if="banner.title" class="text-2xl md:text-5xl lg:text-6xl font-extrabold mb-2 md:mb-4 tracking-wide text-white uppercase leading-tight">
+                            <h2 v-if="banner.title" class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-2 tracking-wide text-white uppercase leading-tight drop-shadow-md">
                                 {{ banner.title }}
                             </h2>
-                            <p v-if="banner.information" class="hidden md:block text-lg md:text-xl text-gray-300 font-light mt-4">
+                            <p v-if="banner.information" class="text-sm sm:text-base md:text-lg text-white/95 font-normal mt-2 drop-shadow">
                                 {{ banner.information }}
                             </p>
                         </div>
 
-                        <div v-if="banner.button_text && banner.button_link" class="mt-6">
+                        <div v-if="banner.button_text && banner.button_link" class="mt-2">
                             <UButton
                                 :to="banner.button_link"
                                 size="md"
-                                class="bg-primary hover:bg-primary-hover text-secondary font-bold uppercase tracking-wider px-6 py-2 md:px-10 md:py-4 rounded-none transition-colors duration-300 shadow-xl"
+                                class="bg-primary hover:bg-primary-hover text-[#0C1C39] font-extrabold uppercase tracking-wider px-6 py-2.5 md:px-8 md:py-3 rounded-none transition-colors duration-200 shadow-xl"
                             >
                                 {{ banner.button_text }}
                             </UButton>
@@ -153,63 +117,23 @@
             </swiper-slide>
         </swiper-container>
 
-        <!-- ─── Floating Quick Hotel Search Widget ───────────────────────────── -->
-        <div class="relative z-30 container mx-auto px-4 sm:px-6 lg:px-12 -mt-[104px] sm:-mt-[112px] md:-mt-[190px] pb-10">
-            <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl p-5 sm:p-7 shadow-2xl border border-slate-200/80 dark:border-slate-800/90 relative overflow-visible transition-all duration-300">
-                
-                <!-- Ambient decorative glow -->
-                <div class="absolute -right-20 -top-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                <!-- Top Row: Title Badge + Quick Destination Chips -->
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5 border-b border-slate-100 dark:border-slate-800/80 pb-4">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold border border-primary/20">
-                            <UIcon name="i-heroicons-building-office-2" class="w-4 h-4" />
-                        </span>
-                        <div>
-                            <h3 class="text-sm md:text-base font-extrabold text-secondary dark:text-white uppercase tracking-wider">
-                                Réservez Votre Hôtel
-                            </h3>
-                            <p class="text-[11px] text-slate-400 font-medium">
-                                Disponibilités en temps réel · {{ hotelsTotalLabel }} hôtels dans {{ destinationsTotalLabel }} destinations
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Quick Destination Chips -->
-                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
-                        <span class="text-[11px] font-semibold text-slate-400 whitespace-nowrap mr-1 hidden sm:inline">Top Villes :</span>
-                        <button
-                            v-for="chip in popularChips"
-                            :key="chip.code"
-                            type="button"
-                            class="px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors flex items-center border cursor-pointer"
-                            :class="destinationCode === chip.code
-                                ? 'bg-primary text-white border-primary shadow-xs'
-                                : 'bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-primary'"
-                            @click="selectQuickChip(chip)"
-                        >
-                            <span>{{ chip.name }}</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Inputs Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
+        <!-- ─── Booking.com-Style Docked Fast Hotel Search Bar ───────────────────────────── -->
+        <div class="relative z-30 container mx-auto px-4 sm:px-6 lg:px-12 -mt-9 sm:-mt-11 md:-mt-12 pb-6">
+            <!-- Gold Outer Frame (Booking.com signature search bar architecture) -->
+            <div class="bg-primary p-1 sm:p-1.5 shadow-2xl border border-primary/90 relative overflow-visible">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-1 sm:gap-1.5 items-stretch">
                     
-                    <!-- Destination (with live autocomplete dropdown) -->
-                    <div class="relative sm:col-span-2 lg:col-span-4 flex flex-col gap-1.5">
-                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
-                            <UIcon name="i-heroicons-map-pin" class="w-4 h-4 text-primary" />
-                            <span>Destination</span>
+                    <!-- 1. Destination Cell (with live autocomplete dropdown) -->
+                    <div class="relative sm:col-span-2 lg:col-span-4 bg-white dark:bg-[#0C1C39] px-3.5 py-2 flex flex-col justify-center">
+                        <label class="text-[10px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                            <UIcon name="i-heroicons-map-pin" class="w-3.5 h-3.5 text-primary shrink-0" />
+                            <span>Destination ou Hôtel</span>
                         </label>
-                        <UInput
+                        <input
                             v-model="destinationInput"
-                            placeholder="Quelle ville ou pays ?"
-                            icon="i-heroicons-magnifying-glass"
-                            size="lg"
-                            class="w-full !h-12"
-                            :ui="{ root: '!h-12', base: '!h-12 text-sm' }"
+                            type="text"
+                            placeholder="Où allez-vous ? (Ville, pays, hôtel...)"
+                            class="w-full h-7 bg-transparent text-xs sm:text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-normal focus:outline-none"
                             @input="onDestinationInput"
                             @focus="onDestinationFocus"
                         />
@@ -217,7 +141,7 @@
                         <!-- Autocomplete Suggestions Dropdown -->
                         <div
                             v-if="showSuggestions && (hotelStore.destinationSuggestions.length || destinationInput.length >= 2)"
-                            class="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
+                            class="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
                         >
                             <div v-if="groupedSuggestions.length">
                                 <div v-for="group in groupedSuggestions" :key="group.title" class="pb-1">
@@ -242,13 +166,13 @@
                                                     {{ dest.name }}
                                                 </p>
                                                 <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
-                                                    <span v-if="dest.type === 'hotel'" class="px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold rounded text-[10px]">Hôtel</span>
+                                                    <span v-if="dest.type === 'hotel'" class="px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-[10px]">Hôtel</span>
                                                     <span>{{ dest.type === 'hotel' && dest.city_name ? (dest.city_name + ', ') : '' }}{{ dest.country_name || dest.country_code }}</span>
                                                     <span v-if="dest.stars" class="text-amber-400 font-bold">★ {{ dest.stars }}</span>
                                                 </p>
                                             </div>
                                         </div>
-                                        <span class="text-[11px] font-mono font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded shrink-0 ml-2">
+                                        <span class="text-[11px] font-mono font-semibold text-primary bg-primary/10 px-2 py-0.5 shrink-0 ml-2">
                                             {{ dest.type === 'hotel' ? 'Voir l\'offre' : (dest.hotel_count > 1 ? Number(dest.hotel_count).toLocaleString('fr-FR') + ' hôtels' : (dest.code || dest.ns_code)) }}
                                         </span>
                                     </div>
@@ -263,101 +187,113 @@
                         </div>
                     </div>
 
-                    <!-- Check-in Date -->
-                    <div class="lg:col-span-2 flex flex-col gap-1.5">
-                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
-                            <UIcon name="i-heroicons-calendar" class="w-4 h-4 text-primary" />
+                    <!-- 2. Check-in Date Cell -->
+                    <div class="lg:col-span-2 bg-white dark:bg-[#0C1C39] px-3.5 py-2 flex flex-col justify-center">
+                        <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                            <UIcon name="i-heroicons-calendar" class="w-3.5 h-3.5 text-primary shrink-0" />
                             <span>Arrivée</span>
                         </label>
-                        <UInput
+                        <input
                             type="date"
                             v-model="checkIn"
-                            size="lg"
                             :min="minDate"
-                            class="w-full !h-12 font-medium"
-                            :ui="{ root: '!h-12', base: '!h-12 font-medium text-sm' }"
+                            class="w-full h-7 bg-transparent text-xs sm:text-sm font-bold text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                         />
                     </div>
 
-                    <!-- Check-out Date -->
-                    <div class="lg:col-span-2 flex flex-col gap-1.5">
-                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
-                            <UIcon name="i-heroicons-calendar-days" class="w-4 h-4 text-primary" />
+                    <!-- 3. Check-out Date Cell -->
+                    <div class="lg:col-span-2 bg-white dark:bg-[#0C1C39] px-3.5 py-2 flex flex-col justify-center">
+                        <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                            <UIcon name="i-heroicons-calendar-days" class="w-3.5 h-3.5 text-primary shrink-0" />
                             <span>Départ</span>
                         </label>
-                        <UInput
+                        <input
                             type="date"
                             v-model="checkOut"
-                            size="lg"
                             :min="minCheckOut"
                             :max="maxCheckOut"
-                            class="w-full !h-12 font-medium"
-                            :ui="{ root: '!h-12', base: '!h-12 font-medium text-sm' }"
+                            class="w-full h-7 bg-transparent text-xs sm:text-sm font-bold text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                         />
                     </div>
 
-                    <!-- Guests (Adults & Children) -->
-                    <div class="lg:col-span-2 flex flex-col gap-1.5">
-                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
-                            <UIcon name="i-heroicons-users" class="w-4 h-4 text-primary" />
+                    <!-- 4. Guests (Adults & Children) Cell -->
+                    <div class="lg:col-span-2 bg-white dark:bg-[#0C1C39] px-3.5 py-2 flex flex-col justify-center">
+                        <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                            <UIcon name="i-heroicons-users" class="w-3.5 h-3.5 text-primary shrink-0" />
                             <span>Voyageurs</span>
                         </label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <UInput
-                                type="number"
-                                v-model.number="adults"
-                                min="1"
-                                :max="Math.max(1, 9 - children)"
-                                placeholder="Adultes"
-                                size="lg"
-                                class="!h-12 text-center font-bold"
-                                :ui="{ root: '!h-12', base: '!h-12 text-center font-bold text-sm' }"
-                            />
-                            <UInput
-                                type="number"
-                                v-model.number="children"
-                                min="0"
-                                :max="Math.min(6, Math.max(0, 9 - adults))"
-                                placeholder="Enfants"
-                                size="lg"
-                                class="!h-12 text-center font-bold"
-                                :ui="{ root: '!h-12', base: '!h-12 text-center font-bold text-sm' }"
-                            />
+                        <div class="grid grid-cols-2 gap-2 items-center h-7">
+                            <div class="flex items-center gap-1">
+                                <input
+                                    type="number"
+                                    v-model.number="adults"
+                                    min="1"
+                                    :max="Math.max(1, 9 - children)"
+                                    class="w-10 h-6 bg-slate-100 dark:bg-slate-800 text-center text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none"
+                                />
+                                <span class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Ad.</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <input
+                                    type="number"
+                                    v-model.number="children"
+                                    min="0"
+                                    :max="Math.min(6, Math.max(0, 9 - adults))"
+                                    class="w-10 h-6 bg-slate-100 dark:bg-slate-800 text-center text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none"
+                                />
+                                <span class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Enf.</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Search CTA Button -->
-                    <div class="sm:col-span-2 lg:col-span-2">
-                        <UButton
-                            block
-                            size="lg"
-                            color="primary"
-                            icon="i-heroicons-magnifying-glass"
-                            class="!h-12 font-black text-sm uppercase tracking-wider shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all flex items-center justify-center"
-                            :ui="{ base: '!h-12' }"
-                            :loading="isNavigating"
+                    <!-- 5. Search CTA Button Cell -->
+                    <div class="sm:col-span-2 lg:col-span-2 flex">
+                        <button
+                            type="button"
+                            :disabled="isNavigating"
+                            class="w-full min-h-[52px] bg-[#0C1C39] hover:bg-[#162D56] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-colors flex items-center justify-center gap-2 px-4 cursor-pointer disabled:opacity-60"
                             @click="triggerHotelSearch"
                         >
-                            Rechercher
-                        </UButton>
+                            <UIcon v-if="isNavigating" name="i-heroicons-arrow-path" class="w-4 h-4 animate-spin text-primary" />
+                            <UIcon v-else name="i-heroicons-magnifying-glass" class="w-4 h-4 text-primary" />
+                            <span>Rechercher</span>
+                        </button>
                     </div>
 
                 </div>
+            </div>
+
+            <!-- Compact Quick Destinations Strip & Child Ages Below Bar -->
+            <div class="bg-white dark:bg-[#0C1C39] border-x border-b border-slate-200 dark:border-slate-800 px-4 py-2 shadow-md flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap mr-1">Top Villes :</span>
+                    <button
+                        v-for="chip in popularChips"
+                        :key="chip.code"
+                        type="button"
+                        class="px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap transition-colors border cursor-pointer"
+                        :class="destinationCode === chip.code
+                            ? 'bg-primary text-[#0C1C39] border-primary font-bold'
+                            : 'bg-slate-50 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary'"
+                        @click="selectQuickChip(chip)"
+                    >
+                        {{ chip.name }}
+                    </button>
+                </div>
 
                 <!-- Child ages selector when children > 0 -->
-                <div v-if="children > 0" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2">
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Âges des enfants (0–17 ans) :</span>
+                <div v-if="children > 0" class="flex flex-wrap items-center gap-2 pt-1 sm:pt-0">
+                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-300">Âges enfants :</span>
                     <div v-for="(age, cIdx) in childrenAges" :key="cIdx" class="flex items-center gap-1">
-                        <span class="text-[11px] text-slate-500">E{{ cIdx + 1 }}</span>
+                        <span class="text-[10px] text-slate-400">E{{ cIdx + 1 }}</span>
                         <select
                             v-model.number="childrenAges[cIdx]"
-                            class="h-8 px-2 text-xs font-bold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white"
+                            class="h-6 px-1.5 text-[11px] font-bold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white"
                         >
                             <option v-for="a in 18" :key="a - 1" :value="a - 1">{{ a - 1 }} ans</option>
                         </select>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>

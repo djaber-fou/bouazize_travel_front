@@ -70,8 +70,11 @@
                     <UFormField :ui="{label:'text-secondary'}" label="Prix individuel" name="individual_price">
                         <UInput placeholder="0.00" v-model="offer.b2c_price" class="lg:w-100 md:w-80 w-60"/>
                     </UFormField>
-                    <UFormField :ui="{label:'text-primary font-bold'}" label="Part / Commission TroveSeek Production (DZD)" name="troveseek_commission">
+                    <UFormField :ui="{label:'text-primary font-bold'}" label="Part TroveSeek B2C / Individuel (DZD)" name="troveseek_commission">
                         <UInput type="number" min="0" placeholder="Ex: 3000" v-model="offer.troveseek_commission" class="lg:w-100 md:w-80 w-60"/>
+                    </UFormField>
+                    <UFormField :ui="{label:'text-primary font-bold'}" label="Part TroveSeek B2B / Entreprise (DZD)" name="troveseek_commission_b2b">
+                        <UInput type="number" min="0" placeholder="Ex: 1500" v-model="offer.troveseek_commission_b2b" class="lg:w-100 md:w-80 w-60"/>
                     </UFormField>
                     <UFormField :ui="{label:'text-secondary'}" label="Documents" name="documents">
                         <div class="flex flex-col gap-3">
@@ -145,6 +148,7 @@ const openForm = ()=>{
         b2b_price:null,
         b2c_price:null,
         troveseek_commission:0,
+        troveseek_commission_b2b:0,
         documents:[],
     }
 }
@@ -160,6 +164,7 @@ const offer = ref({
     b2b_price:null,
     b2c_price:null,
     troveseek_commission:0,
+    troveseek_commission_b2b:0,
     documents:[],
 })
 
@@ -223,10 +228,14 @@ const columns = [
     },
     {
         accessorKey: 'troveseek_commission',
-        header: 'Part TroveSeek',
+        header: 'Part TroveSeek (B2C / B2B)',
         cell:({row})=>{
-            const amt = Number(row.original.troveseek_commission || 0)
-            return h('span', { class: 'font-bold text-primary' }, `${amt.toLocaleString('fr-FR')} DZD`)
+            const b2c = Number(row.original.troveseek_commission || 0)
+            const b2b = Number(row.original.troveseek_commission_b2b || 0)
+            return h('div', { class: 'flex flex-col text-xs' }, [
+                h('span', { class: 'font-bold text-primary' }, `B2C: ${b2c.toLocaleString('fr-FR')} DZD`),
+                h('span', { class: 'font-semibold text-emerald-600 dark:text-emerald-400' }, `B2B: ${b2b.toLocaleString('fr-FR')} DZD`),
+            ])
         }
     },
     {
@@ -369,6 +378,7 @@ const getOffer = async (id)=>{
         offer.value.b2b_price=response.data.business_price,
         offer.value.b2c_price=response.data.individual_price,
         offer.value.troveseek_commission=response.data.troveseek_commission ?? 0,
+        offer.value.troveseek_commission_b2b=response.data.troveseek_commission_b2b ?? 0,
         response.data.documents.forEach(doc => {
             offer.value.documents.push(doc.name)
         });

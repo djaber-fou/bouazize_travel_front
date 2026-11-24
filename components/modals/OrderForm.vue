@@ -16,25 +16,27 @@
             </div>
         </template>
         <template #body>
-            <div class="grid lg:grid-cols-12 grid-cols-1 gap-8 lg:gap-12 px-4 sm:px-6 md:px-12 lg:px-16 py-8 max-w-7xl mx-auto items-start">
-                <!-- Left: Sticky Offer Details & Live Price Summary -->
-                <div class="lg:col-span-5 lg:sticky lg:top-4 self-start flex flex-col gap-6 items-center md:items-start bg-gray-50/70 dark:bg-slate-900 p-6 md:p-8 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
-                    <img :src="offer?.image || offer?.country_flag" class="w-full aspect-[4/3] object-cover rounded-none shadow-lg hover:shadow-xl transition-shadow duration-500"/>
+            <div class="grid lg:grid-cols-12 grid-cols-1 gap-6 lg:gap-10 px-4 sm:px-6 md:px-10 lg:px-14 py-5 sm:py-6 max-w-7xl mx-auto items-start">
+                <!-- Left: Sticky Offer Details & Live Price Summary (Independently scrollable on laptop/small desktop screens) -->
+                <div class="lg:col-span-5 lg:sticky lg:top-2 lg:max-h-[calc(100vh-5.25rem)] lg:overflow-y-auto self-start flex flex-col gap-4 items-center md:items-start bg-gray-50/70 dark:bg-slate-900 p-4 sm:p-5 lg:p-6 rounded-none border border-gray-100 dark:border-slate-800 shadow-sm">
+                    <div class="w-full bg-slate-950/10 dark:bg-slate-950/50 flex items-center justify-center overflow-hidden border border-gray-200/60 dark:border-slate-800">
+                        <img :src="offer?.image || offer?.country_flag" class="w-full max-h-[210px] sm:max-h-[240px] xl:max-h-[280px] object-contain rounded-none transition-shadow duration-500"/>
+                    </div>
                     
-                    <div class="flex flex-col gap-4 w-full">
+                    <div class="flex flex-col gap-3 w-full">
                         <div class="flex flex-wrap gap-2">
-                            <UBadge size="lg" class="font-bold shadow-sm" variant="subtle" :color="guaranteeColor(offer?.guarantee)">
+                            <UBadge size="md" class="font-bold shadow-sm" variant="subtle" :color="guaranteeColor(offer?.guarantee)">
                                 <UIcon name="i-heroicons-shield-check" class="w-4 h-4 mr-1" v-if="offer?.guarantee !== 'without'" />
                                 {{ guaranteeValue(offer?.guarantee) }}
                             </UBadge>
-                            <UBadge size="lg" color="gray" variant="solid" class="font-medium shadow-sm">
+                            <UBadge size="md" color="gray" variant="solid" class="font-medium shadow-sm">
                                 <UIcon name="i-heroicons-clock" class="w-4 h-4 mr-1" />
                                 {{ offer?.duration || 'Séjour complet' }}
                             </UBadge>
                         </div>
 
                         <!-- Real-time Dynamic Pricing Breakdown Box -->
-                        <div class="flex flex-col gap-3 mt-2 border-t border-gray-200 dark:border-slate-700 pt-6 w-full">
+                        <div class="flex flex-col gap-2.5 mt-1 border-t border-gray-200 dark:border-slate-700 pt-3.5 w-full">
                             <div class="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center justify-between">
                                 <span>Détails de la tarification</span>
                                 <span class="text-primary font-semibold text-xs flex items-center gap-1">
@@ -44,7 +46,7 @@
                             </div>
 
                             <!-- Breakdown Lines -->
-                            <div class="space-y-2 text-sm bg-white dark:bg-slate-800 p-4 border border-gray-100 dark:border-slate-700 rounded-none shadow-sm">
+                            <div class="space-y-2 text-xs sm:text-sm bg-white dark:bg-slate-800 p-3.5 sm:p-4 border border-gray-100 dark:border-slate-700 rounded-none shadow-sm">
                                 <div class="flex justify-between items-center text-gray-700 dark:text-gray-300">
                                     <span>Adultes ({{ clientOrder.members }} × {{ formatPrice(unitAdultPrice) }} DZD)</span>
                                     <span class="font-bold text-secondary dark:text-white">{{ formatPrice(totalAdultsPrice) }} DZD</span>
@@ -58,10 +60,10 @@
                                     <span class="font-bold text-secondary dark:text-white">{{ formatPrice(totalBabiesPrice) }} DZD</span>
                                 </div>
                                 
-                                <div class="border-t border-gray-200 dark:border-slate-700 pt-3 mt-3 flex justify-between items-baseline">
-                                    <span class="font-extrabold text-base text-secondary dark:text-white">Montant Total</span>
-                                    <div class="text-primary text-3xl font-black">
-                                        {{ formatPrice(grandTotalPrice) }} <span class="text-sm text-gray-500 font-bold">DZD</span>
+                                <div class="border-t border-gray-200 dark:border-slate-700 pt-2.5 mt-2.5 flex justify-between items-baseline">
+                                    <span class="font-extrabold text-sm sm:text-base text-secondary dark:text-white">Montant Total</span>
+                                    <div class="text-primary text-2xl sm:text-3xl font-black">
+                                        {{ formatPrice(grandTotalPrice) }} <span class="text-xs sm:text-sm text-gray-500 font-bold">DZD</span>
                                     </div>
                                 </div>
                             </div>
