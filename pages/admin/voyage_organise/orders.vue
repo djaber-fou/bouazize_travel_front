@@ -785,7 +785,7 @@ const getOrder = async (id)=>{
 }
 
 const uploadOrderActionWithProgress = async (endpoint, filesList) => {
-    const config = useRuntimeConfig()
+    const baseUrl = (import.meta.env.VITE_BASE_URL || useRuntimeConfig()?.public?.apiBaseUrl || 'http://localhost:8000/api').replace(/\/+$/, '')
     const authStore = useAuthStore()
     const token = authStore.Authorization?.token
     const formData = new FormData()
@@ -793,7 +793,7 @@ const uploadOrderActionWithProgress = async (endpoint, filesList) => {
     formData.append('_method', 'PUT')
     uploadProgress.value = 1
 
-    const res = await axios.post(`${config.public.apiBaseUrl}${endpoint}`, formData, {
+    const res = await axios.post(`${baseUrl}${endpoint}`, formData, {
         headers: {
             Accept: 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
